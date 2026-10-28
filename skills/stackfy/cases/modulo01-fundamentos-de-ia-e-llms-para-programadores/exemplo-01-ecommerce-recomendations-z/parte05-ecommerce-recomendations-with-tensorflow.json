@@ -1,0 +1,419 @@
+{
+  "module": "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-01-ecommerce-recomendations-z/parte05-ecommerce-recomendations-with-tensorflow",
+  "concepts": ["browser-app", "neural-network-training"],
+  "recorded": "Original served by browser-sync 3.0.4 and driven in headless Google Chrome 152. It ran with npx browser-sync . --server --port $PORT --no-open --no-ui --no-notify instead of npm start, which fixes port 3000 and opens a browser, and no file was patched. TensorFlow.js, tfjs-vis, and Bootstrap come from jsdelivr, so the page needs network access. Training runs 100 epochs in the worker and takes seconds, more under load, so each page step waits up to two minutes. The order of recommended products changes with every training, so the cases check which products come first, never the whole order. Every case passed in each of 16 runs, and 12 more runs of the same steps showed the same products first.",
+  "originals": [
+    "npx browser-sync . --server --port $PORT --no-open --no-ui --no-notify"
+  ],
+  "cases": [
+    {
+      "name": "lists the users, the products, and every user's purchases, and charts the training it runs on load",
+      "serve": {
+        "port": 47325,
+        "ready": "/",
+        "page": {
+          "timeout": 120000,
+          "steps": [
+            {
+              "wait": "document.querySelectorAll('#userSelect option').length === 7 && document.querySelectorAll('#productList .product-card').length === 10"
+            },
+            {
+              "read": "[...document.querySelectorAll('#userSelect option')].map((option) => [option.value, option.innerText.trim()])"
+            },
+            {
+              "read": "[...document.querySelectorAll('#productList .product-card')].map((card) => card.innerText.replace(/\\s+/g, ' ').trim())"
+            },
+            {
+              "read": "[...document.querySelectorAll('#productList .buy-now-btn')].map((button) => button.disabled)"
+            },
+            {
+              "read": "document.querySelector('#runRecommendationBtn').disabled"
+            },
+            { "select": "#userSelect", "value": "1" },
+            {
+              "wait": "!document.querySelector('#runRecommendationBtn').disabled"
+            },
+            {
+              "read": "[document.querySelector('#trainModelBtn').innerText.trim(), document.querySelector('#trainModelBtn').disabled]"
+            },
+            {
+              "read": "['Precisão do Modelo', 'Erro de Treinamento'].map((chart) => document.body.innerText.includes(chart))"
+            },
+            {
+              "read": "document.querySelector('#allUsersPurchasesList')?.checkVisibility() ?? false"
+            },
+            { "click": "#purchasesDiv" },
+            {
+              "wait": "document.querySelector('#allUsersPurchasesList')?.checkVisibility()"
+            },
+            {
+              "read": "[...document.querySelectorAll('#allUsersPurchasesList .user-purchase-summary')].map((summary) => [...summary.querySelectorAll('h6, span')].map((element) => element.innerText.trim()))"
+            },
+            { "click": "#purchasesDiv" },
+            {
+              "read": "document.querySelector('#allUsersPurchasesList')?.checkVisibility() ?? false"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              ["", "-- Select a user --"],
+              ["99", "Josézin da Silva"],
+              ["1", "Ana Lima"],
+              ["2", "Bruno Ferreira"],
+              ["3", "Camila Souza"],
+              ["4", "Diego Almeida"],
+              ["5", "Eduarda Nunes"]
+            ],
+            [
+              "Fones de Ouvido Sem Fio eletrônicos Price: $129.99 Color: preto Buy Now",
+              "Relógio Inteligente eletrônicos Price: $199.99 Color: prata Buy Now",
+              "Caixa de Som Bluetooth eletrônicos Price: $89.99 Color: azul Buy Now",
+              "Camiseta Estampada vestuário Price: $49.99 Color: branco Buy Now",
+              "Calça Jeans Slim vestuário Price: $99.99 Color: azul Buy Now",
+              "Tênis Esportivo calçados Price: $149.99 Color: vermelho Buy Now",
+              "Sandália Casual calçados Price: $69.99 Color: bege Buy Now",
+              "Boné Estiloso acessórios Price: $39.99 Color: preto Buy Now",
+              "Mochila Executiva acessórios Price: $159.99 Color: cinza Buy Now",
+              "Óculos de Sol acessórios Price: $89.99 Color: marrom Buy Now"
+            ],
+            [true, true, true, true, true, true, true, true, true, true],
+            true,
+            ["Train Model", false],
+            [true, true],
+            false,
+            [
+              ["Josézin da Silva (Age: 30)", "No purchases"],
+              [
+                "Ana Lima (Age: 25)",
+                "Fones de Ouvido Sem Fio",
+                "Relógio Inteligente"
+              ],
+              [
+                "Bruno Ferreira (Age: 27)",
+                "Fones de Ouvido Sem Fio",
+                "Caixa de Som Bluetooth"
+              ],
+              [
+                "Camila Souza (Age: 30)",
+                "Camiseta Estampada",
+                "Calça Jeans Slim"
+              ],
+              [
+                "Diego Almeida (Age: 22)",
+                "Relógio Inteligente",
+                "Caixa de Som Bluetooth",
+                "Tênis Esportivo"
+              ],
+              [
+                "Eduarda Nunes (Age: 28)",
+                "Fones de Ouvido Sem Fio",
+                "Tênis Esportivo",
+                "Calça Jeans Slim"
+              ]
+            ],
+            false
+          ]
+        }
+      ]
+    },
+    {
+      "name": "shows the chosen user's age and past purchases, enables buying, and enables recommending once trained",
+      "serve": {
+        "port": 47325,
+        "ready": "/",
+        "page": {
+          "timeout": 120000,
+          "steps": [
+            {
+              "wait": "document.querySelectorAll('#userSelect option').length === 7 && document.querySelectorAll('#productList .product-card').length === 10"
+            },
+            { "select": "#userSelect", "value": "1" },
+            { "wait": "document.querySelector('#userAge').value === '25'" },
+            {
+              "read": "[...document.querySelectorAll('#pastPurchasesList .past-purchase')].map((purchase) => purchase.innerText.replace(/\\s+/g, ' ').trim())"
+            },
+            {
+              "read": "[...document.querySelectorAll('#productList .buy-now-btn')].map((button) => button.disabled)"
+            },
+            {
+              "wait": "!document.querySelector('#runRecommendationBtn').disabled"
+            },
+            { "select": "#userSelect", "value": "99" },
+            { "wait": "document.querySelector('#userAge').value === '30'" },
+            {
+              "read": "document.querySelector('#pastPurchasesList').innerText.trim()"
+            },
+            { "select": "#userSelect", "value": "" },
+            { "wait": "document.querySelector('#userAge').value === ''" },
+            {
+              "read": "document.querySelector('#pastPurchasesList').innerText.trim()"
+            },
+            {
+              "read": "[...document.querySelectorAll('#productList .buy-now-btn')].map((button) => button.disabled)"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              "Fones de Ouvido Sem Fio - Price 129.99 - Color preto",
+              "Relógio Inteligente - Price 199.99 - Color prata"
+            ],
+            [
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            "No past purchases found.",
+            "",
+            [
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "clicking a past purchase removes it from the user's purchases",
+      "serve": {
+        "port": 47325,
+        "ready": "/",
+        "page": {
+          "timeout": 120000,
+          "steps": [
+            {
+              "wait": "document.querySelectorAll('#userSelect option').length === 7 && document.querySelectorAll('#productList .product-card').length === 10"
+            },
+            { "select": "#userSelect", "value": "1" },
+            {
+              "wait": "document.querySelectorAll('#pastPurchasesList .past-purchase').length === 2"
+            },
+            { "click": "#pastPurchasesList .past-purchase" },
+            {
+              "wait": "document.querySelectorAll('#pastPurchasesList .past-purchase').length === 1"
+            },
+            {
+              "read": "[...document.querySelectorAll('#pastPurchasesList .past-purchase')].map((purchase) => purchase.innerText.replace(/\\s+/g, ' ').trim())"
+            },
+            { "click": "#pastPurchasesList .past-purchase" },
+            {
+              "wait": "document.querySelectorAll('#pastPurchasesList .past-purchase').length === 0 && document.querySelector('#pastPurchasesList').innerText.trim() !== ''"
+            },
+            {
+              "read": "document.querySelector('#pastPurchasesList').innerText.trim()"
+            },
+            { "click": "#purchasesDiv" },
+            {
+              "wait": "document.querySelector('#allUsersPurchasesList')?.checkVisibility()"
+            },
+            {
+              "read": "[...document.querySelectorAll('#allUsersPurchasesList .user-purchase-summary')].map((summary) => [...summary.querySelectorAll('h6, span')].map((element) => element.innerText.trim()))[1]"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            ["Relógio Inteligente - Price 199.99 - Color prata"],
+            "No past purchases found.",
+            ["Ana Lima (Age: 25)", "No purchases"]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "recommends each trained user's own purchases first, on Run Recommendation and on choosing the user",
+      "serve": {
+        "port": 47325,
+        "ready": "/",
+        "page": {
+          "timeout": 120000,
+          "steps": [
+            {
+              "wait": "document.querySelectorAll('#userSelect option').length === 7 && document.querySelectorAll('#productList .product-card').length === 10"
+            },
+            { "select": "#userSelect", "value": "2" },
+            {
+              "wait": "!document.querySelector('#runRecommendationBtn').disabled"
+            },
+            { "click": "#runRecommendationBtn" },
+            {
+              "wait": "[...document.querySelectorAll('#productList .product-card .card-title')].slice(0, 2).map((title) => title.innerText.trim()).sort().join(', ') === 'Caixa de Som Bluetooth, Fones de Ouvido Sem Fio'"
+            },
+            {
+              "read": "[...document.querySelectorAll('#productList .product-card')].slice(0, 2).map((card) => card.innerText.replace(/\\s+/g, ' ').trim()).sort()"
+            },
+            {
+              "read": "[...document.querySelectorAll('#productList .product-card .card-title')].map((title) => title.innerText.trim()).sort()"
+            },
+            {
+              "read": "[...document.querySelectorAll('#productList .buy-now-btn')].map((button) => button.disabled)"
+            },
+            { "select": "#userSelect", "value": "3" },
+            {
+              "wait": "[...document.querySelectorAll('#productList .product-card .card-title')].slice(0, 2).map((title) => title.innerText.trim()).sort().join(', ') === 'Calça Jeans Slim, Camiseta Estampada'"
+            },
+            {
+              "read": "[...document.querySelectorAll('#productList .product-card')].slice(0, 2).map((card) => card.innerText.replace(/\\s+/g, ' ').trim()).sort()"
+            },
+            { "select": "#userSelect", "value": "4" },
+            {
+              "wait": "[...document.querySelectorAll('#productList .product-card .card-title')].slice(0, 3).map((title) => title.innerText.trim()).sort().join(', ') === 'Caixa de Som Bluetooth, Relógio Inteligente, Tênis Esportivo'"
+            },
+            {
+              "read": "[...document.querySelectorAll('#productList .product-card')].slice(0, 3).map((card) => card.innerText.replace(/\\s+/g, ' ').trim()).sort()"
+            },
+            { "select": "#userSelect", "value": "5" },
+            {
+              "wait": "[...document.querySelectorAll('#productList .product-card .card-title')].slice(0, 3).map((title) => title.innerText.trim()).sort().join(', ') === 'Calça Jeans Slim, Fones de Ouvido Sem Fio, Tênis Esportivo'"
+            },
+            {
+              "read": "[...document.querySelectorAll('#productList .product-card')].slice(0, 3).map((card) => card.innerText.replace(/\\s+/g, ' ').trim()).sort()"
+            },
+            { "select": "#userSelect", "value": "1" },
+            {
+              "wait": "[...document.querySelectorAll('#productList .product-card .card-title')].slice(0, 2).map((title) => title.innerText.trim()).sort().join(', ') === 'Fones de Ouvido Sem Fio, Relógio Inteligente'"
+            },
+            {
+              "read": "[...document.querySelectorAll('#productList .product-card')].slice(0, 2).map((card) => card.innerText.replace(/\\s+/g, ' ').trim()).sort()"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              "Caixa de Som Bluetooth eletrônicos Price: $89.99 Color: azul Buy Now",
+              "Fones de Ouvido Sem Fio eletrônicos Price: $129.99 Color: preto Buy Now"
+            ],
+            [
+              "Boné Estiloso",
+              "Caixa de Som Bluetooth",
+              "Calça Jeans Slim",
+              "Camiseta Estampada",
+              "Fones de Ouvido Sem Fio",
+              "Mochila Executiva",
+              "Relógio Inteligente",
+              "Sandália Casual",
+              "Tênis Esportivo",
+              "Óculos de Sol"
+            ],
+            [
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false,
+              false
+            ],
+            [
+              "Calça Jeans Slim vestuário Price: $99.99 Color: azul Buy Now",
+              "Camiseta Estampada vestuário Price: $49.99 Color: branco Buy Now"
+            ],
+            [
+              "Caixa de Som Bluetooth eletrônicos Price: $89.99 Color: azul Buy Now",
+              "Relógio Inteligente eletrônicos Price: $199.99 Color: prata Buy Now",
+              "Tênis Esportivo calçados Price: $149.99 Color: vermelho Buy Now"
+            ],
+            [
+              "Calça Jeans Slim vestuário Price: $99.99 Color: azul Buy Now",
+              "Fones de Ouvido Sem Fio eletrônicos Price: $129.99 Color: preto Buy Now",
+              "Tênis Esportivo calçados Price: $149.99 Color: vermelho Buy Now"
+            ],
+            [
+              "Fones de Ouvido Sem Fio eletrônicos Price: $129.99 Color: preto Buy Now",
+              "Relógio Inteligente eletrônicos Price: $199.99 Color: prata Buy Now"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "training again after a user without purchases buys a product recommends that product to them first",
+      "serve": {
+        "port": 47325,
+        "ready": "/",
+        "page": {
+          "timeout": 120000,
+          "steps": [
+            {
+              "wait": "document.querySelectorAll('#userSelect option').length === 7 && document.querySelectorAll('#productList .product-card').length === 10"
+            },
+            { "select": "#userSelect", "value": "99" },
+            {
+              "wait": "!document.querySelector('#runRecommendationBtn').disabled"
+            },
+            { "click": "#productList > :last-child .buy-now-btn" },
+            {
+              "wait": "document.querySelectorAll('#pastPurchasesList .past-purchase').length === 1"
+            },
+            {
+              "read": "(() => { const bought = document.querySelector('#pastPurchasesList .past-purchase').innerText.trim(); return [...document.querySelectorAll('#productList .product-card .card-title')].findIndex((title) => bought.startsWith(`${title.innerText.trim()} - `)); })()"
+            },
+            {
+              "read": "(() => { const button = document.querySelector('#trainModelBtn'); const state = () => [button.innerText.trim(), button.disabled]; window.trainingStates = []; new MutationObserver(() => { if (JSON.stringify(state()) !== JSON.stringify(window.trainingStates.at(-1))) window.trainingStates.push(state()); }).observe(button, { attributes: true, childList: true, subtree: true }); return state(); })()"
+            },
+            { "click": "#trainModelBtn" },
+            {
+              "wait": "window.trainingStates.length > 0 && !window.trainingStates.at(-1)[1]"
+            },
+            { "read": "window.trainingStates" },
+            { "click": "#runRecommendationBtn" },
+            {
+              "wait": "(() => { const bought = document.querySelector('#pastPurchasesList .past-purchase').innerText.trim(); return [...document.querySelectorAll('#productList .product-card .card-title')].findIndex((title) => bought.startsWith(`${title.innerText.trim()} - `)); })() !== 9"
+            },
+            {
+              "read": "(() => { const bought = document.querySelector('#pastPurchasesList .past-purchase').innerText.trim(); return [...document.querySelectorAll('#productList .product-card .card-title')].findIndex((title) => bought.startsWith(`${title.innerText.trim()} - `)); })()"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            9,
+            ["Train Model", false],
+            [
+              ["Training...", true],
+              ["Train Model", false]
+            ],
+            0
+          ]
+        }
+      ]
+    }
+  ]
+}

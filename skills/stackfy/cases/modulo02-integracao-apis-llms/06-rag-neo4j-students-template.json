@@ -1,0 +1,1276 @@
+{
+  "module": "modulo02-integracao-apis-llms/06-rag-neo4j-students-template",
+  "concepts": [
+    "graph-database",
+    "text-to-query",
+    "retrieval-augmented-generation",
+    "state-graph",
+    "rest-api",
+    "chat-model",
+    "schema-validation",
+    "model-routing"
+  ],
+  "recorded": "Every case passed against the original in each of 7 runs, with Node.js 26.12.1, fastify 5.7.4, @langchain/community 1.1.17, @langchain/core 1.1.27, @langchain/langgraph 1.1.5, @langchain/openai 1.2.9, langchain 1.2.25, zod 3.25.76, neo4j-driver 5.28.3, and @faker-js/faker 9.9.0, installed from the module's lockfile and run as \"node {program}.ts\" without a .env file, which the npm scripts require through --env-file, so LangSmith tracing stays off, where the programs are the server, src/index, the seed, data/seed, which npm run seed runs under --watch, and the module's end-to-end tests, tests/sales.e2e.test. The original always listens on port 4000, so the copy that produced these cases listens on PORT, falling back to 4000, a one-line change in src/index.ts that leaves the startup line naming 4000. The template's nodes call no model, so the cases replay nothing and expect no requests. The service is Neo4j 5.14.0 community with APOC, from the lesson's compose file with an override passed on standard input, which gives the container a name of its own, keeps Bolt on port 7687, which the configuration hardcodes and which must be free, publishes the HTTP API on port 48161, leaves out the bind mounts so nothing is written in the module's folder and every run of the file starts with an empty database, and adds a cypher-shell healthcheck, so the services start only once Neo4j answers queries. The server never connects to it. At startup the server sends its own route a question through Fastify's inject and prints the answer, so every server case waits for that answer before sending its requests, and checks the time each analysis took as digits. Fastify's error bodies are checked by status code, statusCode, and error, with any non-empty message, because the validation messages come from Ajv, except the unknown routes, whose messages are short and checked exactly. The handler's 500 answer is never checked, because every node of the template catches its own failures. The seed's students, sales, and progress come from Faker without a seed, so after each run of the seed and of the tests the cases ask Neo4j's HTTP API, as neo4j with the password password, for the graph's shape instead of its values, and accept without requiring the line Schema refreshed successfully., which LangChain's Neo4jGraph prints when it connects. The tests program is checked by whether it fails, never by its report: three of its ten tests expect course names, metrics, or follow-up questions the template never produces. The LangGraph CLI's development server, which factory.ts and langgraph.json register the graph for, belongs to the CLI and has no cases.",
+  "prepare": {
+    "setup": ["npm ci --no-audit --no-fund"],
+    "patches": [
+      {
+        "file": "src/index.ts",
+        "find": "{ port: 4000, host",
+        "replace": "{ port: Number(process.env.PORT ?? 4000), host"
+      }
+    ]
+  },
+  "originals": ["node {program}.ts"],
+  "services": {
+    "up": "docker compose -f docker-compose.yaml -f - -p stackfy-06-rag-neo4j-students-template up -d --wait <<'EOF'\nservices:\n  neo4j:\n    container_name: stackfy-06-rag-neo4j-students-template-neo4j\n    ports: !override ['48161:7474', '7687:7687']\n    volumes: !reset []\n    healthcheck:\n      test: ['CMD-SHELL', 'cypher-shell -u neo4j -p password \"RETURN 1\"']\n      interval: 2s\n      timeout: 10s\n      retries: 90\nEOF",
+    "down": "docker compose -f docker-compose.yaml -p stackfy-06-rag-neo4j-students-template down -v",
+    "ready": [
+      {
+        "port": 7687
+      },
+      {
+        "port": 48161
+      }
+    ]
+  },
+  "env": {
+    "OPENROUTER_API_KEY": "replay"
+  },
+  "cases": [
+    {
+      "name": "with an empty database, the seed clears it, then stores the 10 courses of courses.json, 20 random students, their purchases, and a progress for every paid one",
+      "program": "data/seed",
+      "inspect": [
+        {
+          "method": "POST",
+          "port": 48161,
+          "path": "/db/neo4j/tx/commit",
+          "headers": {
+            "authorization": "Basic bmVvNGo6cGFzc3dvcmQ="
+          },
+          "json": {
+            "statements": [
+              {
+                "statement": "MATCH (n) RETURN labels(n) AS labels, count(n) AS nodes ORDER BY labels"
+              },
+              {
+                "statement": "MATCH (start)-[r]->(end) RETURN DISTINCT labels(start) AS start, type(r) AS type, labels(end) AS end ORDER BY type"
+              },
+              {
+                "statement": "MATCH (n) UNWIND keys(n) AS property RETURN DISTINCT labels(n) AS labels, property, valueType(n[property]) AS type ORDER BY labels, property"
+              },
+              {
+                "statement": "MATCH ()-[r]->() UNWIND keys(r) AS property RETURN DISTINCT type(r) AS relationship, property, valueType(r[property]) AS type ORDER BY relationship, property"
+              },
+              {
+                "statement": "MATCH (course:Course) RETURN course.name AS name, course.url AS url ORDER BY name"
+              },
+              {
+                "statement": "MATCH (student:Student) RETURN count(student) AS students, count(DISTINCT student.id) AS ids, all(student IN collect(student) WHERE student.id =~ '[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}') AS uuids, all(student IN collect(student) WHERE size(trim(student.name)) > 0 AND size(trim(student.phone)) > 0) AS named, all(student IN collect(student) WHERE student.email =~ '[^@\\\\s]+@[^@\\\\s]+\\\\.[^@\\\\s]+') AS emails, min(COUNT { (student)-[:PURCHASED]->(:Course) }) >= 1 AND max(COUNT { (student)-[:PURCHASED]->(:Course) }) <= 10 AS purchases"
+              },
+              {
+                "statement": "MATCH (:Student)-[purchase:PURCHASED]->(:Course) RETURN collect(DISTINCT purchase.status) AS statuses, collect(DISTINCT purchase.paymentMethod) AS methods, all(purchase IN collect(purchase) WHERE 0 <= purchase.amount <= 2000 AND round(purchase.amount, 2) = purchase.amount) AS amounts, all(purchase IN collect(purchase) WHERE purchase.paymentDate =~ '\\\\d{4}-\\\\d{2}-\\\\d{2}T\\\\d{2}:\\\\d{2}:\\\\d{2}\\\\.\\\\d{3}Z' AND datetime() - duration('P1Y1D') <= datetime(purchase.paymentDate) <= datetime()) AS dates"
+              },
+              {
+                "statement": "MATCH (student:Student)-[r]->(course:Course) WITH student, course, type(r) AS type, count(r) AS times RETURN max(times) AS most"
+              },
+              {
+                "statement": "MATCH (student:Student)-[purchase:PURCHASED]->(course:Course) RETURN sum(CASE WHEN (purchase.status = 'paid') = EXISTS { (student)-[:PROGRESS]->(course) } THEN 0 ELSE 1 END) AS mismatches"
+              },
+              {
+                "statement": "MATCH (student:Student)-[progress:PROGRESS]->(course:Course) RETURN count(progress) > 0 AS present, all(progress IN collect(progress) WHERE 0 <= progress.progress <= 100 AND progress.progress = round(progress.progress)) AS percentages, sum(CASE WHEN EXISTS { (student)-[:PURCHASED]->(course) } THEN 0 ELSE 1 END) AS orphans"
+              }
+            ]
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^🧹 Clearing database\\.\\.\\.\\n(?:Schema refreshed successfully\\.\\n)?✅ Database cleared\\n✅ Database cleared!\\n✅ Courses Inserted!\\n✅ Students Inserted!\\n✅ Sales Inserted!\\n✅ Progress Inserted!\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "results": {
+                  "$like": [
+                    {
+                      "data": [
+                        {
+                          "row": [["Course"], 10]
+                        },
+                        {
+                          "row": [["Student"], 20]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [["Student"], "PROGRESS", ["Course"]]
+                        },
+                        {
+                          "row": [["Student"], "PURCHASED", ["Course"]]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [["Course"], "name", "STRING NOT NULL"]
+                        },
+                        {
+                          "row": [["Course"], "url", "STRING NOT NULL"]
+                        },
+                        {
+                          "row": [["Student"], "email", "STRING NOT NULL"]
+                        },
+                        {
+                          "row": [["Student"], "id", "STRING NOT NULL"]
+                        },
+                        {
+                          "row": [["Student"], "name", "STRING NOT NULL"]
+                        },
+                        {
+                          "row": [["Student"], "phone", "STRING NOT NULL"]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": ["PROGRESS", "progress", "FLOAT NOT NULL"]
+                        },
+                        {
+                          "row": ["PURCHASED", "amount", "FLOAT NOT NULL"]
+                        },
+                        {
+                          "row": ["PURCHASED", "paymentDate", "STRING NOT NULL"]
+                        },
+                        {
+                          "row": [
+                            "PURCHASED",
+                            "paymentMethod",
+                            "STRING NOT NULL"
+                          ]
+                        },
+                        {
+                          "row": ["PURCHASED", "status", "STRING NOT NULL"]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [
+                            "Criando seu Próprio App Zoom com WebRTC e WebSockets",
+                            "https://ew.academy/zoom?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Formação JavaScript Expert",
+                            "https://ew.academy/javascript-expert?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Machine Learning em Navegadores",
+                            "https://ew.academy/machine-learning?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Mastering Node.js Streams",
+                            "https://ew.academy/nodejsstreams?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Método Testes Automatizados em JavaScript",
+                            "https://ew.academy/metodo-tajs?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Recriando o App Clubhouse",
+                            "https://ew.academy/recriando-club-house?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Recriando o Player de Vídeo da Netflix",
+                            "https://ew.academy/recriando-a-netflix?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Reimaginando o Multi-Upload de Arquivos do Google Drive",
+                            "https://ew.academy/recriando-google-drive?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Reimaginando o Processamento de Vídeos do Maior Site do Mundo",
+                            "https://ew.academy/reimaginando-o-processamento-de-videos-do-maior-site-do-mundo?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Reimaginando um Rádio Musical Online Usando Spotify como Exemplo",
+                            "https://ew.academy/recriando-o-spotify?utm_source=neo4j-vector-demo"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [20, 20, true, true, true, true]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [
+                            {
+                              "$unordered": ["paid", "refunded"]
+                            },
+                            {
+                              "$unordered": ["pix", "credit_card"]
+                            },
+                            true,
+                            true
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [1]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [0]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [true, true, 0]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "errors": []
+              }
+            }
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "run again over the graph the first run stored, the seed deletes it first, so the database still holds 10 courses and 20 students",
+      "program": "data/seed",
+      "inspect": [
+        {
+          "method": "POST",
+          "port": 48161,
+          "path": "/db/neo4j/tx/commit",
+          "headers": {
+            "authorization": "Basic bmVvNGo6cGFzc3dvcmQ="
+          },
+          "json": {
+            "statements": [
+              {
+                "statement": "MATCH (n) RETURN labels(n) AS labels, count(n) AS nodes ORDER BY labels"
+              },
+              {
+                "statement": "MATCH (start)-[r]->(end) RETURN DISTINCT labels(start) AS start, type(r) AS type, labels(end) AS end ORDER BY type"
+              },
+              {
+                "statement": "MATCH (n) UNWIND keys(n) AS property RETURN DISTINCT labels(n) AS labels, property, valueType(n[property]) AS type ORDER BY labels, property"
+              },
+              {
+                "statement": "MATCH ()-[r]->() UNWIND keys(r) AS property RETURN DISTINCT type(r) AS relationship, property, valueType(r[property]) AS type ORDER BY relationship, property"
+              },
+              {
+                "statement": "MATCH (course:Course) RETURN course.name AS name, course.url AS url ORDER BY name"
+              },
+              {
+                "statement": "MATCH (student:Student) RETURN count(student) AS students, count(DISTINCT student.id) AS ids, all(student IN collect(student) WHERE student.id =~ '[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}') AS uuids, all(student IN collect(student) WHERE size(trim(student.name)) > 0 AND size(trim(student.phone)) > 0) AS named, all(student IN collect(student) WHERE student.email =~ '[^@\\\\s]+@[^@\\\\s]+\\\\.[^@\\\\s]+') AS emails, min(COUNT { (student)-[:PURCHASED]->(:Course) }) >= 1 AND max(COUNT { (student)-[:PURCHASED]->(:Course) }) <= 10 AS purchases"
+              },
+              {
+                "statement": "MATCH (:Student)-[purchase:PURCHASED]->(:Course) RETURN collect(DISTINCT purchase.status) AS statuses, collect(DISTINCT purchase.paymentMethod) AS methods, all(purchase IN collect(purchase) WHERE 0 <= purchase.amount <= 2000 AND round(purchase.amount, 2) = purchase.amount) AS amounts, all(purchase IN collect(purchase) WHERE purchase.paymentDate =~ '\\\\d{4}-\\\\d{2}-\\\\d{2}T\\\\d{2}:\\\\d{2}:\\\\d{2}\\\\.\\\\d{3}Z' AND datetime() - duration('P1Y1D') <= datetime(purchase.paymentDate) <= datetime()) AS dates"
+              },
+              {
+                "statement": "MATCH (student:Student)-[r]->(course:Course) WITH student, course, type(r) AS type, count(r) AS times RETURN max(times) AS most"
+              },
+              {
+                "statement": "MATCH (student:Student)-[purchase:PURCHASED]->(course:Course) RETURN sum(CASE WHEN (purchase.status = 'paid') = EXISTS { (student)-[:PROGRESS]->(course) } THEN 0 ELSE 1 END) AS mismatches"
+              },
+              {
+                "statement": "MATCH (student:Student)-[progress:PROGRESS]->(course:Course) RETURN count(progress) > 0 AS present, all(progress IN collect(progress) WHERE 0 <= progress.progress <= 100 AND progress.progress = round(progress.progress)) AS percentages, sum(CASE WHEN EXISTS { (student)-[:PURCHASED]->(course) } THEN 0 ELSE 1 END) AS orphans"
+              }
+            ]
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^🧹 Clearing database\\.\\.\\.\\n(?:Schema refreshed successfully\\.\\n)?✅ Database cleared\\n✅ Database cleared!\\n✅ Courses Inserted!\\n✅ Students Inserted!\\n✅ Sales Inserted!\\n✅ Progress Inserted!\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "results": {
+                  "$like": [
+                    {
+                      "data": [
+                        {
+                          "row": [["Course"], 10]
+                        },
+                        {
+                          "row": [["Student"], 20]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [["Student"], "PROGRESS", ["Course"]]
+                        },
+                        {
+                          "row": [["Student"], "PURCHASED", ["Course"]]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [["Course"], "name", "STRING NOT NULL"]
+                        },
+                        {
+                          "row": [["Course"], "url", "STRING NOT NULL"]
+                        },
+                        {
+                          "row": [["Student"], "email", "STRING NOT NULL"]
+                        },
+                        {
+                          "row": [["Student"], "id", "STRING NOT NULL"]
+                        },
+                        {
+                          "row": [["Student"], "name", "STRING NOT NULL"]
+                        },
+                        {
+                          "row": [["Student"], "phone", "STRING NOT NULL"]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": ["PROGRESS", "progress", "FLOAT NOT NULL"]
+                        },
+                        {
+                          "row": ["PURCHASED", "amount", "FLOAT NOT NULL"]
+                        },
+                        {
+                          "row": ["PURCHASED", "paymentDate", "STRING NOT NULL"]
+                        },
+                        {
+                          "row": [
+                            "PURCHASED",
+                            "paymentMethod",
+                            "STRING NOT NULL"
+                          ]
+                        },
+                        {
+                          "row": ["PURCHASED", "status", "STRING NOT NULL"]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [
+                            "Criando seu Próprio App Zoom com WebRTC e WebSockets",
+                            "https://ew.academy/zoom?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Formação JavaScript Expert",
+                            "https://ew.academy/javascript-expert?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Machine Learning em Navegadores",
+                            "https://ew.academy/machine-learning?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Mastering Node.js Streams",
+                            "https://ew.academy/nodejsstreams?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Método Testes Automatizados em JavaScript",
+                            "https://ew.academy/metodo-tajs?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Recriando o App Clubhouse",
+                            "https://ew.academy/recriando-club-house?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Recriando o Player de Vídeo da Netflix",
+                            "https://ew.academy/recriando-a-netflix?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Reimaginando o Multi-Upload de Arquivos do Google Drive",
+                            "https://ew.academy/recriando-google-drive?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Reimaginando o Processamento de Vídeos do Maior Site do Mundo",
+                            "https://ew.academy/reimaginando-o-processamento-de-videos-do-maior-site-do-mundo?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Reimaginando um Rádio Musical Online Usando Spotify como Exemplo",
+                            "https://ew.academy/recriando-o-spotify?utm_source=neo4j-vector-demo"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [20, 20, true, true, true, true]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [
+                            {
+                              "$unordered": ["paid", "refunded"]
+                            },
+                            {
+                              "$unordered": ["pix", "credit_card"]
+                            },
+                            true,
+                            true
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [1]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [0]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [true, true, 0]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "errors": []
+              }
+            }
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "at startup the server sends its own route the question about courses bought together and prints No answer generated, then answers every question with that answer and no follow-up questions, since the stub nodes set neither",
+      "program": "src/index",
+      "serve": {
+        "port": 48163,
+        "after": "\\nNo answer generated\\n$",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/sales",
+            "json": {
+              "question": "List all available courses"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/sales",
+            "json": {
+              "question": "Quantos cursos tem na academia?"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/sales",
+            "json": {
+              "question": "Find courses that students typically purchase after 'Machine Learning em Navegadores'"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/sales",
+            "json": {
+              "question": "What is the weather today?"
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "answer": "No answer generated",
+                "followUpQuestions": []
+              },
+              "pattern": "^(?![\\s\\S]*\"(?:query|error)\"\\s*:)"
+            },
+            {
+              "status": 200,
+              "match": {
+                "answer": "No answer generated",
+                "followUpQuestions": []
+              },
+              "pattern": "^(?![\\s\\S]*\"(?:query|error)\"\\s*:)"
+            },
+            {
+              "status": 200,
+              "match": {
+                "answer": "No answer generated",
+                "followUpQuestions": []
+              },
+              "pattern": "^(?![\\s\\S]*\"(?:query|error)\"\\s*:)"
+            },
+            {
+              "status": 200,
+              "match": {
+                "answer": "No answer generated",
+                "followUpQuestions": []
+              },
+              "pattern": "^(?![\\s\\S]*\"(?:query|error)\"\\s*:)"
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^Server is running on http://0\\.0\\.0\\.0:\\d+\\n\\n═{60}\\n📊 Sales Analytics: \"Which courses are commonly bought together\\?\"\\n═{60}\\n📝 Extracted question: \"Which courses are commonly bought together\\?\"\\n\\n═{60}\\n✅ Analysis completed in \\d+ms\\n💬 Answer: undefined\\n❓ Follow-ups: 0 suggested\\n═{60}\\n\\nNo answer generated\\n\\n═{60}\\n📊 Sales Analytics: \"List all available courses\"\\n═{60}\\n📝 Extracted question: \"List all available courses\"\\n\\n═{60}\\n✅ Analysis completed in \\d+ms\\n💬 Answer: undefined\\n❓ Follow-ups: 0 suggested\\n═{60}\\n\\n\\n═{60}\\n📊 Sales Analytics: \"Quantos cursos tem na academia\\?\"\\n═{60}\\n📝 Extracted question: \"Quantos cursos tem na academia\\?\"\\n\\n═{60}\\n✅ Analysis completed in \\d+ms\\n💬 Answer: undefined\\n❓ Follow-ups: 0 suggested\\n═{60}\\n\\n\\n═{60}\\n📊 Sales Analytics: \"Find courses that students typically purchase after 'Machine Learning em Navegadores'\"\\n═{60}\\n📝 Extracted question: \"Find courses that students typically purchase after 'Machine Learning em Navegadores'\"\\n\\n═{60}\\n✅ Analysis completed in \\d+ms\\n💬 Answer: undefined\\n❓ Follow-ups: 0 suggested\\n═{60}\\n\\n\\n═{60}\\n📊 Sales Analytics: \"What is the weather today\\?\"\\n═{60}\\n📝 Extracted question: \"What is the weather today\\?\"\\n\\n═{60}\\n✅ Analysis completed in \\d+ms\\n💬 Answer: undefined\\n❓ Follow-ups: 0 suggested\\n═{60}\\n\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        },
+        {
+          "type": "requests",
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a question of whitespace passes the schema, and the graph ends right after extracting it with the error No valid question found in messages, which the answer carries",
+      "program": "src/index",
+      "serve": {
+        "port": 48164,
+        "after": "\\nNo answer generated\\n$",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/sales",
+            "json": {
+              "question": "   "
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/sales",
+            "json": {
+              "question": "\t \n"
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "answer": "No answer generated",
+                "followUpQuestions": [],
+                "error": "No valid question found in messages"
+              },
+              "pattern": "^(?![\\s\\S]*\"query\"\\s*:)"
+            },
+            {
+              "status": 200,
+              "match": {
+                "answer": "No answer generated",
+                "followUpQuestions": [],
+                "error": "No valid question found in messages"
+              },
+              "pattern": "^(?![\\s\\S]*\"query\"\\s*:)"
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^Server is running on http://0\\.0\\.0\\.0:\\d+\\n\\n═{60}\\n📊 Sales Analytics: \"Which courses are commonly bought together\\?\"\\n═{60}\\n📝 Extracted question: \"Which courses are commonly bought together\\?\"\\n\\n═{60}\\n✅ Analysis completed in \\d+ms\\n💬 Answer: undefined\\n❓ Follow-ups: 0 suggested\\n═{60}\\n\\nNo answer generated\\n\\n═{60}\\n📊 Sales Analytics: \"   \"\\n═{60}\\n\\n═{60}\\n✅ Analysis completed in \\d+ms\\n💬 Answer: undefined\\n❓ Follow-ups: 0 suggested\\n═{60}\\n\\n\\n═{60}\\n📊 Sales Analytics: \"\\t \\n\"\\n═{60}\\n\\n═{60}\\n✅ Analysis completed in \\d+ms\\n💬 Answer: undefined\\n❓ Follow-ups: 0 suggested\\n═{60}\\n\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Extracted question is empty\\nExtracted question is empty\\n$"
+        },
+        {
+          "type": "requests",
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "the question needs at least 3 characters, counted as code points",
+      "program": "src/index",
+      "serve": {
+        "port": 48165,
+        "after": "\\nNo answer generated\\n$",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/sales",
+            "json": {
+              "question": "ab"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/sales",
+            "json": {
+              "question": "abc"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/sales",
+            "json": {
+              "question": "çã"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/sales",
+            "json": {
+              "question": "ção"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/sales",
+            "json": {
+              "question": "🙂🙂"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/sales",
+            "json": {
+              "question": "🙂🙂🙂"
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 200,
+              "match": {
+                "answer": "No answer generated",
+                "followUpQuestions": []
+              },
+              "pattern": "^(?![\\s\\S]*\"(?:query|error)\"\\s*:)"
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 200,
+              "match": {
+                "answer": "No answer generated",
+                "followUpQuestions": []
+              },
+              "pattern": "^(?![\\s\\S]*\"(?:query|error)\"\\s*:)"
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 200,
+              "match": {
+                "answer": "No answer generated",
+                "followUpQuestions": []
+              },
+              "pattern": "^(?![\\s\\S]*\"(?:query|error)\"\\s*:)"
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^Server is running on http://0\\.0\\.0\\.0:\\d+\\n\\n═{60}\\n📊 Sales Analytics: \"Which courses are commonly bought together\\?\"\\n═{60}\\n📝 Extracted question: \"Which courses are commonly bought together\\?\"\\n\\n═{60}\\n✅ Analysis completed in \\d+ms\\n💬 Answer: undefined\\n❓ Follow-ups: 0 suggested\\n═{60}\\n\\nNo answer generated\\n\\n═{60}\\n📊 Sales Analytics: \"abc\"\\n═{60}\\n📝 Extracted question: \"abc\"\\n\\n═{60}\\n✅ Analysis completed in \\d+ms\\n💬 Answer: undefined\\n❓ Follow-ups: 0 suggested\\n═{60}\\n\\n\\n═{60}\\n📊 Sales Analytics: \"ção\"\\n═{60}\\n📝 Extracted question: \"ção\"\\n\\n═{60}\\n✅ Analysis completed in \\d+ms\\n💬 Answer: undefined\\n❓ Follow-ups: 0 suggested\\n═{60}\\n\\n\\n═{60}\\n📊 Sales Analytics: \"🙂🙂🙂\"\\n═{60}\\n📝 Extracted question: \"🙂🙂🙂\"\\n\\n═{60}\\n✅ Analysis completed in \\d+ms\\n💬 Answer: undefined\\n❓ Follow-ups: 0 suggested\\n═{60}\\n\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        },
+        {
+          "type": "requests",
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "the route rejects a missing question, a body that is not a JSON object, other media types, and unknown routes, the /chat of the entry point's curl comment included",
+      "program": "src/index",
+      "serve": {
+        "port": 48166,
+        "after": "\\nNo answer generated\\n$",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/sales",
+            "json": {}
+          },
+          {
+            "method": "POST",
+            "path": "/sales",
+            "json": {
+              "message": "List all available courses"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/sales",
+            "json": ["List all available courses"]
+          },
+          {
+            "method": "POST",
+            "path": "/sales"
+          },
+          {
+            "method": "POST",
+            "path": "/sales",
+            "headers": {
+              "content-type": "application/json"
+            },
+            "body": "{\"question\":"
+          },
+          {
+            "method": "POST",
+            "path": "/sales",
+            "headers": {
+              "content-type": "text/plain"
+            },
+            "body": "List all available courses"
+          },
+          {
+            "method": "POST",
+            "path": "/sales",
+            "headers": {
+              "content-type": "application/x-www-form-urlencoded"
+            },
+            "body": "question=List+all+available+courses"
+          },
+          {
+            "method": "GET",
+            "path": "/sales"
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": {
+              "question": "upper"
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 415,
+              "match": {
+                "statusCode": 415,
+                "error": "Unsupported Media Type"
+              },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 404,
+              "match": {
+                "statusCode": 404,
+                "error": "Not Found",
+                "message": "Route GET:/sales not found"
+              }
+            },
+            {
+              "status": 404,
+              "match": {
+                "statusCode": 404,
+                "error": "Not Found",
+                "message": "Route POST:/chat not found"
+              }
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^Server is running on http://0\\.0\\.0\\.0:\\d+\\n\\n═{60}\\n📊 Sales Analytics: \"Which courses are commonly bought together\\?\"\\n═{60}\\n📝 Extracted question: \"Which courses are commonly bought together\\?\"\\n\\n═{60}\\n✅ Analysis completed in \\d+ms\\n💬 Answer: undefined\\n❓ Follow-ups: 0 suggested\\n═{60}\\n\\nNo answer generated\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        },
+        {
+          "type": "requests",
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "the template answers without an OpenRouter key and prints nothing about it",
+      "program": "src/index",
+      "env": {
+        "OPENROUTER_API_KEY": ""
+      },
+      "serve": {
+        "port": 48167,
+        "after": "\\nNo answer generated\\n$",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/sales",
+            "json": {
+              "question": "Which users have progressed over 80%?"
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "answer": "No answer generated",
+                "followUpQuestions": []
+              },
+              "pattern": "^(?![\\s\\S]*\"(?:query|error)\"\\s*:)"
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^Server is running on http://0\\.0\\.0\\.0:\\d+\\n\\n═{60}\\n📊 Sales Analytics: \"Which courses are commonly bought together\\?\"\\n═{60}\\n📝 Extracted question: \"Which courses are commonly bought together\\?\"\\n\\n═{60}\\n✅ Analysis completed in \\d+ms\\n💬 Answer: undefined\\n❓ Follow-ups: 0 suggested\\n═{60}\\n\\nNo answer generated\\n\\n═{60}\\n📊 Sales Analytics: \"Which users have progressed over 80%\\?\"\\n═{60}\\n📝 Extracted question: \"Which users have progressed over 80%\\?\"\\n\\n═{60}\\n✅ Analysis completed in \\d+ms\\n💬 Answer: undefined\\n❓ Follow-ups: 0 suggested\\n═{60}\\n\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        },
+        {
+          "type": "requests",
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "the tests seed the database and send ten questions through the route, and fail, since the template never answers with course names, metrics, or follow-up questions",
+      "program": "tests/sales.e2e.test",
+      "inspect": [
+        {
+          "method": "POST",
+          "port": 48161,
+          "path": "/db/neo4j/tx/commit",
+          "headers": {
+            "authorization": "Basic bmVvNGo6cGFzc3dvcmQ="
+          },
+          "json": {
+            "statements": [
+              {
+                "statement": "MATCH (n) RETURN labels(n) AS labels, count(n) AS nodes ORDER BY labels"
+              },
+              {
+                "statement": "MATCH (start)-[r]->(end) RETURN DISTINCT labels(start) AS start, type(r) AS type, labels(end) AS end ORDER BY type"
+              },
+              {
+                "statement": "MATCH (n) UNWIND keys(n) AS property RETURN DISTINCT labels(n) AS labels, property, valueType(n[property]) AS type ORDER BY labels, property"
+              },
+              {
+                "statement": "MATCH ()-[r]->() UNWIND keys(r) AS property RETURN DISTINCT type(r) AS relationship, property, valueType(r[property]) AS type ORDER BY relationship, property"
+              },
+              {
+                "statement": "MATCH (course:Course) RETURN course.name AS name, course.url AS url ORDER BY name"
+              },
+              {
+                "statement": "MATCH (student:Student) RETURN count(student) AS students, count(DISTINCT student.id) AS ids, all(student IN collect(student) WHERE student.id =~ '[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}') AS uuids, all(student IN collect(student) WHERE size(trim(student.name)) > 0 AND size(trim(student.phone)) > 0) AS named, all(student IN collect(student) WHERE student.email =~ '[^@\\\\s]+@[^@\\\\s]+\\\\.[^@\\\\s]+') AS emails, min(COUNT { (student)-[:PURCHASED]->(:Course) }) >= 1 AND max(COUNT { (student)-[:PURCHASED]->(:Course) }) <= 10 AS purchases"
+              },
+              {
+                "statement": "MATCH (:Student)-[purchase:PURCHASED]->(:Course) RETURN collect(DISTINCT purchase.status) AS statuses, collect(DISTINCT purchase.paymentMethod) AS methods, all(purchase IN collect(purchase) WHERE 0 <= purchase.amount <= 2000 AND round(purchase.amount, 2) = purchase.amount) AS amounts, all(purchase IN collect(purchase) WHERE purchase.paymentDate =~ '\\\\d{4}-\\\\d{2}-\\\\d{2}T\\\\d{2}:\\\\d{2}:\\\\d{2}\\\\.\\\\d{3}Z' AND datetime() - duration('P1Y1D') <= datetime(purchase.paymentDate) <= datetime()) AS dates"
+              },
+              {
+                "statement": "MATCH (student:Student)-[r]->(course:Course) WITH student, course, type(r) AS type, count(r) AS times RETURN max(times) AS most"
+              },
+              {
+                "statement": "MATCH (student:Student)-[purchase:PURCHASED]->(course:Course) RETURN sum(CASE WHEN (purchase.status = 'paid') = EXISTS { (student)-[:PROGRESS]->(course) } THEN 0 ELSE 1 END) AS mismatches"
+              },
+              {
+                "statement": "MATCH (student:Student)-[progress:PROGRESS]->(course:Course) RETURN count(progress) > 0 AS present, all(progress IN collect(progress) WHERE 0 <= progress.progress <= 100 AND progress.progress = round(progress.progress)) AS percentages, sum(CASE WHEN EXISTS { (student)-[:PURCHASED]->(course) } THEN 0 ELSE 1 END) AS orphans"
+              }
+            ]
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "results": {
+                  "$like": [
+                    {
+                      "data": [
+                        {
+                          "row": [["Course"], 10]
+                        },
+                        {
+                          "row": [["Student"], 20]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [["Student"], "PROGRESS", ["Course"]]
+                        },
+                        {
+                          "row": [["Student"], "PURCHASED", ["Course"]]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [["Course"], "name", "STRING NOT NULL"]
+                        },
+                        {
+                          "row": [["Course"], "url", "STRING NOT NULL"]
+                        },
+                        {
+                          "row": [["Student"], "email", "STRING NOT NULL"]
+                        },
+                        {
+                          "row": [["Student"], "id", "STRING NOT NULL"]
+                        },
+                        {
+                          "row": [["Student"], "name", "STRING NOT NULL"]
+                        },
+                        {
+                          "row": [["Student"], "phone", "STRING NOT NULL"]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": ["PROGRESS", "progress", "FLOAT NOT NULL"]
+                        },
+                        {
+                          "row": ["PURCHASED", "amount", "FLOAT NOT NULL"]
+                        },
+                        {
+                          "row": ["PURCHASED", "paymentDate", "STRING NOT NULL"]
+                        },
+                        {
+                          "row": [
+                            "PURCHASED",
+                            "paymentMethod",
+                            "STRING NOT NULL"
+                          ]
+                        },
+                        {
+                          "row": ["PURCHASED", "status", "STRING NOT NULL"]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [
+                            "Criando seu Próprio App Zoom com WebRTC e WebSockets",
+                            "https://ew.academy/zoom?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Formação JavaScript Expert",
+                            "https://ew.academy/javascript-expert?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Machine Learning em Navegadores",
+                            "https://ew.academy/machine-learning?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Mastering Node.js Streams",
+                            "https://ew.academy/nodejsstreams?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Método Testes Automatizados em JavaScript",
+                            "https://ew.academy/metodo-tajs?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Recriando o App Clubhouse",
+                            "https://ew.academy/recriando-club-house?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Recriando o Player de Vídeo da Netflix",
+                            "https://ew.academy/recriando-a-netflix?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Reimaginando o Multi-Upload de Arquivos do Google Drive",
+                            "https://ew.academy/recriando-google-drive?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Reimaginando o Processamento de Vídeos do Maior Site do Mundo",
+                            "https://ew.academy/reimaginando-o-processamento-de-videos-do-maior-site-do-mundo?utm_source=neo4j-vector-demo"
+                          ]
+                        },
+                        {
+                          "row": [
+                            "Reimaginando um Rádio Musical Online Usando Spotify como Exemplo",
+                            "https://ew.academy/recriando-o-spotify?utm_source=neo4j-vector-demo"
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [20, 20, true, true, true, true]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [
+                            {
+                              "$unordered": ["paid", "refunded"]
+                            },
+                            {
+                              "$unordered": ["pix", "credit_card"]
+                            },
+                            true,
+                            true
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [1]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [0]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [true, true, 0]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "errors": []
+              }
+            }
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

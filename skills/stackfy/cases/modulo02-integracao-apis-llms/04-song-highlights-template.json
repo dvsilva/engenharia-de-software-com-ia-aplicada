@@ -1,0 +1,118 @@
+{
+  "module": "modulo02-integracao-apis-llms/04-song-highlights-template",
+  "concepts": [
+    "state-graph",
+    "command-line-interface",
+    "conversation-memory",
+    "chat-model",
+    "schema-validation",
+    "model-routing",
+    "sql-database",
+    "text-embeddings"
+  ],
+  "recorded": "Every case passed against the original with Node.js 26.12.1, @langchain/core 1.1.22, @langchain/langgraph 1.1.4, @langchain/openai 1.2.7, langchain 1.2.21, and zod 3.25.76, installed from the module's lockfile and run unchanged as \"node {program}.ts\" without a .env file, so LangSmith tracing stays off, where the programs are the chat, src/index, and the module's end-to-end tests, tests/chat.e2e.test. The template's nodes call no model, so the cases replay nothing and expect no requests, and they set a placeholder OpenRouter key, so only the case without one expects the configuration's assertion failure on standard error. Each turn prints the content of the graph's last message, which is the user's own, because every node returns the state unchanged. The chat reads with readline/promises, which drops the lines that arrive while it is not asking, so the cases type each line only after the prompt Você: appears and always end with exit, and no case depends on what happens when the input ends without it. The session id without --user comes from the clock, so the cases check it as user- followed by 13 digits. The tests program is checked by whether it fails, never by its report: four of its five tests expect answers and saved preferences the template never produces. The LangGraph CLI's development server, which factory.ts and langgraph.json register the graph for, belongs to the CLI and has no cases, and nothing in the template connects to the PostgreSQL database of its compose file or loads its SQLite preferences service.",
+  "prepare": {
+    "setup": ["npm ci --no-audit --no-fund --ignore-scripts"]
+  },
+  "originals": ["node {program}.ts"],
+  "env": { "OPENROUTER_API_KEY": "replay" },
+  "cases": [
+    {
+      "name": "every line comes back as the AI's answer, because the stub nodes leave the user's message as the last one, and exit says goodbye",
+      "program": "src/index",
+      "args": ["--user", "ana"],
+      "stdin": {
+        "prompt": "Você: ",
+        "lines": [
+          "Oi! Meu nome é Alex e eu amo rock e metal",
+          "Pode recomendar algo animado? 🎸",
+          "exit"
+        ]
+      },
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "output",
+          "pattern": "^═{60}\\n  🎵 Recomendador de Músicas com Memória \\(LangGraph\\)\\n═{60}\\n\\nDigite suas mensagens abaixo\\. Digite \"exit\" para sair\\.\\n\\n👤 Usuário: ana\\n📝 ID da Sessão: user-ana\\n\\nAI: Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais\\.\\n\\nVocê: \\nAI: Oi! Meu nome é Alex e eu amo rock e metal\\n\\nVocê: \\nAI: Pode recomendar algo animado\\? 🎸\\n\\nVocê: \\n👋 Até mais!\\n\\n$"
+        },
+        { "type": "output", "stream": "stderr", "pattern": "^$" },
+        { "type": "requests", "requests": [] }
+      ]
+    },
+    {
+      "name": "without --user, the session is user- followed by the current time in milliseconds, and no user line is printed",
+      "program": "src/index",
+      "stdin": { "prompt": "Você: ", "lines": ["exit"] },
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "output",
+          "pattern": "^═{60}\\n  🎵 Recomendador de Músicas com Memória \\(LangGraph\\)\\n═{60}\\n\\nDigite suas mensagens abaixo\\. Digite \"exit\" para sair\\.\\n\\n📝 ID da Sessão: user-\\d{13}\\n\\nAI: Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais\\.\\n\\nVocê: \\n👋 Até mais!\\n\\n$"
+        },
+        { "type": "output", "stream": "stderr", "pattern": "^$" },
+        { "type": "requests", "requests": [] }
+      ]
+    },
+    {
+      "name": "a --user flag without a value counts as no user",
+      "program": "src/index",
+      "args": ["--user"],
+      "stdin": { "prompt": "Você: ", "lines": ["exit"] },
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "output",
+          "pattern": "^═{60}\\n  🎵 Recomendador de Músicas com Memória \\(LangGraph\\)\\n═{60}\\n\\nDigite suas mensagens abaixo\\. Digite \"exit\" para sair\\.\\n\\n📝 ID da Sessão: user-\\d{13}\\n\\nAI: Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais\\.\\n\\nVocê: \\n👋 Até mais!\\n\\n$"
+        },
+        { "type": "output", "stream": "stderr", "pattern": "^$" },
+        { "type": "requests", "requests": [] }
+      ]
+    },
+    {
+      "name": "a blank line asks again, and only exit in any letter case ends the chat, while spaces around it make it a message",
+      "program": "src/index",
+      "args": ["--user", "erickwendel"],
+      "stdin": {
+        "prompt": "Você: ",
+        "lines": ["", "   ", " exit", "exit ", "EXIT"]
+      },
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "output",
+          "pattern": "^═{60}\\n  🎵 Recomendador de Músicas com Memória \\(LangGraph\\)\\n═{60}\\n\\nDigite suas mensagens abaixo\\. Digite \"exit\" para sair\\.\\n\\n👤 Usuário: erickwendel\\n📝 ID da Sessão: user-erickwendel\\n\\nAI: Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais\\.\\n\\nVocê: Você: Você: \\nAI:  exit\\n\\nVocê: \\nAI: exit \\n\\nVocê: \\n👋 Até mais!\\n\\n$"
+        },
+        { "type": "output", "stream": "stderr", "pattern": "^$" },
+        { "type": "requests", "requests": [] }
+      ]
+    },
+    {
+      "name": "without an OpenRouter key, the configuration prints an assertion failure on standard error and the chat goes on",
+      "program": "src/index",
+      "args": ["--user", "ana"],
+      "env": { "OPENROUTER_API_KEY": "" },
+      "stdin": { "prompt": "Você: ", "lines": ["Olá", "exit"] },
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "output",
+          "pattern": "^═{60}\\n  🎵 Recomendador de Músicas com Memória \\(LangGraph\\)\\n═{60}\\n\\nDigite suas mensagens abaixo\\. Digite \"exit\" para sair\\.\\n\\n👤 Usuário: ana\\n📝 ID da Sessão: user-ana\\n\\nAI: Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais\\.\\n\\nVocê: \\nAI: Olá\\n\\nVocê: \\n👋 Até mais!\\n\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Assertion failed: OPENROUTER_API_KEY is not set in environment variables\\n$"
+        },
+        { "type": "requests", "requests": [] }
+      ]
+    },
+    {
+      "name": "the tests fail, because no node answers the user or saves a preference",
+      "program": "tests/chat.e2e.test",
+      "expect": [
+        { "type": "exit", "failure": true },
+        { "type": "requests", "requests": [] }
+      ]
+    }
+  ]
+}

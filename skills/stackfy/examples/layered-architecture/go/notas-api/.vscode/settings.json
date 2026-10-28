@@ -1,0 +1,28 @@
+{
+  "github.copilot.chat.agent.runTasks": true,
+  "github.copilot.chat.codesearch.enabled": true,
+  "github.copilot.chat.agent.terminalCommandExecution.allowed": [
+    "go run ./cmd/index",
+    "go run ./cmd/cli",
+    "go test",
+    "go vet",
+    "go",
+    "git status",
+    "git diff",
+    "git add",
+    "git commit"
+  ],
+  "github.copilot.chat.agent.terminalCommandExecution.denied": [
+    "rm -rf",
+    "sudo",
+    "git push --force",
+    "git push -f",
+    "cat .env",
+    "less .env",
+    "more .env",
+    "head .env",
+    "tail .env",
+    "grep .env",
+    "git push"
+  ]
+}

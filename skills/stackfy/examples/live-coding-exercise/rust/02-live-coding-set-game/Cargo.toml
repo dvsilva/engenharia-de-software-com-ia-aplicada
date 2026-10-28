@@ -1,0 +1,34 @@
+[package]
+name = "set-game"
+version = "1.0.0"
+edition = "2024"
+
+[lib]
+path = "lib.rs"
+
+[[bin]]
+name = "driver"
+path = "cmd/driver.rs"
+
+[[bin]]
+name = "verify-solution"
+path = "scripts/verify-solution.rs"
+
+[[test]]
+name = "level1"
+path = "test/level1.rs"
+
+[[test]]
+name = "level2"
+path = "test/level2.rs"
+
+[[test]]
+name = "level3"
+path = "test/level3.rs"
+
+[[test]]
+name = "level4"
+path = "test/level4.rs"
+
+[dependencies]
+serde_json = "1"

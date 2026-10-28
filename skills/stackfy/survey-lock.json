@@ -1,0 +1,469 @@
+{
+  "version": 1,
+  "folders": {
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores": {
+      "commit": "c7742e8a8c8ff19e1363839cb8c198443274a59a",
+      "tree": "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+    },
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-00-template": {
+      "commit": "4d76d6222ef15143442e0996607ec28948028bda",
+      "tree": "63ed16b148f91e7abf5f39902f9a8fa4b5bd50e2",
+      "examples": [
+        "neural-network-training/cpp/exemplo-00-template",
+        "neural-network-training/java/exemplo-00-template"
+      ]
+    },
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-00-z": {
+      "commit": "4d76d6222ef15143442e0996607ec28948028bda",
+      "tree": "2f7bfe38a3f8953b446a31068ba41035e8c081fd",
+      "examples": [
+        "neural-network-training/python/exemplo-00-z",
+        "neural-network-training/rust/exemplo-00-z"
+      ]
+    },
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-01-ecommerce-recomendations-template": {
+      "commit": "66f3ed2ba43e49a299dc69f62d0c6003a515b7fc",
+      "tree": "a8dfa3912740769dd3843cc938d1e91ebb3d8b92"
+    },
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-01-ecommerce-recomendations-z": {
+      "commit": "38522c5caadcfdc7bb233a2e3df5153b5591aa9c",
+      "tree": "76c4c28a13586f0929923a4b3ed49262550ca875"
+    },
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-02-vencendo-qualquer-jogo": {
+      "commit": "4e5b1a08513b3f73e057a54d52eeede40fa57792",
+      "tree": "a65e3dad3ba35692b24dbc292f2e083eb21080fa"
+    },
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-03-webai01": {
+      "commit": "4d76d6222ef15143442e0996607ec28948028bda",
+      "tree": "7236bf0e1d22e66fb049f964cac5177602025b4b",
+      "examples": ["browser-built-in-ai/python/exemplo-03-webai01"]
+    },
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-04-webai02-temperature-and-topK": {
+      "commit": "4d76d6222ef15143442e0996607ec28948028bda",
+      "tree": "1ca251599a39e0d23eb200f2167a2497458b761a",
+      "examples": [
+        "browser-built-in-ai/go/exemplo-04-webai02-temperature-and-topK"
+      ]
+    },
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-05-webai03-multimodal": {
+      "commit": "4d76d6222ef15143442e0996607ec28948028bda",
+      "tree": "ecc11e748e133251337bd154ad05268c74e5b2df"
+    },
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-06-playwright-testes": {
+      "commit": "e4eb3e3bcfc3b3b5b9b724de34e305da61961e8d",
+      "tree": "f0992eb0d3cf8add2ba524091a0f60a513b65c9c"
+    },
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-07-playwright-navegacao": {
+      "commit": "e4eb3e3bcfc3b3b5b9b724de34e305da61961e8d",
+      "tree": "8e5cb7a9443b87b89e33f63bc564ee1489ab58fc"
+    },
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-08-context7": {
+      "commit": "5dd4d8860d97e5ccbd5d51d1356fc5bd1e58679d",
+      "tree": "85f13c9ec8648e4704b5f11ce8f3b0ba931660b2",
+      "examples": ["user-authentication/python/nextjs-better-auth-demo"]
+    },
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-09-grafana-mcp": {
+      "commit": "5dd4d8860d97e5ccbd5d51d1356fc5bd1e58679d",
+      "tree": "f16e9f63610d6ffaca1107d5c6208937dc60d635",
+      "examples": ["telemetry/go/_alumnus"]
+    },
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-10-ollama": {
+      "commit": "5dd4d8860d97e5ccbd5d51d1356fc5bd1e58679d",
+      "tree": "8c1b54913c99cf291de861ab0bea042584f15ea2",
+      "examples": [
+        "llm-http-api/csharp/exemplo-10-ollama",
+        "llm-http-api/go/exemplo-10-ollama"
+      ]
+    },
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-11-openrouter": {
+      "commit": "5dd4d8860d97e5ccbd5d51d1356fc5bd1e58679d",
+      "tree": "e57c1eb4b7e6c460ff9e48c06b016cf6012af629",
+      "examples": ["llm-http-api/python/exemplo-11-openrouter"]
+    },
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-12-embeddings-neo4j": {
+      "commit": "5dd4d8860d97e5ccbd5d51d1356fc5bd1e58679d",
+      "tree": "5a3943762a2be3126555e0083242784597bc67c7",
+      "examples": ["vector-store/python/exemplo-12-embeddings-neo4j"]
+    },
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-12-embeddings-neo4j-template": {
+      "commit": "c7742e8a8c8ff19e1363839cb8c198443274a59a",
+      "tree": "f35bf3973ec147bb4c10526a81b336d1c36c9ae3"
+    },
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-13-embeddings-neo4j-rag": {
+      "commit": "5dd4d8860d97e5ccbd5d51d1356fc5bd1e58679d",
+      "tree": "89cdc63c1ef128d7191131f56b8973ea7cd1167d"
+    },
+    "modulo02-integracao-apis-llms": {
+      "commit": "6c5c79fe7ea5e3b4aac662c6de8c250c0b370199",
+      "tree": "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+    },
+    "modulo02-integracao-apis-llms/01-smart-model-router-gateway": {
+      "commit": "c7256171f812b04c7541dfe5a101adabe4410fb3",
+      "tree": "7d2f8995da5200680baa76d126f0ff6551163384",
+      "examples": ["model-routing/rust/01-smart-model-router-gateway"]
+    },
+    "modulo02-integracao-apis-llms/02-langchain-intro": {
+      "commit": "c7256171f812b04c7541dfe5a101adabe4410fb3",
+      "tree": "d900f9d170491b9aeca51350c86d14a7b0b0ba31",
+      "examples": ["state-graph/java/02-langchain-intro"]
+    },
+    "modulo02-integracao-apis-llms/03-medical-appointment-template": {
+      "commit": "c7256171f812b04c7541dfe5a101adabe4410fb3",
+      "tree": "a5f9ad976e56f555defd92e090b1b2c4a62f4c11"
+    },
+    "modulo02-integracao-apis-llms/03-medical-appointment-z": {
+      "commit": "c7256171f812b04c7541dfe5a101adabe4410fb3",
+      "tree": "e45a7d2cc9f9919c3a45e964d67bb6fca256107c",
+      "examples": ["state-graph/python/03-medical-appointment-z"]
+    },
+    "modulo02-integracao-apis-llms/04-song-highlights-template": {
+      "commit": "c7256171f812b04c7541dfe5a101adabe4410fb3",
+      "tree": "8a7bd82c0fe2af3de24e9c788220f9a14b93c786"
+    },
+    "modulo02-integracao-apis-llms/04-song-highlights-z": {
+      "commit": "c7256171f812b04c7541dfe5a101adabe4410fb3",
+      "tree": "be0891eb6243d4220486970f224ab0b7220ab3ee",
+      "examples": ["conversation-memory/rust/04-song-highlights-z"]
+    },
+    "modulo02-integracao-apis-llms/05-safeguard-prompt-injection-template": {
+      "commit": "c7256171f812b04c7541dfe5a101adabe4410fb3",
+      "tree": "fa007db6ac56ee5f4014e58204c7af6d6ab59079"
+    },
+    "modulo02-integracao-apis-llms/05-safeguard-prompt-injection-z": {
+      "commit": "c7256171f812b04c7541dfe5a101adabe4410fb3",
+      "tree": "1f9f19e46d02c0b49847ba3673141b16755b34ef",
+      "examples": [
+        "prompt-injection-defense/rust/05-safeguard-prompt-injection-z"
+      ]
+    },
+    "modulo02-integracao-apis-llms/06-rag-neo4j-students-template": {
+      "commit": "c7256171f812b04c7541dfe5a101adabe4410fb3",
+      "tree": "fe40aeb96c632a0da5456de7af081e18add4ee7a",
+      "examples": ["graph-database/go/06-rag-neo4j-students-template"]
+    },
+    "modulo02-integracao-apis-llms/06-rag-neo4j-students-z": {
+      "commit": "c7256171f812b04c7541dfe5a101adabe4410fb3",
+      "tree": "884ec11b021c832b3f6eaea1f4251df4ce890185",
+      "examples": ["text-to-query/go/06-rag-neo4j-students-z"]
+    },
+    "modulo02-integracao-apis-llms/07-doc-analysis": {
+      "commit": "6c5c79fe7ea5e3b4aac662c6de8c250c0b370199",
+      "tree": "bbb8193bd94393e3f70c91d17ab372eaee33bf0a",
+      "examples": ["rest-api/go/07-doc-analysis"]
+    },
+    "modulo03-mcp-na-pratica": {
+      "commit": "0f814d07a1790738b71e25b69dcfa319f6b057b6",
+      "tree": "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
+    },
+    "modulo03-mcp-na-pratica/01-multiple-mcp-tools-template": {
+      "commit": "0f814d07a1790738b71e25b69dcfa319f6b057b6",
+      "tree": "8b9d8b851e8ca83ce61a34cb1412de8f8a764bdb"
+    },
+    "modulo03-mcp-na-pratica/01-multiple-mcp-tools-z": {
+      "commit": "0f814d07a1790738b71e25b69dcfa319f6b057b6",
+      "tree": "fa64d3bf124517bb1fda866f999b8e675134118e",
+      "examples": ["model-context-protocol/go/01-multiple-mcp-tools-z"]
+    },
+    "modulo03-mcp-na-pratica/02-google-trends-agent": {
+      "commit": "0f814d07a1790738b71e25b69dcfa319f6b057b6",
+      "tree": "2e700422d2cada596b0dd235826893fd25ccb002",
+      "examples": ["tool-calling/python/02-google-trends-agent"]
+    },
+    "modulo03-mcp-na-pratica/03-dev-instructions-agents": {
+      "commit": "0f814d07a1790738b71e25b69dcfa319f6b057b6",
+      "tree": "b68dadc2c1192ae482cca0a3fa3868389fc80f56"
+    },
+    "modulo03-mcp-na-pratica/04-skills": {
+      "commit": "0f814d07a1790738b71e25b69dcfa319f6b057b6",
+      "tree": "521db26c7e63269383888cd8093539f621bcf6ab"
+    },
+    "modulo03-mcp-na-pratica/05-mcps-do-zero-template": {
+      "commit": "0f814d07a1790738b71e25b69dcfa319f6b057b6",
+      "tree": "f33acb34b3db2ecc4535d2d5e6782858cd33bc66"
+    },
+    "modulo03-mcp-na-pratica/05-mcps-do-zero-z": {
+      "commit": "0f814d07a1790738b71e25b69dcfa319f6b057b6",
+      "tree": "0048f3b8151ec18b08261d8bafb3285f04210779",
+      "examples": ["model-context-protocol/rust/05-mcps-do-zero-z"]
+    },
+    "modulo03-mcp-na-pratica/06-your-legacy-api-as-mcp": {
+      "commit": "0f814d07a1790738b71e25b69dcfa319f6b057b6",
+      "tree": "9770ae02d40c5abfca02f4c37ebf50e0e1466203",
+      "examples": ["model-context-protocol/go/customers-mcp-z"]
+    },
+    "modulo03-mcp-na-pratica/07-api-security-auth-rate-limiting-template": {
+      "commit": "0f814d07a1790738b71e25b69dcfa319f6b057b6",
+      "tree": "58f026daa25982cc6ecb72bb9023aa3c301a4579",
+      "examples": ["api-access-control/python/customers-mcp-z"]
+    },
+    "modulo03-mcp-na-pratica/07-api-security-auth-rate-limiting-z": {
+      "commit": "0f814d07a1790738b71e25b69dcfa319f6b057b6",
+      "tree": "2da1ebb1991d5e540ed8a09dfd98ec269a714d16",
+      "examples": ["api-access-control/rust/nodejs-fastify-mongodb-crud-z"]
+    },
+    "modulo03-mcp-na-pratica/08-publishing-mcps-private-npm": {
+      "commit": "0f814d07a1790738b71e25b69dcfa319f6b057b6",
+      "tree": "52e9a9d4d856b50e614a97a86f227afb5ae85280"
+    },
+    "modulo03-mcp-na-pratica/09-using-mcp-with-langchain": {
+      "commit": "0f814d07a1790738b71e25b69dcfa319f6b057b6",
+      "tree": "8905645fbb876107b81a761b559cdb4662ed9f57"
+    },
+    "modulo04-criacao-de-agentes-autonomos-novo": {
+      "commit": "0a661c4bc353ad1aeab68ab571d4de56146c15cc",
+      "tree": "4bc539597a89da02a0f31c8596ee613dda2a8a2a"
+    },
+    "modulo04-criacao-de-agentes-autonomos-novo/01-arquitetura-de-agentes-de-codigo": {
+      "commit": "0a661c4bc353ad1aeab68ab571d4de56146c15cc",
+      "tree": "45c716c5fba09ec009ee058271dee90c9079d815",
+      "examples": ["layered-architecture/go/notas-api"]
+    },
+    "modulo04-criacao-de-agentes-autonomos-novo/02-padroes-de-raciocinio-e-execucao": {
+      "commit": "0a661c4bc353ad1aeab68ab571d4de56146c15cc",
+      "tree": "868412bfe0790a6c489f0bd7f2b3765858561ff1",
+      "examples": [
+        "reasoning-strategies/python/02-padroes-de-raciocinio-e-execucao"
+      ]
+    },
+    "modulo04-criacao-de-agentes-autonomos-novo/03-function-calling-e-tool-use": {
+      "commit": "0a661c4bc353ad1aeab68ab571d4de56146c15cc",
+      "tree": "dbd256c23f9c04040b43bd0f81071eb2c66d497e"
+    },
+    "modulo04-criacao-de-agentes-autonomos-novo/04-memoria-e-reflexao-em-agentes-autonomos": {
+      "commit": "0a661c4bc353ad1aeab68ab571d4de56146c15cc",
+      "tree": "83621ebacd6149fdbbe8165b8b18634431a24cca"
+    },
+    "modulo04-criacao-de-agentes-autonomos-novo/05-gerenciamento-de-contextos": {
+      "commit": "0a661c4bc353ad1aeab68ab571d4de56146c15cc",
+      "tree": "36ced15fdfe58eaca47b47d762cdf50d4fde5607"
+    },
+    "modulo04-criacao-de-agentes-autonomos-novo/06-langgraph-e-workflows-complexos": {
+      "commit": "0a661c4bc353ad1aeab68ab571d4de56146c15cc",
+      "tree": "5eb0913350e16030c9b3591d33927ef3cc939e34"
+    },
+    "modulo04-criacao-de-agentes-autonomos-novo/07-observabilidade-e-limites-de-autonomia": {
+      "commit": "0a661c4bc353ad1aeab68ab571d4de56146c15cc",
+      "tree": "4bd744dd391b75865aeafab41cedcb7943dd667b"
+    },
+    "modulo04-criacao-de-agentes-autonomos-novo/08-projeto-pratico-opspilot-publicado": {
+      "commit": "0a661c4bc353ad1aeab68ab571d4de56146c15cc",
+      "tree": "202db3a5cbf45bde75a50c1ff548a32457d99b3f",
+      "examples": [
+        "component-framework/vue/08-projeto-pratico-opspilot-publicado"
+      ]
+    },
+    "modulo04-criacao-de-agentes-autonomos-novo/09-multi-agent-systems": {
+      "commit": "0a661c4bc353ad1aeab68ab571d4de56146c15cc",
+      "tree": "b629781d7b8192a0100364af7a893b96baa084cb"
+    },
+    "modulo05-ferramentas-de-IA-para-UI-UX": {
+      "commit": "11ed06adb707a5cfbb133c804a51633bd10df110",
+      "tree": "fb27fc52f68ebc2ab2fbf6136e6c2969c94b7177"
+    },
+    "modulo05-ferramentas-de-IA-para-UI-UX/modulo-01": {
+      "commit": "11ed06adb707a5cfbb133c804a51633bd10df110",
+      "tree": "7e610f09ecb387cab4d6bf0b806d584d0aab4071"
+    },
+    "modulo05-ferramentas-de-IA-para-UI-UX/modulo-02": {
+      "commit": "11ed06adb707a5cfbb133c804a51633bd10df110",
+      "tree": "f190db8b57bed50c72c4870d4e3dd68d84a68b87",
+      "examples": ["component-framework/react/pix-app"]
+    },
+    "modulo05-ferramentas-de-IA-para-UI-UX/modulo-03": {
+      "commit": "11ed06adb707a5cfbb133c804a51633bd10df110",
+      "tree": "a35f26d40c2a8f56a3ee7dd670af42a29f441153",
+      "examples": ["component-framework/react/cfp-platform"]
+    },
+    "modulo05-ferramentas-de-IA-para-UI-UX/modulo-04": {
+      "commit": "11ed06adb707a5cfbb133c804a51633bd10df110",
+      "tree": "717001fed72afc5079bc214d0d6d03312d3f7f9e",
+      "examples": ["end-to-end-testing/python/cfp-platform_v1"]
+    },
+    "modulo05-ferramentas-de-IA-para-UI-UX/modulo-05": {
+      "commit": "11ed06adb707a5cfbb133c804a51633bd10df110",
+      "tree": "73f399ac3a98f6e327f073d35223e7897eda299b",
+      "examples": ["chat-model/go/brag-bot"]
+    },
+    "modulo06-aiops-engenharia-agentica": {
+      "commit": "1fbef7169b041c09deac4333cee4e22eea9747db",
+      "tree": "da38fc8490e120a9abffb220d2062bd86675935e",
+      "examples": [
+        "agent-crew/typescript/modulo06-aiops-engenharia-agentica",
+        "data-app/typescript/modulo06-aiops-engenharia-agentica"
+      ]
+    },
+    "modulo06-aiops-engenharia-agentica/core": {
+      "commit": "1fbef7169b041c09deac4333cee4e22eea9747db",
+      "tree": "e2b62380f7c871273d353c80b6bbb4b498ba4d52"
+    },
+    "modulo06-aiops-engenharia-agentica/data": {
+      "commit": "aed8751f513475a8652abb0abcfcf10f52ebed4b",
+      "tree": "ac1f56676a38de7870037179ce40d0f8e0a2dec4"
+    },
+    "modulo06-aiops-engenharia-agentica/k8s": {
+      "commit": "aed8751f513475a8652abb0abcfcf10f52ebed4b",
+      "tree": "63991a1094d1c5a6c0a8fe2c4cf154646ad709ae"
+    },
+    "modulo06-aiops-engenharia-agentica/labs": {
+      "commit": "1fbef7169b041c09deac4333cee4e22eea9747db",
+      "tree": "3df1ad8696919f96a46563f1fc91d858f8327c02"
+    },
+    "modulo06-aiops-engenharia-agentica/slides": {
+      "commit": "aed8751f513475a8652abb0abcfcf10f52ebed4b",
+      "tree": "a3fc81dbfe975fa4b0aa12a88d37f35ae4c41d4f"
+    },
+    "modulo06-aiops-engenharia-agentica/tools": {
+      "commit": "78fe9b5e4b657063c57bf96bbe5ba96fecfaea10",
+      "tree": "de7b325333d90ca206088ebc0d5dc1e9c0d377dd"
+    },
+    "modulo06-aiops-engenharia-agentica/ui": {
+      "commit": "aed8751f513475a8652abb0abcfcf10f52ebed4b",
+      "tree": "a69c998104da6f3bcf6a7b3819b842883016c4ed"
+    },
+    "modulo07-ferramentas-de-ia-para-gestao-de-projetos": {
+      "commit": "60209023156359eaacfaae07b32d6b6609032c1e",
+      "tree": "3dafbc42d69587465f11b6889af9bb49adafdc0f"
+    },
+    "modulo07-ferramentas-de-ia-para-gestao-de-projetos/modulo-01-planejamento-e-escopo": {
+      "commit": "60209023156359eaacfaae07b32d6b6609032c1e",
+      "tree": "88f62f884b39ec3c959f598b66c6719723123b51"
+    },
+    "modulo07-ferramentas-de-ia-para-gestao-de-projetos/modulo-02-priorizacao-de-backlog": {
+      "commit": "efedba74d1d0ec1042c7c18cc1f3073a31659c8c",
+      "tree": "4c3734d63c78e8179e7269bf5c983a9d9f46e5ec"
+    },
+    "modulo07-ferramentas-de-ia-para-gestao-de-projetos/modulo-03-cronograma-e-capacidade": {
+      "commit": "abb6fd008acc3ee3df21f8141e518cd662b492e1",
+      "tree": "600d09def025865319f40219d6ff0c1d418778e0"
+    },
+    "modulo07-ferramentas-de-ia-para-gestao-de-projetos/modulo-04-estimativas-e-previsoes": {
+      "commit": "abb6fd008acc3ee3df21f8141e518cd662b492e1",
+      "tree": "c735200c5cf80f31b11f12677590a5e712127c92",
+      "examples": [
+        "monte-carlo-simulation/csharp/modulo-04-estimativas-e-previsoes"
+      ]
+    },
+    "modulo07-ferramentas-de-ia-para-gestao-de-projetos/modulo-05-riscos-e-aiops": {
+      "commit": "abb6fd008acc3ee3df21f8141e518cd662b492e1",
+      "tree": "fb842395a344dfa098eb771b312829762bcf93c7"
+    },
+    "modulo07-ferramentas-de-ia-para-gestao-de-projetos/modulo-06-reunioes-turbinadas": {
+      "commit": "abb6fd008acc3ee3df21f8141e518cd662b492e1",
+      "tree": "fc738e092c5fe28ae3163e58175bd489ed08be75"
+    },
+    "modulo07-ferramentas-de-ia-para-gestao-de-projetos/modulo-07-status-reports": {
+      "commit": "abb6fd008acc3ee3df21f8141e518cd662b492e1",
+      "tree": "a64959be7d9523dcb817c8da831f8846fe39c66f"
+    },
+    "modulo07-ferramentas-de-ia-para-gestao-de-projetos/modulo-08-governanca-e-compliance": {
+      "commit": "d9309fd95c038ac33b03ae798aa3764050fbe542",
+      "tree": "bf052dbfcd9a9d9507ef7baa0821837d407e08af",
+      "examples": [
+        "pull-request-governance/go/modulo-08-governanca-e-compliance"
+      ]
+    },
+    "modulo07-ferramentas-de-ia-para-gestao-de-projetos/modulo-09-automacao-de-ecossistema": {
+      "commit": "abb6fd008acc3ee3df21f8141e518cd662b492e1",
+      "tree": "eaa48d0e602145aadbf76a5929069f5430f4f3f6",
+      "examples": ["chat-bot/go/modulo-09-automacao-de-ecossistema"]
+    },
+    "modulo07-ferramentas-de-ia-para-gestao-de-projetos/modulo-10-portfolio-e-okrs": {
+      "commit": "abb6fd008acc3ee3df21f8141e518cd662b492e1",
+      "tree": "102986870330524a270f53199691c52606b4876d"
+    },
+    "modulo08-arquitetura-de-sistemas-com-ia": {
+      "commit": "cf3976beeecf6ee47dcfa5bd99e73236b1ed9bec",
+      "tree": "4853ce13cc031209e565658a85f04ba0f220712b"
+    },
+    "modulo08-arquitetura-de-sistemas-com-ia/modulo-01-fundamentos-ai-first": {
+      "commit": "2394b74ef7cfec40cb2c836911804a77a0b49926",
+      "tree": "29e2bcfa1dd3c99eb3cb17039c32cab8e0a1dd52",
+      "examples": ["decision-framework/cpp/modulo-01-fundamentos-ai-first"]
+    },
+    "modulo08-arquitetura-de-sistemas-com-ia/modulo-02-single-agent": {
+      "commit": "2394b74ef7cfec40cb2c836911804a77a0b49926",
+      "tree": "9a88b88356f83c9fdd812877a5335fbe43ef2a14",
+      "examples": ["reasoning-strategies/go/modulo-02-single-agent"]
+    },
+    "modulo08-arquitetura-de-sistemas-com-ia/modulo-03-multi-agent": {
+      "commit": "2394b74ef7cfec40cb2c836911804a77a0b49926",
+      "tree": "7152279aac3afacd1a7cdffcc7249ea0c18b5202",
+      "examples": ["multi-agent-orchestration/go/modulo-03-multi-agent"]
+    },
+    "modulo08-arquitetura-de-sistemas-com-ia/modulo-04-padroes-ai-especificos": {
+      "commit": "2394b74ef7cfec40cb2c836911804a77a0b49926",
+      "tree": "7352dd93dc73efff7cca345653c5041a57233922",
+      "examples": ["ai-gateway/csharp/modulo-04-padroes-ai-especificos"]
+    },
+    "modulo08-arquitetura-de-sistemas-com-ia/modulo-05-arquitetura-enterprise": {
+      "commit": "2394b74ef7cfec40cb2c836911804a77a0b49926",
+      "tree": "eedc827b90003418b22da5195941d1759abdeabc"
+    },
+    "modulo09-processamento-de-dados-e-fine-tuning-de-modelos": {
+      "commit": "05dd4712904e1aec1c585f4fac9d72062bbdded5",
+      "tree": "2a7968e140aa52107c528dd4559e061a28a7b525"
+    },
+    "modulo09-processamento-de-dados-e-fine-tuning-de-modelos/modulo-01-decision-framework": {
+      "commit": "3f22e9f7ec1c4a1429cf2a5e1c6b74099ccded7a",
+      "tree": "b932cfedbefc1f6e88d3fcfb77f801726db47e67",
+      "examples": ["investment-analysis/rust/modulo-01-decision-framework"]
+    },
+    "modulo09-processamento-de-dados-e-fine-tuning-de-modelos/modulo-02-preparacao-datasets": {
+      "commit": "3f22e9f7ec1c4a1429cf2a5e1c6b74099ccded7a",
+      "tree": "0c4d191a6f6bd66e8be04ac28351c52a2e455e1d"
+    },
+    "modulo09-processamento-de-dados-e-fine-tuning-de-modelos/modulo-03-fine-tuning-via-api": {
+      "commit": "3f22e9f7ec1c4a1429cf2a5e1c6b74099ccded7a",
+      "tree": "00f083f4870858490c2f15b45c7c54bb48cc9fd9"
+    },
+    "modulo09-processamento-de-dados-e-fine-tuning-de-modelos/modulo-04-lora-e-peft": {
+      "commit": "05dd4712904e1aec1c585f4fac9d72062bbdded5",
+      "tree": "2fd3476d2db8823729c42d919ee6ffb5216f361d",
+      "examples": ["parameter-efficient-fine-tuning/rust/modulo-04-lora-e-peft"]
+    },
+    "modulo09-processamento-de-dados-e-fine-tuning-de-modelos/modulo-05-avaliacao-modelos": {
+      "commit": "29e363fff88678570614179864e38e235a0882d2",
+      "tree": "5c80487de3d5386cba096503cf4a8568bcf3434a",
+      "examples": ["model-evaluation/swift/modulo-05-avaliacao-modelos"]
+    },
+    "modulo09-processamento-de-dados-e-fine-tuning-de-modelos/modulo-06-projeto-final": {
+      "commit": "fe5c3c1308284c834fa9d552baad2ad62a1039a7",
+      "tree": "1da0d3a63de4c966b7756a6bbc335067ed000b5a",
+      "examples": ["ai-gateway/python/modulo-06-projeto-final"]
+    },
+    "modulo10-seguranca-governanca-ia": {
+      "commit": "2715df310e6278ee6fa435e49dd2f9abd6512e3e",
+      "tree": "cf4917afed857534d419a64e78d20ae42e90234a"
+    },
+    "modulo10-seguranca-governanca-ia/modulo4-aspectos-humanos-eticos": {
+      "commit": "2715df310e6278ee6fa435e49dd2f9abd6512e3e",
+      "tree": "0fdde5c954834283766ace5ba1fefa7cbf3e332c"
+    },
+    "modulo10-seguranca-governanca-ia/modulo5-seguranca-dados": {
+      "commit": "2715df310e6278ee6fa435e49dd2f9abd6512e3e",
+      "tree": "d0886fc90e59e6cbb55b7cb7f71d290e5e98fafa"
+    },
+    "modulo12-carreira-engenheiros-ia": {
+      "commit": "93bbd9d2903e9070c21d80f9115de6497a33954f",
+      "tree": "1510747b09e94aeefbbb26743fb9467a55552845"
+    },
+    "modulo12-carreira-engenheiros-ia/parte-2-entrevistas-tecnicas": {
+      "commit": "93bbd9d2903e9070c21d80f9115de6497a33954f",
+      "tree": "a4e7fef853b0979a8ec0b0811660a1eaa259aa17"
+    },
+    "modulo12-carreira-engenheiros-ia/parte-2-entrevistas-tecnicas/01-live-coding-duplicates": {
+      "commit": "93bbd9d2903e9070c21d80f9115de6497a33954f",
+      "tree": "84d7c2f6a13f1a623f5cfbb0bab4920af17dd67e",
+      "examples": ["live-coding-exercise/go/01-live-coding-duplicates"]
+    },
+    "modulo12-carreira-engenheiros-ia/parte-2-entrevistas-tecnicas/02-live-coding-set-game": {
+      "commit": "93bbd9d2903e9070c21d80f9115de6497a33954f",
+      "tree": "5522c87bf5d3213d62fe3e7f04cad801f2ae5f3e",
+      "examples": ["live-coding-exercise/rust/02-live-coding-set-game"]
+    },
+    "modulo12-carreira-engenheiros-ia/parte-2-entrevistas-tecnicas/03-system-design": {
+      "commit": "93bbd9d2903e9070c21d80f9115de6497a33954f",
+      "tree": "42960b8973f1230cf1a50ea917f52a7a8caeffd8"
+    }
+  }
+}

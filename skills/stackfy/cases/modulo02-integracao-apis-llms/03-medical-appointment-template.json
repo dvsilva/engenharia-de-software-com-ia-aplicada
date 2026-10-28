@@ -1,0 +1,412 @@
+{
+  "module": "modulo02-integracao-apis-llms/03-medical-appointment-template",
+  "concepts": [
+    "state-graph",
+    "rest-api",
+    "chat-model",
+    "schema-validation",
+    "model-routing"
+  ],
+  "recorded": "Every case passed against the original with Node.js 26.12.1, @langchain/core 1.1.19, @langchain/langgraph 1.1.3, @langchain/openai 1.2.5, langchain 1.2.18, zod 3.25.76, @openrouter/sdk 0.5.1, and fastify 5.7.4, installed from the module's lockfile and run as \"node {program}.ts\" without a .env file, so LangSmith tracing stays off, where the programs are the server, src/index, and the module's end-to-end tests, tests/router.e2e.test. The original always listens on port 3000, so the copy that produced these cases listens on PORT and prints it, falling back to 3000, a two-line change in src/index.ts. The template's nodes call no model and never load the OpenRouter configuration, so the cases replay nothing and expect no requests. The route answers the graph's final state as JSON, which holds only the messages, because the state fields the stubs never set are left out, and each message comes in LangChain's serialized form. The cases check that the body holds the messages and nothing else, each message by its class and content, and its id, which LangGraph's message reducer generates, by its UUID version 4 shape. Fastify's error bodies are checked by status code, statusCode, and error, with any non-empty message, because the validation messages come from Ajv, except the unknown routes, whose messages are short and checked exactly. The handler's 500 answer is never checked, because no node of the template can fail. The tests program is checked by whether it succeeds, never by its report. The LangGraph CLI's development server, which factory.ts and langgraph.json register the graph for, belongs to the CLI and has no cases.",
+  "prepare": {
+    "setup": ["npm ci --no-audit --no-fund"],
+    "patches": [
+      {
+        "file": "src/index.ts",
+        "find": "{ port: 3000, host",
+        "replace": "{ port: Number(process.env.PORT ?? 3000), host"
+      },
+      {
+        "file": "src/index.ts",
+        "find": "http://0.0.0.0:3000`",
+        "replace": "http://0.0.0.0:${process.env.PORT ?? 3000}`"
+      }
+    ]
+  },
+  "originals": ["node {program}.ts"],
+  "cases": [
+    {
+      "name": "the route runs each question through the stub nodes and answers the graph's state with the question as its only message",
+      "program": "src/index",
+      "serve": {
+        "port": 47881,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": {
+              "question": "Olá, sou Maria Santos e quero agendar uma consulta com Dr. Alicio da Silva para amanhã às 16h para um check-up regular"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": {
+              "question": "Cancele minha consulta com Dra. Ana Pereira que tenho hoje às 14h, me chamo Joao da Silva"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "What is the weather today?" }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "messages": {
+                  "$like": [
+                    {
+                      "lc": 1,
+                      "type": "constructor",
+                      "id": ["langchain_core", "messages", "HumanMessage"],
+                      "kwargs": {
+                        "content": "Olá, sou Maria Santos e quero agendar uma consulta com Dr. Alicio da Silva para amanhã às 16h para um check-up regular",
+                        "additional_kwargs": {},
+                        "response_metadata": {}
+                      }
+                    }
+                  ]
+                }
+              },
+              "pattern": "^\\{\\s*\"messages\"\\s*:\\s*\\[\\s*\\{[\\s\\S]*\"id\"\\s*:\\s*\"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\"[\\s\\S]*\\}\\s*\\]\\s*\\}$"
+            },
+            {
+              "status": 200,
+              "match": {
+                "messages": {
+                  "$like": [
+                    {
+                      "lc": 1,
+                      "type": "constructor",
+                      "id": ["langchain_core", "messages", "HumanMessage"],
+                      "kwargs": {
+                        "content": "Cancele minha consulta com Dra. Ana Pereira que tenho hoje às 14h, me chamo Joao da Silva",
+                        "additional_kwargs": {},
+                        "response_metadata": {}
+                      }
+                    }
+                  ]
+                }
+              },
+              "pattern": "^\\{\\s*\"messages\"\\s*:\\s*\\[\\s*\\{[\\s\\S]*\"id\"\\s*:\\s*\"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\"[\\s\\S]*\\}\\s*\\]\\s*\\}$"
+            },
+            {
+              "status": 200,
+              "match": {
+                "messages": {
+                  "$like": [
+                    {
+                      "lc": 1,
+                      "type": "constructor",
+                      "id": ["langchain_core", "messages", "HumanMessage"],
+                      "kwargs": {
+                        "content": "What is the weather today?",
+                        "additional_kwargs": {},
+                        "response_metadata": {}
+                      }
+                    }
+                  ]
+                }
+              },
+              "pattern": "^\\{\\s*\"messages\"\\s*:\\s*\\[\\s*\\{[\\s\\S]*\"id\"\\s*:\\s*\"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\"[\\s\\S]*\\}\\s*\\]\\s*\\}$"
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^Server is running on http://0\\.0\\.0\\.0:47881\\n(🔍 Identifying intent\\.\\.\\.\\n💬 Generating response message\\.\\.\\.\\n){3}$"
+        },
+        { "type": "output", "stream": "stderr", "pattern": "^$" },
+        { "type": "requests", "requests": [] }
+      ]
+    },
+    {
+      "name": "the question needs at least 10 characters, counted as code points with spaces included",
+      "program": "src/index",
+      "serve": {
+        "port": 47882,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "123456789" }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "1234567890" }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "          " }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "çãõçãõçãõ" }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "çãõçãõçãõç" }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "🙂🙂🙂🙂🙂" }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂" }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 400,
+              "match": { "statusCode": 400, "error": "Bad Request" },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 200,
+              "match": {
+                "messages": {
+                  "$like": [
+                    {
+                      "id": ["langchain_core", "messages", "HumanMessage"],
+                      "kwargs": { "content": "1234567890" }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "status": 200,
+              "match": {
+                "messages": {
+                  "$like": [
+                    {
+                      "id": ["langchain_core", "messages", "HumanMessage"],
+                      "kwargs": { "content": "          " }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "status": 400,
+              "match": { "statusCode": 400, "error": "Bad Request" },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 200,
+              "match": {
+                "messages": {
+                  "$like": [
+                    {
+                      "id": ["langchain_core", "messages", "HumanMessage"],
+                      "kwargs": { "content": "çãõçãõçãõç" }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "status": 400,
+              "match": { "statusCode": 400, "error": "Bad Request" },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 200,
+              "match": {
+                "messages": {
+                  "$like": [
+                    {
+                      "id": ["langchain_core", "messages", "HumanMessage"],
+                      "kwargs": { "content": "🙂🙂🙂🙂🙂🙂🙂🙂🙂🙂" }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^Server is running on http://0\\.0\\.0\\.0:47882\\n(🔍 Identifying intent\\.\\.\\.\\n💬 Generating response message\\.\\.\\.\\n){4}$"
+        },
+        { "type": "output", "stream": "stderr", "pattern": "^$" },
+        { "type": "requests", "requests": [] }
+      ]
+    },
+    {
+      "name": "the route rejects a missing question, a body that is not a JSON object, other media types, and unknown routes",
+      "program": "src/index",
+      "serve": {
+        "port": 47883,
+        "requests": [
+          { "method": "POST", "path": "/chat", "json": {} },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "message": "quero agendar uma consulta" }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": ["quero agendar uma consulta"]
+          },
+          { "method": "POST", "path": "/chat" },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "headers": { "content-type": "application/json" },
+            "body": "{\"question\":"
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "headers": { "content-type": "text/plain" },
+            "body": "quero agendar uma consulta"
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "headers": {
+              "content-type": "application/x-www-form-urlencoded"
+            },
+            "body": "question=quero+agendar+uma+consulta"
+          },
+          { "method": "GET", "path": "/chat" },
+          {
+            "method": "POST",
+            "path": "/appointments",
+            "json": { "question": "quero agendar uma consulta" }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 400,
+              "match": { "statusCode": 400, "error": "Bad Request" },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": { "statusCode": 400, "error": "Bad Request" },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": { "statusCode": 400, "error": "Bad Request" },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": { "statusCode": 400, "error": "Bad Request" },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": { "statusCode": 400, "error": "Bad Request" },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": { "statusCode": 400, "error": "Bad Request" },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 415,
+              "match": { "statusCode": 415, "error": "Unsupported Media Type" },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 404,
+              "match": {
+                "statusCode": 404,
+                "error": "Not Found",
+                "message": "Route GET:/chat not found"
+              }
+            },
+            {
+              "status": 404,
+              "match": {
+                "statusCode": 404,
+                "error": "Not Found",
+                "message": "Route POST:/appointments not found"
+              }
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^Server is running on http://0\\.0\\.0\\.0:47883\\n$"
+        },
+        { "type": "output", "stream": "stderr", "pattern": "^$" },
+        { "type": "requests", "requests": [] }
+      ]
+    },
+    {
+      "name": "the template answers without an OpenRouter key and prints nothing about it",
+      "program": "src/index",
+      "env": { "OPENROUTER_API_KEY": "" },
+      "serve": {
+        "port": 47884,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "Quero cancelar minha consulta de amanhã" }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "messages": {
+                  "$like": [
+                    {
+                      "id": ["langchain_core", "messages", "HumanMessage"],
+                      "kwargs": {
+                        "content": "Quero cancelar minha consulta de amanhã"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        { "type": "output", "stream": "stderr", "pattern": "^$" },
+        { "type": "requests", "requests": [] }
+      ]
+    },
+    {
+      "name": "the tests send the scheduling and cancelling questions through the route and pass",
+      "program": "tests/router.e2e.test",
+      "expect": [
+        { "type": "exit", "code": 0 },
+        { "type": "requests", "requests": [] }
+      ]
+    }
+  ]
+}

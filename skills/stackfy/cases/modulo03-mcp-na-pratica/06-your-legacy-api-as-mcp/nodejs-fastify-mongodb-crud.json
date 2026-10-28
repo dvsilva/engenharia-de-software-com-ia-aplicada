@@ -1,0 +1,599 @@
+{
+  "module": "modulo03-mcp-na-pratica/06-your-legacy-api-as-mcp/nodejs-fastify-mongodb-crud",
+  "concepts": ["rest-api", "document-database", "schema-validation"],
+  "recorded": "Every case passed 10 runs against the original with Node.js 26.12.1, fastify 4.26.1, and mongodb 6.3.0, run as node src/index.js, the file npm start runs, with DB_NAME from the cases instead of npm start's customers, and with MongoDB 9.0.4 from the module's compose file, the mongo image at latest, under a container name of its own and published on port 47906, where DB_PORT points the API. Each case names a database of its own in DB_NAME, so the cases share no data, and the services start empty on every run. ObjectIds are generated, so the cases check 24 lowercase hex digits and compare later answers with the ids the API returned. Validation messages come from Ajv, so a missing phone is checked by status and the presence of a message, while the unknown routes' messages are compared exactly. No case deletes a well-formed id that matches nothing, since the original never answers it.",
+  "prepare": { "setup": ["npm ci"] },
+  "originals": ["node src/index.js"],
+  "env": {
+    "DB_NAME": "customers",
+    "DB_PORT": "47906"
+  },
+  "services": {
+    "up": "docker compose -f docker-compose.yml -f - -p stackfy-06-legacy-api-crud up -d --wait mongodb <<'EOF'\nservices:\n  mongodb:\n    container_name: stackfy-06-legacy-api-crud-mongodb\n    ports: !override ['47906:27017']\nEOF",
+    "down": "docker compose -f docker-compose.yml -p stackfy-06-legacy-api-crud down -v",
+    "ready": [
+      {
+        "port": 47906
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "answers its health with the app's name and version, opens every route to any origin with CORS headers, answers a preflight empty, and answers unknown routes with Fastify's 404 body",
+      "serve": {
+        "port": 47905,
+        "ready": "/v1/health",
+        "requests": [
+          {
+            "path": "/v1/health"
+          },
+          {
+            "method": "OPTIONS",
+            "path": "/v1/customers",
+            "headers": {
+              "origin": "http://localhost:5173",
+              "access-control-request-method": "POST"
+            }
+          },
+          {
+            "path": "/v1/clients"
+          },
+          {
+            "method": "PATCH",
+            "path": "/v1/customers",
+            "json": {
+              "name": "Ana"
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "values": [
+                {
+                  "app": "customers",
+                  "version": "v1.0.1"
+                }
+              ],
+              "headers": {
+                "access-control-allow-origin": "^\\*$",
+                "access-control-allow-methods": "^GET,POST,PUT,DELETE,OPTIONS$",
+                "access-control-allow-headers": "^\\*$"
+              }
+            },
+            {
+              "status": 200,
+              "pattern": "^$",
+              "headers": {
+                "access-control-allow-origin": "^\\*$",
+                "access-control-allow-methods": "^GET,POST,PUT,DELETE,OPTIONS$",
+                "access-control-allow-headers": "^\\*$"
+              }
+            },
+            {
+              "status": 404,
+              "match": {
+                "statusCode": 404,
+                "error": "Not Found",
+                "message": "Route GET:/v1/clients not found"
+              }
+            },
+            {
+              "status": 404,
+              "match": {
+                "statusCode": 404,
+                "error": "Not Found",
+                "message": "Route PATCH:/v1/customers not found"
+              }
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "Connected to the database\\nserver is running at http://\\S+:47905\\n"
+        }
+      ]
+    },
+    {
+      "name": "refuses to start without DB_NAME, printing its error and exiting 1",
+      "env": {
+        "DB_NAME": ""
+      },
+      "timeout": 30000,
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "\\[error\\*{5}\\]: please, pass DB_NAME env before running it!\\n"
+        }
+      ]
+    },
+    {
+      "name": "creates customers under a new ObjectId, rejects a body without a phone with Fastify's 400 body, and lists them by name as MongoDB compares bytes, with the fields a body brought beyond the schema",
+      "env": {
+        "DB_NAME": "customers-list"
+      },
+      "serve": {
+        "port": 47905,
+        "ready": "/v1/health",
+        "requests": [
+          {
+            "path": "/v1/customers"
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "json": {
+              "name": "Xuxa da Silva",
+              "phone": "123456789"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "json": {
+              "name": "ana",
+              "phone": "987654321"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "json": {
+              "name": "Bruno",
+              "phone": "555-0101",
+              "email": "bruno@example.com"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "json": {
+              "name": "Ágata",
+              "phone": "111222333"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "json": {
+              "name": "Zé"
+            }
+          },
+          {
+            "path": "/v1/customers"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "values": [[]]
+            },
+            {
+              "status": 201,
+              "match": {
+                "id": {
+                  "$pattern": "^[0-9a-f]{24}$"
+                }
+              },
+              "values": [
+                {
+                  "message": "user Xuxa da Silva created!",
+                  "id": "{responses.1.id}"
+                }
+              ]
+            },
+            {
+              "status": 201,
+              "match": {
+                "id": {
+                  "$pattern": "^[0-9a-f]{24}$"
+                }
+              },
+              "values": [
+                {
+                  "message": "user ana created!",
+                  "id": "{responses.2.id}"
+                }
+              ]
+            },
+            {
+              "status": 201,
+              "match": {
+                "id": {
+                  "$pattern": "^[0-9a-f]{24}$"
+                }
+              },
+              "values": [
+                {
+                  "message": "user Bruno created!",
+                  "id": "{responses.3.id}"
+                }
+              ]
+            },
+            {
+              "status": 201,
+              "match": {
+                "id": {
+                  "$pattern": "^[0-9a-f]{24}$"
+                }
+              },
+              "values": [
+                {
+                  "message": "user Ágata created!",
+                  "id": "{responses.4.id}"
+                }
+              ]
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request",
+                "message": {
+                  "$pattern": "\\S"
+                }
+              }
+            },
+            {
+              "status": 200,
+              "values": [
+                [
+                  {
+                    "_id": "{responses.3.id}",
+                    "name": "Bruno",
+                    "phone": "555-0101",
+                    "email": "bruno@example.com"
+                  },
+                  {
+                    "_id": "{responses.1.id}",
+                    "name": "Xuxa da Silva",
+                    "phone": "123456789"
+                  },
+                  {
+                    "_id": "{responses.2.id}",
+                    "name": "ana",
+                    "phone": "987654321"
+                  },
+                  {
+                    "_id": "{responses.4.id}",
+                    "name": "Ágata",
+                    "phone": "111222333"
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "finds a customer by its ObjectId with only id, name, and phone, answers an unknown one with an empty 404 body, and rejects ids that are not 24 hex digits",
+      "env": {
+        "DB_NAME": "customers-find"
+      },
+      "serve": {
+        "port": 47905,
+        "ready": "/v1/health",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "json": {
+              "name": "Test User",
+              "phone": "123456789",
+              "email": "test@example.com"
+            }
+          },
+          {
+            "path": "/v1/customers/{responses.0.id}"
+          },
+          {
+            "path": "/v1/customers/66fbfd09785d518f5c747366"
+          },
+          {
+            "path": "/v1/customers/123"
+          },
+          {
+            "path": "/v1/customers/aaaaaaaaaaaa"
+          },
+          {
+            "path": "/v1/customers/zzzzzzzzzzzzzzzzzzzzzzzz"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 201,
+              "match": {
+                "id": {
+                  "$pattern": "^[0-9a-f]{24}$"
+                }
+              },
+              "values": [
+                {
+                  "message": "user Test User created!",
+                  "id": "{responses.0.id}"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                {
+                  "id": "{responses.0.id}",
+                  "name": "Test User",
+                  "phone": "123456789"
+                }
+              ]
+            },
+            {
+              "status": 404,
+              "pattern": "^\\{\\}$"
+            },
+            {
+              "status": 400,
+              "values": [
+                {
+                  "message": "the id is invalid!",
+                  "id": "123"
+                }
+              ]
+            },
+            {
+              "status": 400,
+              "values": [
+                {
+                  "message": "the id is invalid!",
+                  "id": "aaaaaaaaaaaa"
+                }
+              ]
+            },
+            {
+              "status": 400,
+              "values": [
+                {
+                  "message": "the id is invalid!",
+                  "id": "zzzzzzzzzzzzzzzzzzzzzzzz"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "replaces a name and a phone, answers 404 when nothing changes or the id is unknown, and 400 for a malformed id or a body without a phone",
+      "env": {
+        "DB_NAME": "customers-update"
+      },
+      "serve": {
+        "port": 47905,
+        "ready": "/v1/health",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "json": {
+              "name": "Update User",
+              "phone": "123456789"
+            }
+          },
+          {
+            "method": "PUT",
+            "path": "/v1/customers/{responses.0.id}",
+            "json": {
+              "name": "Updated Name",
+              "phone": "987654321"
+            }
+          },
+          {
+            "path": "/v1/customers/{responses.0.id}"
+          },
+          {
+            "method": "PUT",
+            "path": "/v1/customers/{responses.0.id}",
+            "json": {
+              "name": "Updated Name",
+              "phone": "987654321"
+            }
+          },
+          {
+            "method": "PUT",
+            "path": "/v1/customers/66fbfd09785d518f5c747366",
+            "json": {
+              "name": "New Name",
+              "phone": "123"
+            }
+          },
+          {
+            "method": "PUT",
+            "path": "/v1/customers/123",
+            "json": {
+              "name": "New Name",
+              "phone": "123"
+            }
+          },
+          {
+            "method": "PUT",
+            "path": "/v1/customers/{responses.0.id}",
+            "json": {
+              "name": "Only Name"
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 201,
+              "match": {
+                "id": {
+                  "$pattern": "^[0-9a-f]{24}$"
+                }
+              },
+              "values": [
+                {
+                  "message": "user Update User created!",
+                  "id": "{responses.0.id}"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                {
+                  "message": "User {responses.0.id} updated!",
+                  "id": "{responses.0.id}"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                {
+                  "id": "{responses.0.id}",
+                  "name": "Updated Name",
+                  "phone": "987654321"
+                }
+              ]
+            },
+            {
+              "status": 404,
+              "values": [
+                {
+                  "message": "User not found or no changes made",
+                  "id": "{responses.0.id}"
+                }
+              ]
+            },
+            {
+              "status": 404,
+              "values": [
+                {
+                  "message": "User not found or no changes made",
+                  "id": "66fbfd09785d518f5c747366"
+                }
+              ]
+            },
+            {
+              "status": 400,
+              "values": [
+                {
+                  "message": "the id is invalid!",
+                  "id": "123"
+                }
+              ]
+            },
+            {
+              "status": 400,
+              "match": {
+                "message": {
+                  "$pattern": "\\S"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "deletes a customer, which is then not found, and rejects a malformed id",
+      "env": {
+        "DB_NAME": "customers-delete"
+      },
+      "serve": {
+        "port": 47905,
+        "ready": "/v1/health",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "json": {
+              "name": "Delete User",
+              "phone": "123456789"
+            }
+          },
+          {
+            "method": "DELETE",
+            "path": "/v1/customers/{responses.0.id}"
+          },
+          {
+            "path": "/v1/customers/{responses.0.id}"
+          },
+          {
+            "method": "DELETE",
+            "path": "/v1/customers/123"
+          },
+          {
+            "path": "/v1/customers"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 201,
+              "match": {
+                "id": {
+                  "$pattern": "^[0-9a-f]{24}$"
+                }
+              },
+              "values": [
+                {
+                  "message": "user Delete User created!",
+                  "id": "{responses.0.id}"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                {
+                  "message": "User {responses.0.id} deleted!",
+                  "id": "{responses.0.id}"
+                }
+              ]
+            },
+            {
+              "status": 404,
+              "pattern": "^\\{\\}$"
+            },
+            {
+              "status": 400,
+              "values": [
+                {
+                  "message": "the id is invalid!",
+                  "id": "123"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [[]]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

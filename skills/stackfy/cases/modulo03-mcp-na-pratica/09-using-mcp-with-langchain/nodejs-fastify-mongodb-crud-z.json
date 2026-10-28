@@ -1,0 +1,1868 @@
+{
+  "module": "modulo03-mcp-na-pratica/09-using-mcp-with-langchain/nodejs-fastify-mongodb-crud-z",
+  "concepts": [
+    "api-access-control",
+    "rest-api",
+    "document-database",
+    "schema-validation"
+  ],
+  "recorded": "Every case passed 10 runs against the original with Node.js 26.12.1, fastify 5.7.4, @fastify/jwt 10.0.0, @fastify/rate-limit 10.3.0, and mongodb 7.1.0, run as node src/index.js, the file npm start runs, with DB_NAME from the cases instead of npm start's customers, and with MongoDB 9.0.4 from the module's compose file, the mongo image at latest, under a container name of its own and published on port 47919, where DB_PORT points the API. Each case names a database of its own in DB_NAME, so the cases share no data, the services start empty on every run, and the service tokens and rate limit counts, kept in the API's memory, start empty with every case. The JWTs the login issues carry the second they were signed and the service tokens are random UUIDs, so both are checked by shape and sent back in later requests. The JWTs the cases sign by hand use HS256, the secret supersecret, and an iat of 1767225600, and the expired one an exp a minute later. The rate limit cases spend 90 requests by repeating one request, check x-ratelimit-reset and retry-after as 50 to 60 seconds, and the 429's wait as 1 minute or a number of seconds. The runner's readiness check calls /v1/health once without a token, which counts toward the caller's address, so no case compares that address's count exactly. ObjectIds are generated, so the cases check 24 lowercase hex digits and compare later answers with the ids the API returned. Validation messages come from Ajv, so they are checked by status and the presence of a message, while the unknown route's message is compared exactly. No case deletes a well-formed id that matches nothing, since the original never answers it.",
+  "prepare": { "setup": ["npm ci"] },
+  "originals": ["node src/index.js"],
+  "env": {
+    "DB_NAME": "customers",
+    "DB_PORT": "47919"
+  },
+  "services": {
+    "up": "docker compose -f docker-compose.yml -f - -p stackfy-09-using-mcp-langchain-crud up -d --wait mongodb <<'EOF'\nservices:\n  mongodb:\n    container_name: stackfy-09-using-mcp-langchain-crud-mongodb\n    ports: !override ['47919:27017']\nEOF",
+    "down": "docker compose -f docker-compose.yml -p stackfy-09-using-mcp-langchain-crud down -v",
+    "ready": [
+      {
+        "port": 47919
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "answers its health to anyone with the app's name and version, CORS headers, and the rate limit of the caller's address, and answers every other request without a valid token with 401 Unauthorized and neither CORS nor rate limit headers, unknown routes, preflights, and the health with a query included",
+      "serve": {
+        "port": 47918,
+        "ready": "/v1/health",
+        "requests": [
+          {
+            "path": "/v1/health"
+          },
+          {
+            "path": "/v1/customers"
+          },
+          {
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer invalid-token-that-does-not-exist"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "json": {
+              "name": "Ana",
+              "phone": "999-000-111"
+            }
+          },
+          {
+            "path": "/v1/clients"
+          },
+          {
+            "method": "OPTIONS",
+            "path": "/v1/customers",
+            "headers": {
+              "origin": "http://localhost:5173",
+              "access-control-request-method": "POST"
+            }
+          },
+          {
+            "path": "/v1/health?verbose=true"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "values": [
+                {
+                  "app": "customers",
+                  "version": "v1.0.1"
+                }
+              ],
+              "headers": {
+                "access-control-allow-origin": "^\\*$",
+                "access-control-allow-methods": "^GET,POST,PUT,DELETE,OPTIONS$",
+                "access-control-allow-headers": "^\\*$",
+                "x-ratelimit-limit": "^90$",
+                "x-ratelimit-remaining": "^\\d+$",
+                "x-ratelimit-reset": "^(5\\d|60)$"
+              }
+            },
+            {
+              "status": 401,
+              "values": [
+                {
+                  "message": "Unauthorized"
+                }
+              ],
+              "headers": {
+                "access-control-allow-origin": "^$",
+                "x-ratelimit-limit": "^$"
+              }
+            },
+            {
+              "status": 401,
+              "values": [
+                {
+                  "message": "Unauthorized"
+                }
+              ],
+              "headers": {
+                "access-control-allow-origin": "^$",
+                "x-ratelimit-limit": "^$"
+              }
+            },
+            {
+              "status": 401,
+              "values": [
+                {
+                  "message": "Unauthorized"
+                }
+              ],
+              "headers": {
+                "access-control-allow-origin": "^$",
+                "x-ratelimit-limit": "^$"
+              }
+            },
+            {
+              "status": 401,
+              "values": [
+                {
+                  "message": "Unauthorized"
+                }
+              ],
+              "headers": {
+                "access-control-allow-origin": "^$",
+                "x-ratelimit-limit": "^$"
+              }
+            },
+            {
+              "status": 401,
+              "values": [
+                {
+                  "message": "Unauthorized"
+                }
+              ],
+              "headers": {
+                "access-control-allow-origin": "^$",
+                "x-ratelimit-limit": "^$"
+              }
+            },
+            {
+              "status": 401,
+              "values": [
+                {
+                  "message": "Unauthorized"
+                }
+              ],
+              "headers": {
+                "access-control-allow-origin": "^$",
+                "x-ratelimit-limit": "^$"
+              }
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "Connected to the database\\nserver is running at http://\\S+:47918\\n"
+        }
+      ]
+    },
+    {
+      "name": "refuses to start without DB_NAME, printing its error and exiting 1",
+      "env": {
+        "DB_NAME": ""
+      },
+      "timeout": 30000,
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "\\[error\\*{5}\\]: please, pass DB_NAME env before running it!\\n"
+        }
+      ]
+    },
+    {
+      "name": "logs in with a username in any case and its password, answering a JWT the API accepts after Bearer in any case but not alone, lets the admin write and the member only read, checks a body before the role, and refuses wrong credentials with 401 and a missing password with Fastify's 400 body",
+      "env": {
+        "DB_NAME": "customers-login"
+      },
+      "serve": {
+        "port": 47918,
+        "ready": "/v1/health",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/v1/auth/login",
+            "json": {
+              "username": "ErickWendel",
+              "password": "123123"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/auth/login",
+            "json": {
+              "username": "ananeri",
+              "password": "1234"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            },
+            "json": {
+              "name": "Ana",
+              "phone": "999-000-111"
+            }
+          },
+          {
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer {responses.1.token}"
+            }
+          },
+          {
+            "path": "/v1/customers/{responses.2.id}",
+            "headers": {
+              "authorization": "Bearer {responses.1.token}"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer {responses.1.token}"
+            },
+            "json": {
+              "name": "Bruno",
+              "phone": "555-0101"
+            }
+          },
+          {
+            "method": "PUT",
+            "path": "/v1/customers/{responses.2.id}",
+            "headers": {
+              "authorization": "Bearer {responses.1.token}"
+            },
+            "json": {
+              "name": "Ana Paula",
+              "phone": "999-000-111"
+            }
+          },
+          {
+            "method": "DELETE",
+            "path": "/v1/customers/{responses.2.id}",
+            "headers": {
+              "authorization": "Bearer {responses.1.token}"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer {responses.1.token}"
+            },
+            "json": {
+              "name": "Bruno"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/auth/login",
+            "json": {
+              "username": "erickwendel",
+              "password": "wrong"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/auth/login",
+            "json": {
+              "username": "nobody",
+              "password": "123123"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/auth/login",
+            "json": {
+              "username": "erickwendel"
+            }
+          },
+          {
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "bearer {responses.0.token}"
+            }
+          },
+          {
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "{responses.0.token}"
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "token": {
+                  "$pattern": "^eyJ[A-Za-z0-9_-]+\\.eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$"
+                }
+              },
+              "headers": {
+                "access-control-allow-origin": "^\\*$",
+                "access-control-allow-methods": "^GET,POST,PUT,DELETE,OPTIONS$",
+                "access-control-allow-headers": "^\\*$",
+                "x-ratelimit-limit": "^90$"
+              }
+            },
+            {
+              "status": 200,
+              "match": {
+                "token": {
+                  "$pattern": "^eyJ[A-Za-z0-9_-]+\\.eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$"
+                }
+              }
+            },
+            {
+              "status": 201,
+              "match": {
+                "id": {
+                  "$pattern": "^[0-9a-f]{24}$"
+                }
+              },
+              "values": [
+                {
+                  "message": "user Ana created!",
+                  "id": "{responses.2.id}"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                [
+                  {
+                    "_id": "{responses.2.id}",
+                    "name": "Ana",
+                    "phone": "999-000-111"
+                  }
+                ]
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                {
+                  "id": "{responses.2.id}",
+                  "name": "Ana",
+                  "phone": "999-000-111"
+                }
+              ]
+            },
+            {
+              "status": 403,
+              "values": [
+                {
+                  "message": "Forbidden: insufficient permissions"
+                }
+              ],
+              "headers": {
+                "access-control-allow-origin": "^\\*$"
+              }
+            },
+            {
+              "status": 403,
+              "values": [
+                {
+                  "message": "Forbidden: insufficient permissions"
+                }
+              ],
+              "headers": {
+                "access-control-allow-origin": "^\\*$"
+              }
+            },
+            {
+              "status": 403,
+              "values": [
+                {
+                  "message": "Forbidden: insufficient permissions"
+                }
+              ],
+              "headers": {
+                "access-control-allow-origin": "^\\*$"
+              }
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request",
+                "message": {
+                  "$pattern": "\\S"
+                }
+              }
+            },
+            {
+              "status": 401,
+              "values": [
+                {
+                  "message": "Invalid credentials"
+                }
+              ]
+            },
+            {
+              "status": 401,
+              "values": [
+                {
+                  "message": "Invalid credentials"
+                }
+              ]
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request",
+                "message": {
+                  "$pattern": "\\S"
+                }
+              }
+            },
+            {
+              "status": 200,
+              "values": [
+                [
+                  {
+                    "_id": "{responses.2.id}",
+                    "name": "Ana",
+                    "phone": "999-000-111"
+                  }
+                ]
+              ]
+            },
+            {
+              "status": 401,
+              "values": [
+                {
+                  "message": "Unauthorized"
+                }
+              ],
+              "headers": {
+                "access-control-allow-origin": "^$",
+                "x-ratelimit-limit": "^$"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "accepts any JWT signed with HS256 and the secret supersecret, trusting the username and role it claims without looking them up, compares the role exactly, and refuses a JWT signed with another secret, an expired one, and one whose algorithm is none",
+      "env": {
+        "DB_NAME": "customers-claims"
+      },
+      "serve": {
+        "port": 47918,
+        "ready": "/v1/health",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im5vYm9keSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2NzIyNTYwMH0.4hkL6JnrqrkcbhF3gGzp8v8GoG2ELWqi4DQXpZB9E4M"
+            },
+            "json": {
+              "name": "Carla",
+              "phone": "111-222"
+            }
+          },
+          {
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFuYW5lcmkiLCJyb2xlIjoibWVtYmVyIiwiaWF0IjoxNzY3MjI1NjAwfQ.J2NuuDA-3hp5dHi65Lg-REbLLh9SQKTBKiTerNbP1wQ"
+            }
+          },
+          {
+            "method": "DELETE",
+            "path": "/v1/customers/{responses.0.id}",
+            "headers": {
+              "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFuYW5lcmkiLCJyb2xlIjoibWVtYmVyIiwiaWF0IjoxNzY3MjI1NjAwfQ.J2NuuDA-3hp5dHi65Lg-REbLLh9SQKTBKiTerNbP1wQ"
+            }
+          },
+          {
+            "method": "DELETE",
+            "path": "/v1/customers/{responses.0.id}",
+            "headers": {
+              "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImVyaWNrd2VuZGVsIiwicm9sZSI6IkFkbWluIiwiaWF0IjoxNzY3MjI1NjAwfQ.udsNUDCHTHXj97ytl32uCPzwiFqx4280ZFar5Xzix3o"
+            }
+          },
+          {
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImVyaWNrd2VuZGVsIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzY3MjI1NjAwfQ.6Q-yfUDhGvhlkGWndPZm8qysg3jpahdQWdyYv68grq8"
+            }
+          },
+          {
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImVyaWNrd2VuZGVsIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzY3MjI1NjAwLCJleHAiOjE3NjcyMjU2NjB9.2cCrktXNwTbQFje60eUzZyR2OqbP61t4xavq7RdTFH4"
+            }
+          },
+          {
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJ1c2VybmFtZSI6ImVyaWNrd2VuZGVsIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzY3MjI1NjAwfQ."
+            }
+          },
+          {
+            "method": "DELETE",
+            "path": "/v1/customers/{responses.0.id}",
+            "headers": {
+              "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImVyaWNrd2VuZGVsIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzY3MjI1NjAwfQ.XifVkelWpdhhfHw27KZ3OX464VSwAX_NbCybN7r3QUY"
+            }
+          },
+          {
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImVyaWNrd2VuZGVsIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzY3MjI1NjAwfQ.XifVkelWpdhhfHw27KZ3OX464VSwAX_NbCybN7r3QUY"
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 201,
+              "match": {
+                "id": {
+                  "$pattern": "^[0-9a-f]{24}$"
+                }
+              },
+              "values": [
+                {
+                  "message": "user Carla created!",
+                  "id": "{responses.0.id}"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                [
+                  {
+                    "_id": "{responses.0.id}",
+                    "name": "Carla",
+                    "phone": "111-222"
+                  }
+                ]
+              ]
+            },
+            {
+              "status": 403,
+              "values": [
+                {
+                  "message": "Forbidden: insufficient permissions"
+                }
+              ],
+              "headers": {
+                "access-control-allow-origin": "^\\*$"
+              }
+            },
+            {
+              "status": 403,
+              "values": [
+                {
+                  "message": "Forbidden: insufficient permissions"
+                }
+              ],
+              "headers": {
+                "access-control-allow-origin": "^\\*$"
+              }
+            },
+            {
+              "status": 401,
+              "values": [
+                {
+                  "message": "Unauthorized"
+                }
+              ],
+              "headers": {
+                "access-control-allow-origin": "^$",
+                "x-ratelimit-limit": "^$"
+              }
+            },
+            {
+              "status": 401,
+              "values": [
+                {
+                  "message": "Unauthorized"
+                }
+              ],
+              "headers": {
+                "access-control-allow-origin": "^$",
+                "x-ratelimit-limit": "^$"
+              }
+            },
+            {
+              "status": 401,
+              "values": [
+                {
+                  "message": "Unauthorized"
+                }
+              ],
+              "headers": {
+                "access-control-allow-origin": "^$",
+                "x-ratelimit-limit": "^$"
+              }
+            },
+            {
+              "status": 200,
+              "values": [
+                {
+                  "message": "User {responses.0.id} deleted!",
+                  "id": "{responses.0.id}"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [[]]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "issues a random UUID as a service token, with the role, to known credentials only when adminSuperSecret is AM I THE BOSS?, checked first, accepts it after Bearer in any case or alone until the server stops, refuses a token it never issued, and answers an unknown route or a preflight once the token is accepted",
+      "env": {
+        "DB_NAME": "customers-service"
+      },
+      "serve": {
+        "port": 47918,
+        "ready": "/v1/health",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/v1/auth/service-token",
+            "json": {
+              "username": "nobody",
+              "password": "wrong",
+              "adminSuperSecret": "wrong-secret"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/auth/service-token",
+            "json": {
+              "username": "erickwendel",
+              "password": "wrong",
+              "adminSuperSecret": "AM I THE BOSS?"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/auth/service-token",
+            "json": {
+              "username": "erickwendel",
+              "password": "123123"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/auth/service-token",
+            "json": {
+              "username": "ERICKWENDEL",
+              "password": "123123",
+              "adminSuperSecret": "AM I THE BOSS?"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/auth/service-token",
+            "json": {
+              "username": "ananeri",
+              "password": "1234",
+              "adminSuperSecret": "AM I THE BOSS?"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer {responses.3.serviceToken}"
+            },
+            "json": {
+              "name": "Bruno",
+              "phone": "555-0101"
+            }
+          },
+          {
+            "method": "PUT",
+            "path": "/v1/customers/{responses.5.id}",
+            "headers": {
+              "authorization": "bearer {responses.3.serviceToken}"
+            },
+            "json": {
+              "name": "Bruno Lima",
+              "phone": "555-0101"
+            }
+          },
+          {
+            "path": "/v1/customers/{responses.5.id}",
+            "headers": {
+              "authorization": "{responses.3.serviceToken}"
+            }
+          },
+          {
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer {responses.4.serviceToken}"
+            }
+          },
+          {
+            "method": "DELETE",
+            "path": "/v1/customers/{responses.5.id}",
+            "headers": {
+              "authorization": "Bearer {responses.4.serviceToken}"
+            }
+          },
+          {
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer 9b3160a4-9ad9-4740-a1c5-b780ba92ea4f"
+            }
+          },
+          {
+            "path": "/v1/clients",
+            "headers": {
+              "authorization": "Bearer {responses.3.serviceToken}"
+            }
+          },
+          {
+            "method": "OPTIONS",
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer {responses.4.serviceToken}",
+              "origin": "http://localhost:5173",
+              "access-control-request-method": "POST"
+            }
+          },
+          {
+            "method": "DELETE",
+            "path": "/v1/customers/{responses.5.id}",
+            "headers": {
+              "authorization": "Bearer {responses.3.serviceToken}"
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 401,
+              "values": [
+                {
+                  "message": "Invalid adminSuperSecret"
+                }
+              ]
+            },
+            {
+              "status": 401,
+              "values": [
+                {
+                  "message": "Invalid credentials"
+                }
+              ]
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request",
+                "message": {
+                  "$pattern": "\\S"
+                }
+              }
+            },
+            {
+              "status": 200,
+              "match": {
+                "role": "admin",
+                "serviceToken": {
+                  "$pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                }
+              }
+            },
+            {
+              "status": 200,
+              "match": {
+                "role": "member",
+                "serviceToken": {
+                  "$pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+                }
+              }
+            },
+            {
+              "status": 201,
+              "match": {
+                "id": {
+                  "$pattern": "^[0-9a-f]{24}$"
+                }
+              },
+              "values": [
+                {
+                  "message": "user Bruno created!",
+                  "id": "{responses.5.id}"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                {
+                  "message": "User {responses.5.id} updated!",
+                  "id": "{responses.5.id}"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                {
+                  "id": "{responses.5.id}",
+                  "name": "Bruno Lima",
+                  "phone": "555-0101"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                [
+                  {
+                    "_id": "{responses.5.id}",
+                    "name": "Bruno Lima",
+                    "phone": "555-0101"
+                  }
+                ]
+              ]
+            },
+            {
+              "status": 403,
+              "values": [
+                {
+                  "message": "Forbidden: insufficient permissions"
+                }
+              ],
+              "headers": {
+                "access-control-allow-origin": "^\\*$"
+              }
+            },
+            {
+              "status": 401,
+              "values": [
+                {
+                  "message": "Unauthorized"
+                }
+              ],
+              "headers": {
+                "access-control-allow-origin": "^$",
+                "x-ratelimit-limit": "^$"
+              }
+            },
+            {
+              "status": 404,
+              "values": [
+                {
+                  "statusCode": 404,
+                  "error": "Not Found",
+                  "message": "Route GET:/v1/clients not found"
+                }
+              ],
+              "headers": {
+                "x-ratelimit-limit": "^$"
+              }
+            },
+            {
+              "status": 200,
+              "pattern": "^$",
+              "headers": {
+                "access-control-allow-origin": "^\\*$",
+                "access-control-allow-methods": "^GET,POST,PUT,DELETE,OPTIONS$",
+                "access-control-allow-headers": "^\\*$"
+              }
+            },
+            {
+              "status": 200,
+              "values": [
+                {
+                  "message": "User {responses.5.id} deleted!",
+                  "id": "{responses.5.id}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "counts 90 requests a minute for each token, refusals and reads alike, and answers the next with 429, @fastify/rate-limit's body, and a retry-after but no CORS headers, on every route, the health included, while another token keeps its own count",
+      "env": {
+        "DB_NAME": "customers-limit"
+      },
+      "serve": {
+        "port": 47918,
+        "ready": "/v1/health",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/v1/auth/service-token",
+            "json": {
+              "username": "erickwendel",
+              "password": "123123",
+              "adminSuperSecret": "AM I THE BOSS?"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/auth/service-token",
+            "json": {
+              "username": "ananeri",
+              "password": "1234",
+              "adminSuperSecret": "AM I THE BOSS?"
+            }
+          },
+          {
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer {responses.0.serviceToken}"
+            }
+          },
+          {
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer {responses.0.serviceToken}"
+            },
+            "repeat": 87
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer {responses.0.serviceToken}"
+            },
+            "json": {
+              "name": "Dora",
+              "phone": "777-888"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer {responses.0.serviceToken}"
+            },
+            "json": {
+              "name": "Edu"
+            }
+          },
+          {
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer {responses.0.serviceToken}"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "bearer {responses.0.serviceToken}"
+            },
+            "json": {
+              "name": "Edu",
+              "phone": "000"
+            }
+          },
+          {
+            "path": "/v1/health",
+            "headers": {
+              "authorization": "Bearer {responses.0.serviceToken}"
+            }
+          },
+          {
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer {responses.1.serviceToken}"
+            }
+          },
+          {
+            "method": "DELETE",
+            "path": "/v1/customers/{responses.4.id}",
+            "headers": {
+              "authorization": "Bearer {responses.1.serviceToken}"
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "role": "admin"
+              }
+            },
+            {
+              "status": 200,
+              "match": {
+                "role": "member"
+              }
+            },
+            {
+              "status": 200,
+              "values": [[]],
+              "headers": {
+                "x-ratelimit-limit": "^90$",
+                "x-ratelimit-remaining": "^89$",
+                "x-ratelimit-reset": "^(5\\d|60)$"
+              }
+            },
+            {
+              "status": 200,
+              "values": [[]],
+              "headers": {
+                "x-ratelimit-limit": "^90$",
+                "x-ratelimit-remaining": "^2$"
+              }
+            },
+            {
+              "status": 201,
+              "match": {
+                "id": {
+                  "$pattern": "^[0-9a-f]{24}$"
+                }
+              },
+              "values": [
+                {
+                  "message": "user Dora created!",
+                  "id": "{responses.4.id}"
+                }
+              ],
+              "headers": {
+                "x-ratelimit-limit": "^90$",
+                "x-ratelimit-remaining": "^1$"
+              }
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request",
+                "message": {
+                  "$pattern": "\\S"
+                }
+              },
+              "headers": {
+                "x-ratelimit-limit": "^90$",
+                "x-ratelimit-remaining": "^0$"
+              }
+            },
+            {
+              "status": 429,
+              "match": {
+                "statusCode": 429,
+                "error": "Too Many Requests",
+                "message": {
+                  "$pattern": "^Rate limit exceeded, retry in (1 minute|\\d+ seconds)$"
+                }
+              },
+              "headers": {
+                "x-ratelimit-limit": "^90$",
+                "x-ratelimit-remaining": "^0$",
+                "retry-after": "^(5\\d|60)$",
+                "x-ratelimit-reset": "^(5\\d|60)$",
+                "access-control-allow-origin": "^$"
+              }
+            },
+            {
+              "status": 429,
+              "match": {
+                "statusCode": 429,
+                "error": "Too Many Requests",
+                "message": {
+                  "$pattern": "^Rate limit exceeded, retry in (1 minute|\\d+ seconds)$"
+                }
+              }
+            },
+            {
+              "status": 429,
+              "match": {
+                "statusCode": 429,
+                "error": "Too Many Requests",
+                "message": {
+                  "$pattern": "^Rate limit exceeded, retry in (1 minute|\\d+ seconds)$"
+                }
+              }
+            },
+            {
+              "status": 200,
+              "values": [
+                [
+                  {
+                    "_id": "{responses.4.id}",
+                    "name": "Dora",
+                    "phone": "777-888"
+                  }
+                ]
+              ],
+              "headers": {
+                "x-ratelimit-limit": "^90$",
+                "x-ratelimit-remaining": "^89$"
+              }
+            },
+            {
+              "status": 403,
+              "values": [
+                {
+                  "message": "Forbidden: insufficient permissions"
+                }
+              ],
+              "headers": {
+                "x-ratelimit-limit": "^90$",
+                "x-ratelimit-remaining": "^88$"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "counts the requests without a token by the caller address, the login, the service token route, and the health alike, so a login tried too often answers 429 even with the right password, while a token keeps its own count",
+      "env": {
+        "DB_NAME": "customers-address"
+      },
+      "serve": {
+        "port": 47918,
+        "ready": "/v1/health",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/v1/auth/login",
+            "json": {
+              "username": "erickwendel",
+              "password": "wrong"
+            },
+            "repeat": 90
+          },
+          {
+            "method": "POST",
+            "path": "/v1/auth/login",
+            "json": {
+              "username": "erickwendel",
+              "password": "123123"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/auth/service-token",
+            "json": {
+              "username": "erickwendel",
+              "password": "123123",
+              "adminSuperSecret": "AM I THE BOSS?"
+            }
+          },
+          {
+            "path": "/v1/health"
+          },
+          {
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImVyaWNrd2VuZGVsIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzY3MjI1NjAwfQ.XifVkelWpdhhfHw27KZ3OX464VSwAX_NbCybN7r3QUY"
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {},
+            {
+              "status": 429,
+              "match": {
+                "statusCode": 429,
+                "error": "Too Many Requests",
+                "message": {
+                  "$pattern": "^Rate limit exceeded, retry in (1 minute|\\d+ seconds)$"
+                }
+              }
+            },
+            {
+              "status": 429,
+              "match": {
+                "statusCode": 429,
+                "error": "Too Many Requests",
+                "message": {
+                  "$pattern": "^Rate limit exceeded, retry in (1 minute|\\d+ seconds)$"
+                }
+              }
+            },
+            {
+              "status": 429,
+              "match": {
+                "statusCode": 429,
+                "error": "Too Many Requests",
+                "message": {
+                  "$pattern": "^Rate limit exceeded, retry in (1 minute|\\d+ seconds)$"
+                }
+              }
+            },
+            {
+              "status": 200,
+              "values": [[]],
+              "headers": {
+                "x-ratelimit-limit": "^90$",
+                "x-ratelimit-remaining": "^89$"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "creates customers under a new ObjectId, rejects a body without a phone with Fastify's 400 body, and lists them by name as MongoDB compares bytes, with the fields a body brought beyond the schema, all as the admin after logging in",
+      "env": {
+        "DB_NAME": "customers-list"
+      },
+      "serve": {
+        "port": 47918,
+        "ready": "/v1/health",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/v1/auth/login",
+            "json": {
+              "username": "erickwendel",
+              "password": "123123"
+            }
+          },
+          {
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "json": {
+              "name": "Xuxa da Silva",
+              "phone": "123456789"
+            },
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "json": {
+              "name": "ana",
+              "phone": "987654321"
+            },
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "json": {
+              "name": "Bruno",
+              "phone": "555-0101",
+              "email": "bruno@example.com"
+            },
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "json": {
+              "name": "Ágata",
+              "phone": "111222333"
+            },
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "json": {
+              "name": "Zé"
+            },
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "token": {
+                  "$pattern": "^eyJ[A-Za-z0-9_-]+\\.eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$"
+                }
+              }
+            },
+            {
+              "status": 200,
+              "values": [[]]
+            },
+            {
+              "status": 201,
+              "match": {
+                "id": {
+                  "$pattern": "^[0-9a-f]{24}$"
+                }
+              },
+              "values": [
+                {
+                  "message": "user Xuxa da Silva created!",
+                  "id": "{responses.2.id}"
+                }
+              ]
+            },
+            {
+              "status": 201,
+              "match": {
+                "id": {
+                  "$pattern": "^[0-9a-f]{24}$"
+                }
+              },
+              "values": [
+                {
+                  "message": "user ana created!",
+                  "id": "{responses.3.id}"
+                }
+              ]
+            },
+            {
+              "status": 201,
+              "match": {
+                "id": {
+                  "$pattern": "^[0-9a-f]{24}$"
+                }
+              },
+              "values": [
+                {
+                  "message": "user Bruno created!",
+                  "id": "{responses.4.id}"
+                }
+              ]
+            },
+            {
+              "status": 201,
+              "match": {
+                "id": {
+                  "$pattern": "^[0-9a-f]{24}$"
+                }
+              },
+              "values": [
+                {
+                  "message": "user Ágata created!",
+                  "id": "{responses.5.id}"
+                }
+              ]
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request",
+                "message": {
+                  "$pattern": "\\S"
+                }
+              }
+            },
+            {
+              "status": 200,
+              "values": [
+                [
+                  {
+                    "_id": "{responses.4.id}",
+                    "name": "Bruno",
+                    "phone": "555-0101",
+                    "email": "bruno@example.com"
+                  },
+                  {
+                    "_id": "{responses.2.id}",
+                    "name": "Xuxa da Silva",
+                    "phone": "123456789"
+                  },
+                  {
+                    "_id": "{responses.3.id}",
+                    "name": "ana",
+                    "phone": "987654321"
+                  },
+                  {
+                    "_id": "{responses.5.id}",
+                    "name": "Ágata",
+                    "phone": "111222333"
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "finds a customer by its ObjectId with only id, name, and phone, answers an unknown one with an empty 404 body, and rejects ids that are not 24 hex digits, all as the admin after logging in",
+      "env": {
+        "DB_NAME": "customers-find"
+      },
+      "serve": {
+        "port": 47918,
+        "ready": "/v1/health",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/v1/auth/login",
+            "json": {
+              "username": "erickwendel",
+              "password": "123123"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "json": {
+              "name": "Test User",
+              "phone": "123456789",
+              "email": "test@example.com"
+            },
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "path": "/v1/customers/{responses.1.id}",
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "path": "/v1/customers/66fbfd09785d518f5c747366",
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "path": "/v1/customers/123",
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "path": "/v1/customers/aaaaaaaaaaaa",
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "path": "/v1/customers/zzzzzzzzzzzzzzzzzzzzzzzz",
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "token": {
+                  "$pattern": "^eyJ[A-Za-z0-9_-]+\\.eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$"
+                }
+              }
+            },
+            {
+              "status": 201,
+              "match": {
+                "id": {
+                  "$pattern": "^[0-9a-f]{24}$"
+                }
+              },
+              "values": [
+                {
+                  "message": "user Test User created!",
+                  "id": "{responses.1.id}"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                {
+                  "id": "{responses.1.id}",
+                  "name": "Test User",
+                  "phone": "123456789"
+                }
+              ]
+            },
+            {
+              "status": 404,
+              "pattern": "^\\{\\}$"
+            },
+            {
+              "status": 400,
+              "values": [
+                {
+                  "message": "the id is invalid!",
+                  "id": "123"
+                }
+              ]
+            },
+            {
+              "status": 400,
+              "values": [
+                {
+                  "message": "the id is invalid!",
+                  "id": "aaaaaaaaaaaa"
+                }
+              ]
+            },
+            {
+              "status": 400,
+              "values": [
+                {
+                  "message": "the id is invalid!",
+                  "id": "zzzzzzzzzzzzzzzzzzzzzzzz"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "replaces a name and a phone, answers 404 when nothing changes or the id is unknown, and 400 for a malformed id or a body without a phone, all as the admin after logging in",
+      "env": {
+        "DB_NAME": "customers-update"
+      },
+      "serve": {
+        "port": 47918,
+        "ready": "/v1/health",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/v1/auth/login",
+            "json": {
+              "username": "erickwendel",
+              "password": "123123"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "json": {
+              "name": "Update User",
+              "phone": "123456789"
+            },
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "method": "PUT",
+            "path": "/v1/customers/{responses.1.id}",
+            "json": {
+              "name": "Updated Name",
+              "phone": "987654321"
+            },
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "path": "/v1/customers/{responses.1.id}",
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "method": "PUT",
+            "path": "/v1/customers/{responses.1.id}",
+            "json": {
+              "name": "Updated Name",
+              "phone": "987654321"
+            },
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "method": "PUT",
+            "path": "/v1/customers/66fbfd09785d518f5c747366",
+            "json": {
+              "name": "New Name",
+              "phone": "123"
+            },
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "method": "PUT",
+            "path": "/v1/customers/123",
+            "json": {
+              "name": "New Name",
+              "phone": "123"
+            },
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "method": "PUT",
+            "path": "/v1/customers/{responses.1.id}",
+            "json": {
+              "name": "Only Name"
+            },
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "token": {
+                  "$pattern": "^eyJ[A-Za-z0-9_-]+\\.eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$"
+                }
+              }
+            },
+            {
+              "status": 201,
+              "match": {
+                "id": {
+                  "$pattern": "^[0-9a-f]{24}$"
+                }
+              },
+              "values": [
+                {
+                  "message": "user Update User created!",
+                  "id": "{responses.1.id}"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                {
+                  "message": "User {responses.1.id} updated!",
+                  "id": "{responses.1.id}"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                {
+                  "id": "{responses.1.id}",
+                  "name": "Updated Name",
+                  "phone": "987654321"
+                }
+              ]
+            },
+            {
+              "status": 404,
+              "values": [
+                {
+                  "message": "User not found or no changes made",
+                  "id": "{responses.1.id}"
+                }
+              ]
+            },
+            {
+              "status": 404,
+              "values": [
+                {
+                  "message": "User not found or no changes made",
+                  "id": "66fbfd09785d518f5c747366"
+                }
+              ]
+            },
+            {
+              "status": 400,
+              "values": [
+                {
+                  "message": "the id is invalid!",
+                  "id": "123"
+                }
+              ]
+            },
+            {
+              "status": 400,
+              "match": {
+                "message": {
+                  "$pattern": "\\S"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "deletes a customer, which is then not found, and rejects a malformed id, all as the admin after logging in",
+      "env": {
+        "DB_NAME": "customers-delete"
+      },
+      "serve": {
+        "port": 47918,
+        "ready": "/v1/health",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/v1/auth/login",
+            "json": {
+              "username": "erickwendel",
+              "password": "123123"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/v1/customers",
+            "json": {
+              "name": "Delete User",
+              "phone": "123456789"
+            },
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "method": "DELETE",
+            "path": "/v1/customers/{responses.1.id}",
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "path": "/v1/customers/{responses.1.id}",
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "method": "DELETE",
+            "path": "/v1/customers/123",
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          },
+          {
+            "path": "/v1/customers",
+            "headers": {
+              "authorization": "Bearer {responses.0.token}"
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "token": {
+                  "$pattern": "^eyJ[A-Za-z0-9_-]+\\.eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$"
+                }
+              }
+            },
+            {
+              "status": 201,
+              "match": {
+                "id": {
+                  "$pattern": "^[0-9a-f]{24}$"
+                }
+              },
+              "values": [
+                {
+                  "message": "user Delete User created!",
+                  "id": "{responses.1.id}"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                {
+                  "message": "User {responses.1.id} deleted!",
+                  "id": "{responses.1.id}"
+                }
+              ]
+            },
+            {
+              "status": 404,
+              "pattern": "^\\{\\}$"
+            },
+            {
+              "status": 400,
+              "values": [
+                {
+                  "message": "the id is invalid!",
+                  "id": "123"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [[]]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4949 @@
+{
+  "module": "modulo03-mcp-na-pratica/08-publishing-mcps-private-npm/customers-mcp-z",
+  "concepts": [
+    "model-context-protocol",
+    "package-publishing",
+    "api-access-control",
+    "rest-api",
+    "schema-validation",
+    "layered-architecture"
+  ],
+  "recorded": "Every case passed 10 runs against the unchanged original with Node.js 26.12.1, npm 12.2.1, @modelcontextprotocol/sdk 1.27.1, zod 3.25.76, and tsx 4.21.0, and with Verdaccio 6.11.1 from the module's compose file under a container name of its own, still published on port 4873, where the release script publishes, which must be free. Each case names its program, and one shell command run from the module chose by it: start ran node src/index.ts, the file npm start runs with type stripping, release ran npm publish --registry http://localhost:4873, the half of npm run release:private after npm version patch, so the cases publish 0.0.2 and change nothing in the folder, and published ran npx -y --registry http://localhost:4873 @erickwendel/customers-mcp@latest, the commented line of .vscode/mcp.json with this version's package name, as an MCP client starts it. npm's cache was emptied before each run, so npx installed the package and its dependencies from the registry every time. The registry stands in for a private one without accounts: its configuration lets anyone install and publish the @erickwendel scope, which it never looks up on the public registry, where 0.0.2 already exists, and proxies every other package from registry.npmjs.org. npm publish asks for a token even so, so the command passed a placeholder for //localhost:4873/ instead of running npm run registry:login:private. The server is lesson 07's: it requires SERVICE_TOKEN and always calls the customers API at http://localhost:9999/v1 with it as a bearer, so the cases put the replay on port 9999, which must be free, and every recorded answer requires the case's token in the Authorization header. Every answer was recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, on an empty MongoDB, so their ObjectIds are fixed. The customers' answers came with a service token it issued to the admin erickwendel, which the SERVICE_TOKEN of the file stands for, the one this version's .vscode/mcp.json sets, and the refusals with a token it never issued, a service token it issued to the member ananeri, and an admin service token that had already spent its 90 requests of the minute. Texts that hold JSON are compared by value, so spacing and key order are free. Tools and the prompt's arguments are compared in any order, the prompt's arguments by name and description, since an optional argument may leave out required, and capabilities by presence. A refused call comes back as a result whose structuredContent holds isError true and the message the text repeats, with the result's own isError false or left out, never true. A lookup that finds nothing breaks the output schema, which has no null customer, so the SDK answers it with isError, and the case also accepts any JSON-RPC error or a null customer from SDKs that do not check their output. Invalid arguments and unknown tools may come back as a tool result with isError or as a JSON-RPC error with code -32602. The release case reads the package back from the registry and compares its name, its latest tag, and the name of its executable, while the path the executable points to is free.",
+  "prepare": { "setup": ["npm ci"] },
+  "originals": [
+    "case {program} in start) node src/index.ts ;; release) npm publish --registry http://localhost:4873 --//localhost:4873/:_authToken=stackfy ;; published) npx -y --registry http://localhost:4873 @erickwendel/customers-mcp@latest ;; esac"
+  ],
+  "env": {
+    "SERVICE_TOKEN": "7befa3be-ed41-4ccb-a473-33a9db6db5a5"
+  },
+  "services": {
+    "up": "docker compose -f docker-compose.yaml -f - -p stackfy-08-publishing-mcp up -d --wait verdaccio <<'EOF'\nservices:\n  verdaccio:\n    container_name: stackfy-08-publishing-mcp-verdaccio\n    configs:\n      - source: verdaccio\n        target: /verdaccio/conf/config.yaml\n    healthcheck:\n      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:4873/-/ping']\n      interval: 1s\n      retries: 60\nconfigs:\n  verdaccio:\n    content: |\n      storage: /verdaccio/storage/data\n      uplinks:\n        npmjs:\n          url: https://registry.npmjs.org/\n      packages:\n        '@erickwendel/*':\n          access: $$all\n          publish: $$all\n        '**':\n          access: $$all\n          proxy: npmjs\nEOF",
+    "down": "docker compose -f docker-compose.yaml -p stackfy-08-publishing-mcp down -v",
+    "ready": [
+      {
+        "port": 4873
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "refuses to start without SERVICE_TOKEN, printing its error and exiting 1",
+      "program": "start",
+      "timeout": 60000,
+      "env": {
+        "SERVICE_TOKEN": ""
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "\\[error\\]: SERVICE_TOKEN env var is required\\n"
+        }
+      ]
+    },
+    {
+      "name": "introduces itself as @erickwendel/ew-customers-mcp and lists its five customer tools, every one answering the same mutation schema",
+      "program": "start",
+      "timeout": 60000,
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/list"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ew-customers-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "result": {
+                  "$like": {
+                    "tools": {
+                      "$unordered": [
+                        {
+                          "name": "list_customers",
+                          "description": "List all customers",
+                          "inputSchema": {
+                            "type": "object"
+                          },
+                          "outputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the deleted customer"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "Confirmation message"
+                              },
+                              "isError": {
+                                "type": "boolean",
+                                "description": "Indicates if an error occurred"
+                              },
+                              "customer": {
+                                "type": "object",
+                                "description": "The found customer",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "description": "MongoDB ObjectId of the customer"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "phone": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": {
+                                  "$unordered": ["name", "phone"]
+                                }
+                              },
+                              "customers": {
+                                "type": "array",
+                                "description": "List of customers"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "name": "get_customer",
+                          "description": "Find a customer by _id, name, or phone number",
+                          "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the customer"
+                              },
+                              "name": {
+                                "type": "string",
+                                "description": "Full name of the customer"
+                              },
+                              "phone": {
+                                "type": "string",
+                                "description": "phone number of the customer"
+                              }
+                            }
+                          },
+                          "outputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the deleted customer"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "Confirmation message"
+                              },
+                              "isError": {
+                                "type": "boolean",
+                                "description": "Indicates if an error occurred"
+                              },
+                              "customer": {
+                                "type": "object",
+                                "description": "The found customer",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "description": "MongoDB ObjectId of the customer"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "phone": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": {
+                                  "$unordered": ["name", "phone"]
+                                }
+                              },
+                              "customers": {
+                                "type": "array",
+                                "description": "List of customers"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "name": "create_customer",
+                          "description": "Create a new customer",
+                          "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "Full name of the customer"
+                              },
+                              "phone": {
+                                "type": "string",
+                                "description": "Phone number of the customer"
+                              }
+                            },
+                            "required": {
+                              "$unordered": ["name", "phone"]
+                            }
+                          },
+                          "outputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the deleted customer"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "Confirmation message"
+                              },
+                              "isError": {
+                                "type": "boolean",
+                                "description": "Indicates if an error occurred"
+                              },
+                              "customer": {
+                                "type": "object",
+                                "description": "The found customer",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "description": "MongoDB ObjectId of the customer"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "phone": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": {
+                                  "$unordered": ["name", "phone"]
+                                }
+                              },
+                              "customers": {
+                                "type": "array",
+                                "description": "List of customers"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "name": "update_customer",
+                          "description": "Update an existing customer's name and/or phone number by their _id",
+                          "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the customer"
+                              },
+                              "name": {
+                                "type": "string",
+                                "description": "Full name of the customer"
+                              },
+                              "phone": {
+                                "type": "string",
+                                "description": "phone number of the customer"
+                              }
+                            },
+                            "required": ["_id"]
+                          },
+                          "outputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the deleted customer"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "Confirmation message"
+                              },
+                              "isError": {
+                                "type": "boolean",
+                                "description": "Indicates if an error occurred"
+                              },
+                              "customer": {
+                                "type": "object",
+                                "description": "The found customer",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "description": "MongoDB ObjectId of the customer"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "phone": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": {
+                                  "$unordered": ["name", "phone"]
+                                }
+                              },
+                              "customers": {
+                                "type": "array",
+                                "description": "List of customers"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "name": "delete_customer",
+                          "description": "Delete a customer by their _id",
+                          "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the customer to delete"
+                              }
+                            },
+                            "required": ["_id"]
+                          },
+                          "outputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the deleted customer"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "Confirmation message"
+                              },
+                              "isError": {
+                                "type": "boolean",
+                                "description": "Indicates if an error occurred"
+                              },
+                              "customer": {
+                                "type": "object",
+                                "description": "The found customer",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "description": "MongoDB ObjectId of the customer"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "phone": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": {
+                                  "$unordered": ["name", "phone"]
+                                }
+                              },
+                              "customers": {
+                                "type": "array",
+                                "description": "List of customers"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Customers MCP Server running on stdio\\n"
+        }
+      ]
+    },
+    {
+      "name": "offers the customers://api-info resource describing the wrapped API and find_customer_prompt, which renders the query as compact JSON in the order _id, name, phone",
+      "program": "start",
+      "timeout": 60000,
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "resources/list"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "resources/read",
+            "params": {
+              "uri": "customers://api-info"
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "prompts/list"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "prompts/get",
+            "params": {
+              "name": "find_customer_prompt",
+              "arguments": {
+                "phone": "555",
+                "name": "Ana"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "prompts/get",
+            "params": {
+              "name": "find_customer_prompt",
+              "arguments": {
+                "phone": "123456789",
+                "name": "John Doe",
+                "_id": "66fbfd09785d518f5c747366"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "prompts/get",
+            "params": {
+              "name": "find_customer_prompt",
+              "arguments": {}
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ew-customers-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "result": {
+                  "$like": {
+                    "resources": [
+                      {
+                        "uri": "customers://api-info",
+                        "name": "customers://api-info",
+                        "description": "Describes the Customers REST API that this MCP server wraps."
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "result": {
+                  "$like": {
+                    "contents": [
+                      {
+                        "uri": "customers://api-info",
+                        "mimeType": "text/plain",
+                        "text": "Customers API\n  Base URL : http://localhost:9999/v1\n  Endpoints:\n    GET    /customers          — list all customers\n    GET    /customers/:id      — get customer by id\n    POST   /customers          — create customer  { name, phone }\n    PUT    /customers/:id      — update customer  { name, phone }\n    DELETE /customers/:id      — delete customer\n\n  Customer shape: { _id: string, name: string, phone: string }"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 4,
+                "result": {
+                  "$like": {
+                    "prompts": [
+                      {
+                        "name": "find_customer_prompt",
+                        "description": "Prompt to search a customer using any combination of _id, name or phone",
+                        "arguments": {
+                          "$unordered": [
+                            {
+                              "name": "_id",
+                              "description": "MongoDB ObjectId of the customer"
+                            },
+                            {
+                              "name": "name",
+                              "description": "Full name of the customer"
+                            },
+                            {
+                              "name": "phone",
+                              "description": "phone number of the customer"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 5,
+                "result": {
+                  "$like": {
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": {
+                          "type": "text",
+                          "text": "Please find the customer matching the following query using the get_customer or list_customers tool.\nQuery: {\"name\":\"Ana\",\"phone\":\"555\"}"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 6,
+                "result": {
+                  "$like": {
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": {
+                          "type": "text",
+                          "text": "Please find the customer matching the following query using the get_customer or list_customers tool.\nQuery: {\"_id\":\"66fbfd09785d518f5c747366\",\"name\":\"John Doe\",\"phone\":\"123456789\"}"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 7,
+                "result": {
+                  "$like": {
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": {
+                          "type": "text",
+                          "text": "Please find the customer matching the following query using the get_customer or list_customers tool.\nQuery: {}"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Customers MCP Server running on stdio\\n"
+        }
+      ]
+    },
+    {
+      "name": "sends its service token as a bearer on every call and passes the API's answers through: creates, lists by name as MongoDB compares bytes, finds by _id with the API's id, by fragments of name or phone, or the first customer, updates, and deletes",
+      "program": "start",
+      "timeout": 60000,
+      "replayPort": 9999,
+      "replay": [
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": []
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "POST",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "match": {
+            "name": "Ana",
+            "phone": "999-000-111"
+          },
+          "status": 201,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "user Ana created!",
+            "id": "6ae09d619d890505678dac5c"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "POST",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "match": {
+            "name": "bruno",
+            "phone": "555-0101"
+          },
+          "status": 201,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "user bruno created!",
+            "id": "6ae09d619d890505678dac5d"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": [
+            {
+              "_id": "6ae09d619d890505678dac5c",
+              "name": "Ana",
+              "phone": "999-000-111"
+            },
+            {
+              "_id": "6ae09d619d890505678dac5d",
+              "name": "bruno",
+              "phone": "555-0101"
+            }
+          ]
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "GET",
+          "path": "/v1/customers/6ae09d619d890505678dac5c",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "id": "6ae09d619d890505678dac5c",
+            "name": "Ana",
+            "phone": "999-000-111"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": [
+            {
+              "_id": "6ae09d619d890505678dac5c",
+              "name": "Ana",
+              "phone": "999-000-111"
+            },
+            {
+              "_id": "6ae09d619d890505678dac5d",
+              "name": "bruno",
+              "phone": "555-0101"
+            }
+          ]
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": [
+            {
+              "_id": "6ae09d619d890505678dac5c",
+              "name": "Ana",
+              "phone": "999-000-111"
+            },
+            {
+              "_id": "6ae09d619d890505678dac5d",
+              "name": "bruno",
+              "phone": "555-0101"
+            }
+          ]
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": [
+            {
+              "_id": "6ae09d619d890505678dac5c",
+              "name": "Ana",
+              "phone": "999-000-111"
+            },
+            {
+              "_id": "6ae09d619d890505678dac5d",
+              "name": "bruno",
+              "phone": "555-0101"
+            }
+          ]
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "PUT",
+          "path": "/v1/customers/6ae09d619d890505678dac5d",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "match": {
+            "name": "Bruno",
+            "phone": "555-0102"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "User 6ae09d619d890505678dac5d updated!",
+            "id": "6ae09d619d890505678dac5d"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "GET",
+          "path": "/v1/customers/6ae09d619d890505678dac5d",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "id": "6ae09d619d890505678dac5d",
+            "name": "Bruno",
+            "phone": "555-0102"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "DELETE",
+          "path": "/v1/customers/6ae09d619d890505678dac5c",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "User 6ae09d619d890505678dac5c deleted!",
+            "id": "6ae09d619d890505678dac5c"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "DELETE",
+          "path": "/v1/customers/6ae09d619d890505678dac5d",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "User 6ae09d619d890505678dac5d deleted!",
+            "id": "6ae09d619d890505678dac5d"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": []
+        }
+      ],
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/call",
+            "params": {
+              "name": "list_customers",
+              "arguments": {}
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "tools/call",
+            "params": {
+              "name": "create_customer",
+              "arguments": {
+                "name": "Ana",
+                "phone": "999-000-111"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "tools/call",
+            "params": {
+              "name": "create_customer",
+              "arguments": {
+                "name": "bruno",
+                "phone": "555-0101"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "tools/call",
+            "params": {
+              "name": "list_customers",
+              "arguments": {}
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "_id": "{responses.2.result.structuredContent.id}"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "name": "run"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 8,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "phone": "555"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 9,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {}
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 10,
+            "method": "tools/call",
+            "params": {
+              "name": "update_customer",
+              "arguments": {
+                "_id": "{responses.3.result.structuredContent.id}",
+                "name": "Bruno",
+                "phone": "555-0102"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 11,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "_id": "{responses.3.result.structuredContent.id}"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 12,
+            "method": "tools/call",
+            "params": {
+              "name": "delete_customer",
+              "arguments": {
+                "_id": "{responses.2.result.structuredContent.id}"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 13,
+            "method": "tools/call",
+            "params": {
+              "name": "delete_customer",
+              "arguments": {
+                "_id": "{responses.3.result.structuredContent.id}"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 14,
+            "method": "tools/call",
+            "params": {
+              "name": "list_customers",
+              "arguments": {}
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            },
+            {
+              "method": "POST",
+              "path": "/v1/customers",
+              "body": {
+                "name": "Ana",
+                "phone": "999-000-111"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/customers",
+              "body": {
+                "name": "bruno",
+                "phone": "555-0101"
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers/6ae09d619d890505678dac5c"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            },
+            {
+              "method": "PUT",
+              "path": "/v1/customers/6ae09d619d890505678dac5d",
+              "body": {
+                "name": "Bruno",
+                "phone": "555-0102"
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers/6ae09d619d890505678dac5d"
+            },
+            {
+              "method": "DELETE",
+              "path": "/v1/customers/6ae09d619d890505678dac5c"
+            },
+            {
+              "method": "DELETE",
+              "path": "/v1/customers/6ae09d619d890505678dac5d"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            }
+          ]
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ew-customers-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": []
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customers": []
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "user Ana created!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "message": "user Ana created!",
+                      "id": "6ae09d619d890505678dac5c"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 4,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "user bruno created!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "message": "user bruno created!",
+                      "id": "6ae09d619d890505678dac5d"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 5,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": [
+                            {
+                              "_id": "6ae09d619d890505678dac5c",
+                              "name": "Ana",
+                              "phone": "999-000-111"
+                            },
+                            {
+                              "_id": "6ae09d619d890505678dac5d",
+                              "name": "bruno",
+                              "phone": "555-0101"
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customers": [
+                        {
+                          "_id": "6ae09d619d890505678dac5c",
+                          "name": "Ana",
+                          "phone": "999-000-111"
+                        },
+                        {
+                          "_id": "6ae09d619d890505678dac5d",
+                          "name": "bruno",
+                          "phone": "555-0101"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 6,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "id": "6ae09d619d890505678dac5c",
+                            "name": "Ana",
+                            "phone": "999-000-111"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": {
+                        "id": "6ae09d619d890505678dac5c",
+                        "name": "Ana",
+                        "phone": "999-000-111"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 7,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "_id": "6ae09d619d890505678dac5d",
+                            "name": "bruno",
+                            "phone": "555-0101"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": {
+                        "_id": "6ae09d619d890505678dac5d",
+                        "name": "bruno",
+                        "phone": "555-0101"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 8,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "_id": "6ae09d619d890505678dac5d",
+                            "name": "bruno",
+                            "phone": "555-0101"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": {
+                        "_id": "6ae09d619d890505678dac5d",
+                        "name": "bruno",
+                        "phone": "555-0101"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 9,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "_id": "6ae09d619d890505678dac5c",
+                            "name": "Ana",
+                            "phone": "999-000-111"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": {
+                        "_id": "6ae09d619d890505678dac5c",
+                        "name": "Ana",
+                        "phone": "999-000-111"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 10,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "User 6ae09d619d890505678dac5d updated!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "message": "User 6ae09d619d890505678dac5d updated!",
+                      "id": "6ae09d619d890505678dac5d"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 11,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "id": "6ae09d619d890505678dac5d",
+                            "name": "Bruno",
+                            "phone": "555-0102"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": {
+                        "id": "6ae09d619d890505678dac5d",
+                        "name": "Bruno",
+                        "phone": "555-0102"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 12,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "User 6ae09d619d890505678dac5c deleted!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "message": "User 6ae09d619d890505678dac5c deleted!",
+                      "id": "6ae09d619d890505678dac5c"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 13,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "User 6ae09d619d890505678dac5d deleted!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "message": "User 6ae09d619d890505678dac5d deleted!",
+                      "id": "6ae09d619d890505678dac5d"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 14,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": []
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customers": []
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Customers MCP Server running on stdio\\n"
+        }
+      ]
+    },
+    {
+      "name": "turns every answer the API refuses into a structured error that names the action, the status, its text, and the body, fails a lookup that finds nothing, and rejects missing arguments and an unknown tool",
+      "program": "start",
+      "timeout": 60000,
+      "replayPort": 9999,
+      "replay": [
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "POST",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "match": {
+            "name": "Carla",
+            "phone": "111-222"
+          },
+          "status": 201,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "user Carla created!",
+            "id": "6ae09d629d890505678dac5e"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "PUT",
+          "path": "/v1/customers/6ae09d629d890505678dac5e",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "match": {
+            "name": "Carla",
+            "phone": "111-222"
+          },
+          "status": 404,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "User not found or no changes made",
+            "id": "6ae09d629d890505678dac5e"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "PUT",
+          "path": "/v1/customers/6ae09d629d890505678dac5e",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "match": {
+            "name": "Carla Dias"
+          },
+          "status": 400,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "body must have required property 'phone'"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "PUT",
+          "path": "/v1/customers/66fbfd09785d518f5c747366",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "match": {
+            "name": "Nobody",
+            "phone": "000"
+          },
+          "status": 404,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "User not found or no changes made",
+            "id": "66fbfd09785d518f5c747366"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "DELETE",
+          "path": "/v1/customers/not-a-valid-id",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 400,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "the id is invalid!",
+            "id": "not-a-valid-id"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "GET",
+          "path": "/v1/customers/66fbfd09785d518f5c747366",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 404,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {}
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "GET",
+          "path": "/v1/customers/123",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 400,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "the id is invalid!",
+            "id": "123"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": [
+            {
+              "_id": "6ae09d629d890505678dac5e",
+              "name": "Carla",
+              "phone": "111-222"
+            }
+          ]
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "DELETE",
+          "path": "/v1/customers/6ae09d629d890505678dac5e",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "User 6ae09d629d890505678dac5e deleted!",
+            "id": "6ae09d629d890505678dac5e"
+          }
+        }
+      ],
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/call",
+            "params": {
+              "name": "create_customer",
+              "arguments": {
+                "name": "Carla",
+                "phone": "111-222"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "tools/call",
+            "params": {
+              "name": "update_customer",
+              "arguments": {
+                "_id": "{responses.1.result.structuredContent.id}",
+                "name": "Carla",
+                "phone": "111-222"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "tools/call",
+            "params": {
+              "name": "update_customer",
+              "arguments": {
+                "_id": "{responses.1.result.structuredContent.id}",
+                "name": "Carla Dias"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "tools/call",
+            "params": {
+              "name": "update_customer",
+              "arguments": {
+                "_id": "66fbfd09785d518f5c747366",
+                "name": "Nobody",
+                "phone": "000"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "tools/call",
+            "params": {
+              "name": "delete_customer",
+              "arguments": {
+                "_id": "not-a-valid-id"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "_id": "66fbfd09785d518f5c747366"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 8,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "_id": "123"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 9,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "name": "Nobody"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 10,
+            "method": "tools/call",
+            "params": {
+              "name": "delete_customer",
+              "arguments": {
+                "_id": "{responses.1.result.structuredContent.id}"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 11,
+            "method": "tools/call",
+            "params": {
+              "name": "create_customer",
+              "arguments": {
+                "name": "Only Name"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 12,
+            "method": "tools/call",
+            "params": {
+              "name": "unknown_tool",
+              "arguments": {}
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/customers",
+              "body": {
+                "name": "Carla",
+                "phone": "111-222"
+              }
+            },
+            {
+              "method": "PUT",
+              "path": "/v1/customers/6ae09d629d890505678dac5e",
+              "body": {
+                "name": "Carla",
+                "phone": "111-222"
+              }
+            },
+            {
+              "method": "PUT",
+              "path": "/v1/customers/6ae09d629d890505678dac5e",
+              "body": {
+                "name": "Carla Dias"
+              }
+            },
+            {
+              "method": "PUT",
+              "path": "/v1/customers/66fbfd09785d518f5c747366",
+              "body": {
+                "name": "Nobody",
+                "phone": "000"
+              }
+            },
+            {
+              "method": "DELETE",
+              "path": "/v1/customers/not-a-valid-id"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers/66fbfd09785d518f5c747366"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers/123"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            },
+            {
+              "method": "DELETE",
+              "path": "/v1/customers/6ae09d629d890505678dac5e"
+            }
+          ]
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ew-customers-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "user Carla created!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "message": "user Carla created!",
+                      "id": "6ae09d629d890505678dac5e"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Failed to update customer. Error: HTTP 404 - Not Found - {\"message\":\"User not found or no changes made\",\"id\":\"6ae09d629d890505678dac5e\"}"
+                          }
+                        ],
+                        "structuredContent": {
+                          "isError": true,
+                          "message": "Failed to update customer. Error: HTTP 404 - Not Found - {\"message\":\"User not found or no changes made\",\"id\":\"6ae09d629d890505678dac5e\"}"
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Failed to update customer. Error: HTTP 404 - Not Found - {\"message\":\"User not found or no changes made\",\"id\":\"6ae09d629d890505678dac5e\"}"
+                        }
+                      ],
+                      "structuredContent": {
+                        "isError": true,
+                        "message": "Failed to update customer. Error: HTTP 404 - Not Found - {\"message\":\"User not found or no changes made\",\"id\":\"6ae09d629d890505678dac5e\"}"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Failed to update customer. Error: HTTP 400 - Bad Request - {\"message\":\"body must have required property 'phone'\"}"
+                          }
+                        ],
+                        "structuredContent": {
+                          "isError": true,
+                          "message": "Failed to update customer. Error: HTTP 400 - Bad Request - {\"message\":\"body must have required property 'phone'\"}"
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Failed to update customer. Error: HTTP 400 - Bad Request - {\"message\":\"body must have required property 'phone'\"}"
+                        }
+                      ],
+                      "structuredContent": {
+                        "isError": true,
+                        "message": "Failed to update customer. Error: HTTP 400 - Bad Request - {\"message\":\"body must have required property 'phone'\"}"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Failed to update customer. Error: HTTP 404 - Not Found - {\"message\":\"User not found or no changes made\",\"id\":\"66fbfd09785d518f5c747366\"}"
+                          }
+                        ],
+                        "structuredContent": {
+                          "isError": true,
+                          "message": "Failed to update customer. Error: HTTP 404 - Not Found - {\"message\":\"User not found or no changes made\",\"id\":\"66fbfd09785d518f5c747366\"}"
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Failed to update customer. Error: HTTP 404 - Not Found - {\"message\":\"User not found or no changes made\",\"id\":\"66fbfd09785d518f5c747366\"}"
+                        }
+                      ],
+                      "structuredContent": {
+                        "isError": true,
+                        "message": "Failed to update customer. Error: HTTP 404 - Not Found - {\"message\":\"User not found or no changes made\",\"id\":\"66fbfd09785d518f5c747366\"}"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 6,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Failed to delete customer. Error: HTTP 400 - Bad Request - {\"message\":\"the id is invalid!\",\"id\":\"not-a-valid-id\"}"
+                          }
+                        ],
+                        "structuredContent": {
+                          "isError": true,
+                          "message": "Failed to delete customer. Error: HTTP 400 - Bad Request - {\"message\":\"the id is invalid!\",\"id\":\"not-a-valid-id\"}"
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 6,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Failed to delete customer. Error: HTTP 400 - Bad Request - {\"message\":\"the id is invalid!\",\"id\":\"not-a-valid-id\"}"
+                        }
+                      ],
+                      "structuredContent": {
+                        "isError": true,
+                        "message": "Failed to delete customer. Error: HTTP 400 - Bad Request - {\"message\":\"the id is invalid!\",\"id\":\"not-a-valid-id\"}"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 7,
+                    "result": {
+                      "$like": {
+                        "isError": true
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 7,
+                    "error": {
+                      "$like": {}
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 7,
+                    "result": {
+                      "$like": {
+                        "structuredContent": {
+                          "customer": null
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 8,
+                    "result": {
+                      "$like": {
+                        "isError": true
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 8,
+                    "error": {
+                      "$like": {}
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 8,
+                    "result": {
+                      "$like": {
+                        "structuredContent": {
+                          "customer": null
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 9,
+                    "result": {
+                      "$like": {
+                        "isError": true
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 9,
+                    "error": {
+                      "$like": {}
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 9,
+                    "result": {
+                      "$like": {
+                        "structuredContent": {
+                          "customer": null
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 10,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "User 6ae09d629d890505678dac5e deleted!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "message": "User 6ae09d629d890505678dac5e deleted!",
+                      "id": "6ae09d629d890505678dac5e"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 11,
+                    "result": {
+                      "$like": {
+                        "isError": true
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 11,
+                    "error": {
+                      "$like": {
+                        "code": -32602
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 12,
+                    "result": {
+                      "$like": {
+                        "isError": true
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 12,
+                    "error": {
+                      "$like": {
+                        "code": -32602
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Customers MCP Server running on stdio\\n"
+        }
+      ]
+    },
+    {
+      "name": "with a token the secured API refuses, answers every tool with its action and Unauthorized: service token is missing or invalid",
+      "program": "start",
+      "timeout": 60000,
+      "env": {
+        "SERVICE_TOKEN": "invalid-token-that-does-not-exist"
+      },
+      "replayPort": 9999,
+      "replay": [
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a token it never issued",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer invalid-token-that-does-not-exist$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "Unauthorized"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a token it never issued",
+          "method": "GET",
+          "path": "/v1/customers/66fbfd09785d518f5c747366",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer invalid-token-that-does-not-exist$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "Unauthorized"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a token it never issued",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer invalid-token-that-does-not-exist$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "Unauthorized"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a token it never issued",
+          "method": "POST",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer invalid-token-that-does-not-exist$"
+          },
+          "match": {
+            "name": "Ana",
+            "phone": "999-000-111"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "Unauthorized"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a token it never issued",
+          "method": "PUT",
+          "path": "/v1/customers/66fbfd09785d518f5c747366",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer invalid-token-that-does-not-exist$"
+          },
+          "match": {
+            "name": "Ana",
+            "phone": "999-000-112"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "Unauthorized"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a token it never issued",
+          "method": "DELETE",
+          "path": "/v1/customers/66fbfd09785d518f5c747366",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer invalid-token-that-does-not-exist$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "Unauthorized"
+          }
+        }
+      ],
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/call",
+            "params": {
+              "name": "list_customers",
+              "arguments": {}
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "_id": "66fbfd09785d518f5c747366"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "name": "Ana"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "tools/call",
+            "params": {
+              "name": "create_customer",
+              "arguments": {
+                "name": "Ana",
+                "phone": "999-000-111"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "tools/call",
+            "params": {
+              "name": "update_customer",
+              "arguments": {
+                "_id": "66fbfd09785d518f5c747366",
+                "name": "Ana",
+                "phone": "999-000-112"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "tools/call",
+            "params": {
+              "name": "delete_customer",
+              "arguments": {
+                "_id": "66fbfd09785d518f5c747366"
+              }
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers/66fbfd09785d518f5c747366"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            },
+            {
+              "method": "POST",
+              "path": "/v1/customers",
+              "body": {
+                "name": "Ana",
+                "phone": "999-000-111"
+              }
+            },
+            {
+              "method": "PUT",
+              "path": "/v1/customers/66fbfd09785d518f5c747366",
+              "body": {
+                "name": "Ana",
+                "phone": "999-000-112"
+              }
+            },
+            {
+              "method": "DELETE",
+              "path": "/v1/customers/66fbfd09785d518f5c747366"
+            }
+          ]
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ew-customers-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Failed to list customers. Error: Unauthorized: service token is missing or invalid"
+                          }
+                        ],
+                        "structuredContent": {
+                          "isError": true,
+                          "message": "Failed to list customers. Error: Unauthorized: service token is missing or invalid"
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Failed to list customers. Error: Unauthorized: service token is missing or invalid"
+                        }
+                      ],
+                      "structuredContent": {
+                        "isError": true,
+                        "message": "Failed to list customers. Error: Unauthorized: service token is missing or invalid"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Failed to find customer. Error: Unauthorized: service token is missing or invalid"
+                          }
+                        ],
+                        "structuredContent": {
+                          "isError": true,
+                          "message": "Failed to find customer. Error: Unauthorized: service token is missing or invalid"
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Failed to find customer. Error: Unauthorized: service token is missing or invalid"
+                        }
+                      ],
+                      "structuredContent": {
+                        "isError": true,
+                        "message": "Failed to find customer. Error: Unauthorized: service token is missing or invalid"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Failed to find customer. Error: Unauthorized: service token is missing or invalid"
+                          }
+                        ],
+                        "structuredContent": {
+                          "isError": true,
+                          "message": "Failed to find customer. Error: Unauthorized: service token is missing or invalid"
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Failed to find customer. Error: Unauthorized: service token is missing or invalid"
+                        }
+                      ],
+                      "structuredContent": {
+                        "isError": true,
+                        "message": "Failed to find customer. Error: Unauthorized: service token is missing or invalid"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Failed to create customer. Error: Unauthorized: service token is missing or invalid"
+                          }
+                        ],
+                        "structuredContent": {
+                          "isError": true,
+                          "message": "Failed to create customer. Error: Unauthorized: service token is missing or invalid"
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Failed to create customer. Error: Unauthorized: service token is missing or invalid"
+                        }
+                      ],
+                      "structuredContent": {
+                        "isError": true,
+                        "message": "Failed to create customer. Error: Unauthorized: service token is missing or invalid"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 6,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Failed to update customer. Error: Unauthorized: service token is missing or invalid"
+                          }
+                        ],
+                        "structuredContent": {
+                          "isError": true,
+                          "message": "Failed to update customer. Error: Unauthorized: service token is missing or invalid"
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 6,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Failed to update customer. Error: Unauthorized: service token is missing or invalid"
+                        }
+                      ],
+                      "structuredContent": {
+                        "isError": true,
+                        "message": "Failed to update customer. Error: Unauthorized: service token is missing or invalid"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 7,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Failed to delete customer. Error: Unauthorized: service token is missing or invalid"
+                          }
+                        ],
+                        "structuredContent": {
+                          "isError": true,
+                          "message": "Failed to delete customer. Error: Unauthorized: service token is missing or invalid"
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 7,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Failed to delete customer. Error: Unauthorized: service token is missing or invalid"
+                        }
+                      ],
+                      "structuredContent": {
+                        "isError": true,
+                        "message": "Failed to delete customer. Error: Unauthorized: service token is missing or invalid"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Customers MCP Server running on stdio\\n"
+        }
+      ]
+    },
+    {
+      "name": "with a member's token, still lists and finds customers but answers every write with its action and Forbidden: token does not have sufficient permissions",
+      "program": "start",
+      "timeout": 60000,
+      "env": {
+        "SERVICE_TOKEN": "b61e65c1-96bd-43ae-ae67-05555df042c8"
+      },
+      "replayPort": 9999,
+      "replay": [
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the member ananeri, whose writes it answers with 403",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer b61e65c1-96bd-43ae-ae67-05555df042c8$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": [
+            {
+              "_id": "6ae09d629d890505678dac5f",
+              "name": "Ana",
+              "phone": "999-000-111"
+            }
+          ]
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the member ananeri, whose writes it answers with 403",
+          "method": "GET",
+          "path": "/v1/customers/6ae09d629d890505678dac5f",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer b61e65c1-96bd-43ae-ae67-05555df042c8$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "id": "6ae09d629d890505678dac5f",
+            "name": "Ana",
+            "phone": "999-000-111"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the member ananeri, whose writes it answers with 403",
+          "method": "POST",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer b61e65c1-96bd-43ae-ae67-05555df042c8$"
+          },
+          "match": {
+            "name": "Bruno",
+            "phone": "555-0101"
+          },
+          "status": 403,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "Forbidden: insufficient permissions"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the member ananeri, whose writes it answers with 403",
+          "method": "PUT",
+          "path": "/v1/customers/6ae09d629d890505678dac5f",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer b61e65c1-96bd-43ae-ae67-05555df042c8$"
+          },
+          "match": {
+            "name": "Ana Paula",
+            "phone": "999-000-111"
+          },
+          "status": 403,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "Forbidden: insufficient permissions"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the member ananeri, whose writes it answers with 403",
+          "method": "DELETE",
+          "path": "/v1/customers/6ae09d629d890505678dac5f",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer b61e65c1-96bd-43ae-ae67-05555df042c8$"
+          },
+          "status": 403,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "Forbidden: insufficient permissions"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the member ananeri, whose writes it answers with 403",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer b61e65c1-96bd-43ae-ae67-05555df042c8$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": [
+            {
+              "_id": "6ae09d629d890505678dac5f",
+              "name": "Ana",
+              "phone": "999-000-111"
+            }
+          ]
+        }
+      ],
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/call",
+            "params": {
+              "name": "list_customers",
+              "arguments": {}
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "_id": "6ae09d629d890505678dac5f"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "tools/call",
+            "params": {
+              "name": "create_customer",
+              "arguments": {
+                "name": "Bruno",
+                "phone": "555-0101"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "tools/call",
+            "params": {
+              "name": "update_customer",
+              "arguments": {
+                "_id": "6ae09d629d890505678dac5f",
+                "name": "Ana Paula",
+                "phone": "999-000-111"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "tools/call",
+            "params": {
+              "name": "delete_customer",
+              "arguments": {
+                "_id": "6ae09d629d890505678dac5f"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "tools/call",
+            "params": {
+              "name": "list_customers",
+              "arguments": {}
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers/6ae09d629d890505678dac5f"
+            },
+            {
+              "method": "POST",
+              "path": "/v1/customers",
+              "body": {
+                "name": "Bruno",
+                "phone": "555-0101"
+              }
+            },
+            {
+              "method": "PUT",
+              "path": "/v1/customers/6ae09d629d890505678dac5f",
+              "body": {
+                "name": "Ana Paula",
+                "phone": "999-000-111"
+              }
+            },
+            {
+              "method": "DELETE",
+              "path": "/v1/customers/6ae09d629d890505678dac5f"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            }
+          ]
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ew-customers-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": [
+                            {
+                              "_id": "6ae09d629d890505678dac5f",
+                              "name": "Ana",
+                              "phone": "999-000-111"
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customers": [
+                        {
+                          "_id": "6ae09d629d890505678dac5f",
+                          "name": "Ana",
+                          "phone": "999-000-111"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "id": "6ae09d629d890505678dac5f",
+                            "name": "Ana",
+                            "phone": "999-000-111"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": {
+                        "id": "6ae09d629d890505678dac5f",
+                        "name": "Ana",
+                        "phone": "999-000-111"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Failed to create customer. Error: Forbidden: token does not have sufficient permissions"
+                          }
+                        ],
+                        "structuredContent": {
+                          "isError": true,
+                          "message": "Failed to create customer. Error: Forbidden: token does not have sufficient permissions"
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Failed to create customer. Error: Forbidden: token does not have sufficient permissions"
+                        }
+                      ],
+                      "structuredContent": {
+                        "isError": true,
+                        "message": "Failed to create customer. Error: Forbidden: token does not have sufficient permissions"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Failed to update customer. Error: Forbidden: token does not have sufficient permissions"
+                          }
+                        ],
+                        "structuredContent": {
+                          "isError": true,
+                          "message": "Failed to update customer. Error: Forbidden: token does not have sufficient permissions"
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Failed to update customer. Error: Forbidden: token does not have sufficient permissions"
+                        }
+                      ],
+                      "structuredContent": {
+                        "isError": true,
+                        "message": "Failed to update customer. Error: Forbidden: token does not have sufficient permissions"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 6,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Failed to delete customer. Error: Forbidden: token does not have sufficient permissions"
+                          }
+                        ],
+                        "structuredContent": {
+                          "isError": true,
+                          "message": "Failed to delete customer. Error: Forbidden: token does not have sufficient permissions"
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 6,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Failed to delete customer. Error: Forbidden: token does not have sufficient permissions"
+                        }
+                      ],
+                      "structuredContent": {
+                        "isError": true,
+                        "message": "Failed to delete customer. Error: Forbidden: token does not have sufficient permissions"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 7,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": [
+                            {
+                              "_id": "6ae09d629d890505678dac5f",
+                              "name": "Ana",
+                              "phone": "999-000-111"
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customers": [
+                        {
+                          "_id": "6ae09d629d890505678dac5f",
+                          "name": "Ana",
+                          "phone": "999-000-111"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Customers MCP Server running on stdio\\n"
+        }
+      ]
+    },
+    {
+      "name": "once its token has spent the requests of the minute, answers every tool with its action and Rate limit exceeded. Please try again later.",
+      "program": "start",
+      "timeout": 60000,
+      "env": {
+        "SERVICE_TOKEN": "a29eb3ee-275f-4cb3-b58c-e6a63d96d0d8"
+      },
+      "replayPort": 9999,
+      "replay": [
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel after that token had spent its 90 requests of the minute",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer a29eb3ee-275f-4cb3-b58c-e6a63d96d0d8$"
+          },
+          "status": 429,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "statusCode": 429,
+            "error": "Too Many Requests",
+            "message": "Rate limit exceeded, retry in 1 minute"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel after that token had spent its 90 requests of the minute",
+          "method": "GET",
+          "path": "/v1/customers/66fbfd09785d518f5c747366",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer a29eb3ee-275f-4cb3-b58c-e6a63d96d0d8$"
+          },
+          "status": 429,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "statusCode": 429,
+            "error": "Too Many Requests",
+            "message": "Rate limit exceeded, retry in 1 minute"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel after that token had spent its 90 requests of the minute",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer a29eb3ee-275f-4cb3-b58c-e6a63d96d0d8$"
+          },
+          "status": 429,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "statusCode": 429,
+            "error": "Too Many Requests",
+            "message": "Rate limit exceeded, retry in 1 minute"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel after that token had spent its 90 requests of the minute",
+          "method": "POST",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer a29eb3ee-275f-4cb3-b58c-e6a63d96d0d8$"
+          },
+          "match": {
+            "name": "Bruno",
+            "phone": "555-0101"
+          },
+          "status": 429,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "statusCode": 429,
+            "error": "Too Many Requests",
+            "message": "Rate limit exceeded, retry in 1 minute"
+          }
+        }
+      ],
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/call",
+            "params": {
+              "name": "list_customers",
+              "arguments": {}
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "_id": "66fbfd09785d518f5c747366"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "phone": "555"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "tools/call",
+            "params": {
+              "name": "create_customer",
+              "arguments": {
+                "name": "Bruno",
+                "phone": "555-0101"
+              }
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers/66fbfd09785d518f5c747366"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            },
+            {
+              "method": "POST",
+              "path": "/v1/customers",
+              "body": {
+                "name": "Bruno",
+                "phone": "555-0101"
+              }
+            }
+          ]
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ew-customers-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Failed to list customers. Error: Rate limit exceeded. Please try again later."
+                          }
+                        ],
+                        "structuredContent": {
+                          "isError": true,
+                          "message": "Failed to list customers. Error: Rate limit exceeded. Please try again later."
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Failed to list customers. Error: Rate limit exceeded. Please try again later."
+                        }
+                      ],
+                      "structuredContent": {
+                        "isError": true,
+                        "message": "Failed to list customers. Error: Rate limit exceeded. Please try again later."
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Failed to find customer. Error: Rate limit exceeded. Please try again later."
+                          }
+                        ],
+                        "structuredContent": {
+                          "isError": true,
+                          "message": "Failed to find customer. Error: Rate limit exceeded. Please try again later."
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Failed to find customer. Error: Rate limit exceeded. Please try again later."
+                        }
+                      ],
+                      "structuredContent": {
+                        "isError": true,
+                        "message": "Failed to find customer. Error: Rate limit exceeded. Please try again later."
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Failed to find customer. Error: Rate limit exceeded. Please try again later."
+                          }
+                        ],
+                        "structuredContent": {
+                          "isError": true,
+                          "message": "Failed to find customer. Error: Rate limit exceeded. Please try again later."
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Failed to find customer. Error: Rate limit exceeded. Please try again later."
+                        }
+                      ],
+                      "structuredContent": {
+                        "isError": true,
+                        "message": "Failed to find customer. Error: Rate limit exceeded. Please try again later."
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Failed to create customer. Error: Rate limit exceeded. Please try again later."
+                          }
+                        ],
+                        "structuredContent": {
+                          "isError": true,
+                          "message": "Failed to create customer. Error: Rate limit exceeded. Please try again later."
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Failed to create customer. Error: Rate limit exceeded. Please try again later."
+                        }
+                      ],
+                      "structuredContent": {
+                        "isError": true,
+                        "message": "Failed to create customer. Error: Rate limit exceeded. Please try again later."
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Customers MCP Server running on stdio\\n"
+        }
+      ]
+    },
+    {
+      "name": "publishes @erickwendel/customers-mcp 0.0.2 to the private registry without an account, which then serves it as the latest version with its customers-mcp executable",
+      "program": "release",
+      "timeout": 180000,
+      "inspect": [
+        {
+          "port": 4873,
+          "path": "/@erickwendel%2fcustomers-mcp"
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "name": "@erickwendel/customers-mcp",
+                "dist-tags": {
+                  "$like": {
+                    "latest": "0.0.2"
+                  }
+                },
+                "versions": {
+                  "$like": {
+                    "0.0.2": {
+                      "name": "@erickwendel/customers-mcp",
+                      "version": "0.0.2",
+                      "bin": {
+                        "customers-mcp": {
+                          "$pattern": "\\S"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "installed by npx from the private registry and run as customers-mcp, refuses to start without SERVICE_TOKEN, printing its error and exiting 1",
+      "program": "published",
+      "timeout": 180000,
+      "env": {
+        "SERVICE_TOKEN": ""
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "\\[error\\]: SERVICE_TOKEN env var is required\\n"
+        }
+      ]
+    },
+    {
+      "name": "installed by npx from the private registry and run as customers-mcp, introduces itself as @erickwendel/ew-customers-mcp 0.0.1 rather than by the package's name and version, and lists the same five tools",
+      "program": "published",
+      "timeout": 180000,
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/list"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ew-customers-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "result": {
+                  "$like": {
+                    "tools": {
+                      "$unordered": [
+                        {
+                          "name": "list_customers",
+                          "description": "List all customers",
+                          "inputSchema": {
+                            "type": "object"
+                          },
+                          "outputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the deleted customer"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "Confirmation message"
+                              },
+                              "isError": {
+                                "type": "boolean",
+                                "description": "Indicates if an error occurred"
+                              },
+                              "customer": {
+                                "type": "object",
+                                "description": "The found customer",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "description": "MongoDB ObjectId of the customer"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "phone": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": {
+                                  "$unordered": ["name", "phone"]
+                                }
+                              },
+                              "customers": {
+                                "type": "array",
+                                "description": "List of customers"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "name": "get_customer",
+                          "description": "Find a customer by _id, name, or phone number",
+                          "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the customer"
+                              },
+                              "name": {
+                                "type": "string",
+                                "description": "Full name of the customer"
+                              },
+                              "phone": {
+                                "type": "string",
+                                "description": "phone number of the customer"
+                              }
+                            }
+                          },
+                          "outputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the deleted customer"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "Confirmation message"
+                              },
+                              "isError": {
+                                "type": "boolean",
+                                "description": "Indicates if an error occurred"
+                              },
+                              "customer": {
+                                "type": "object",
+                                "description": "The found customer",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "description": "MongoDB ObjectId of the customer"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "phone": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": {
+                                  "$unordered": ["name", "phone"]
+                                }
+                              },
+                              "customers": {
+                                "type": "array",
+                                "description": "List of customers"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "name": "create_customer",
+                          "description": "Create a new customer",
+                          "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "Full name of the customer"
+                              },
+                              "phone": {
+                                "type": "string",
+                                "description": "Phone number of the customer"
+                              }
+                            },
+                            "required": {
+                              "$unordered": ["name", "phone"]
+                            }
+                          },
+                          "outputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the deleted customer"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "Confirmation message"
+                              },
+                              "isError": {
+                                "type": "boolean",
+                                "description": "Indicates if an error occurred"
+                              },
+                              "customer": {
+                                "type": "object",
+                                "description": "The found customer",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "description": "MongoDB ObjectId of the customer"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "phone": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": {
+                                  "$unordered": ["name", "phone"]
+                                }
+                              },
+                              "customers": {
+                                "type": "array",
+                                "description": "List of customers"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "name": "update_customer",
+                          "description": "Update an existing customer's name and/or phone number by their _id",
+                          "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the customer"
+                              },
+                              "name": {
+                                "type": "string",
+                                "description": "Full name of the customer"
+                              },
+                              "phone": {
+                                "type": "string",
+                                "description": "phone number of the customer"
+                              }
+                            },
+                            "required": ["_id"]
+                          },
+                          "outputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the deleted customer"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "Confirmation message"
+                              },
+                              "isError": {
+                                "type": "boolean",
+                                "description": "Indicates if an error occurred"
+                              },
+                              "customer": {
+                                "type": "object",
+                                "description": "The found customer",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "description": "MongoDB ObjectId of the customer"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "phone": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": {
+                                  "$unordered": ["name", "phone"]
+                                }
+                              },
+                              "customers": {
+                                "type": "array",
+                                "description": "List of customers"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "name": "delete_customer",
+                          "description": "Delete a customer by their _id",
+                          "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the customer to delete"
+                              }
+                            },
+                            "required": ["_id"]
+                          },
+                          "outputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the deleted customer"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "Confirmation message"
+                              },
+                              "isError": {
+                                "type": "boolean",
+                                "description": "Indicates if an error occurred"
+                              },
+                              "customer": {
+                                "type": "object",
+                                "description": "The found customer",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string",
+                                    "description": "MongoDB ObjectId of the customer"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "phone": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": {
+                                  "$unordered": ["name", "phone"]
+                                }
+                              },
+                              "customers": {
+                                "type": "array",
+                                "description": "List of customers"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Customers MCP Server running on stdio\\n"
+        }
+      ]
+    },
+    {
+      "name": "installed by npx from the private registry and run as customers-mcp, sends its service token as a bearer and passes the API's answers through as it does from the source",
+      "program": "published",
+      "timeout": 180000,
+      "replayPort": 9999,
+      "replay": [
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": []
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "POST",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "match": {
+            "name": "Ana",
+            "phone": "999-000-111"
+          },
+          "status": 201,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "user Ana created!",
+            "id": "6ae09d619d890505678dac5c"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "POST",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "match": {
+            "name": "bruno",
+            "phone": "555-0101"
+          },
+          "status": 201,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "user bruno created!",
+            "id": "6ae09d619d890505678dac5d"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": [
+            {
+              "_id": "6ae09d619d890505678dac5c",
+              "name": "Ana",
+              "phone": "999-000-111"
+            },
+            {
+              "_id": "6ae09d619d890505678dac5d",
+              "name": "bruno",
+              "phone": "555-0101"
+            }
+          ]
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "GET",
+          "path": "/v1/customers/6ae09d619d890505678dac5c",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "id": "6ae09d619d890505678dac5c",
+            "name": "Ana",
+            "phone": "999-000-111"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": [
+            {
+              "_id": "6ae09d619d890505678dac5c",
+              "name": "Ana",
+              "phone": "999-000-111"
+            },
+            {
+              "_id": "6ae09d619d890505678dac5d",
+              "name": "bruno",
+              "phone": "555-0101"
+            }
+          ]
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": [
+            {
+              "_id": "6ae09d619d890505678dac5c",
+              "name": "Ana",
+              "phone": "999-000-111"
+            },
+            {
+              "_id": "6ae09d619d890505678dac5d",
+              "name": "bruno",
+              "phone": "555-0101"
+            }
+          ]
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": [
+            {
+              "_id": "6ae09d619d890505678dac5c",
+              "name": "Ana",
+              "phone": "999-000-111"
+            },
+            {
+              "_id": "6ae09d619d890505678dac5d",
+              "name": "bruno",
+              "phone": "555-0101"
+            }
+          ]
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "PUT",
+          "path": "/v1/customers/6ae09d619d890505678dac5d",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "match": {
+            "name": "Bruno",
+            "phone": "555-0102"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "User 6ae09d619d890505678dac5d updated!",
+            "id": "6ae09d619d890505678dac5d"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "GET",
+          "path": "/v1/customers/6ae09d619d890505678dac5d",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "id": "6ae09d619d890505678dac5d",
+            "name": "Bruno",
+            "phone": "555-0102"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "DELETE",
+          "path": "/v1/customers/6ae09d619d890505678dac5c",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "User 6ae09d619d890505678dac5c deleted!",
+            "id": "6ae09d619d890505678dac5c"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "DELETE",
+          "path": "/v1/customers/6ae09d619d890505678dac5d",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "User 6ae09d619d890505678dac5d deleted!",
+            "id": "6ae09d619d890505678dac5d"
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, with a service token it issued to the admin erickwendel, which the case's token stands for",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^[Bb]earer 7befa3be-ed41-4ccb-a473-33a9db6db5a5$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": []
+        }
+      ],
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/call",
+            "params": {
+              "name": "list_customers",
+              "arguments": {}
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "tools/call",
+            "params": {
+              "name": "create_customer",
+              "arguments": {
+                "name": "Ana",
+                "phone": "999-000-111"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "tools/call",
+            "params": {
+              "name": "create_customer",
+              "arguments": {
+                "name": "bruno",
+                "phone": "555-0101"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "tools/call",
+            "params": {
+              "name": "list_customers",
+              "arguments": {}
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "_id": "{responses.2.result.structuredContent.id}"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "name": "run"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 8,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "phone": "555"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 9,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {}
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 10,
+            "method": "tools/call",
+            "params": {
+              "name": "update_customer",
+              "arguments": {
+                "_id": "{responses.3.result.structuredContent.id}",
+                "name": "Bruno",
+                "phone": "555-0102"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 11,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "_id": "{responses.3.result.structuredContent.id}"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 12,
+            "method": "tools/call",
+            "params": {
+              "name": "delete_customer",
+              "arguments": {
+                "_id": "{responses.2.result.structuredContent.id}"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 13,
+            "method": "tools/call",
+            "params": {
+              "name": "delete_customer",
+              "arguments": {
+                "_id": "{responses.3.result.structuredContent.id}"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 14,
+            "method": "tools/call",
+            "params": {
+              "name": "list_customers",
+              "arguments": {}
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            },
+            {
+              "method": "POST",
+              "path": "/v1/customers",
+              "body": {
+                "name": "Ana",
+                "phone": "999-000-111"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/customers",
+              "body": {
+                "name": "bruno",
+                "phone": "555-0101"
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers/6ae09d619d890505678dac5c"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            },
+            {
+              "method": "PUT",
+              "path": "/v1/customers/6ae09d619d890505678dac5d",
+              "body": {
+                "name": "Bruno",
+                "phone": "555-0102"
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers/6ae09d619d890505678dac5d"
+            },
+            {
+              "method": "DELETE",
+              "path": "/v1/customers/6ae09d619d890505678dac5c"
+            },
+            {
+              "method": "DELETE",
+              "path": "/v1/customers/6ae09d619d890505678dac5d"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            }
+          ]
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ew-customers-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": []
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customers": []
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "user Ana created!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "message": "user Ana created!",
+                      "id": "6ae09d619d890505678dac5c"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 4,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "user bruno created!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "message": "user bruno created!",
+                      "id": "6ae09d619d890505678dac5d"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 5,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": [
+                            {
+                              "_id": "6ae09d619d890505678dac5c",
+                              "name": "Ana",
+                              "phone": "999-000-111"
+                            },
+                            {
+                              "_id": "6ae09d619d890505678dac5d",
+                              "name": "bruno",
+                              "phone": "555-0101"
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customers": [
+                        {
+                          "_id": "6ae09d619d890505678dac5c",
+                          "name": "Ana",
+                          "phone": "999-000-111"
+                        },
+                        {
+                          "_id": "6ae09d619d890505678dac5d",
+                          "name": "bruno",
+                          "phone": "555-0101"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 6,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "id": "6ae09d619d890505678dac5c",
+                            "name": "Ana",
+                            "phone": "999-000-111"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": {
+                        "id": "6ae09d619d890505678dac5c",
+                        "name": "Ana",
+                        "phone": "999-000-111"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 7,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "_id": "6ae09d619d890505678dac5d",
+                            "name": "bruno",
+                            "phone": "555-0101"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": {
+                        "_id": "6ae09d619d890505678dac5d",
+                        "name": "bruno",
+                        "phone": "555-0101"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 8,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "_id": "6ae09d619d890505678dac5d",
+                            "name": "bruno",
+                            "phone": "555-0101"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": {
+                        "_id": "6ae09d619d890505678dac5d",
+                        "name": "bruno",
+                        "phone": "555-0101"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 9,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "_id": "6ae09d619d890505678dac5c",
+                            "name": "Ana",
+                            "phone": "999-000-111"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": {
+                        "_id": "6ae09d619d890505678dac5c",
+                        "name": "Ana",
+                        "phone": "999-000-111"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 10,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "User 6ae09d619d890505678dac5d updated!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "message": "User 6ae09d619d890505678dac5d updated!",
+                      "id": "6ae09d619d890505678dac5d"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 11,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "id": "6ae09d619d890505678dac5d",
+                            "name": "Bruno",
+                            "phone": "555-0102"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": {
+                        "id": "6ae09d619d890505678dac5d",
+                        "name": "Bruno",
+                        "phone": "555-0102"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 12,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "User 6ae09d619d890505678dac5c deleted!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "message": "User 6ae09d619d890505678dac5c deleted!",
+                      "id": "6ae09d619d890505678dac5c"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 13,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "User 6ae09d619d890505678dac5d deleted!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "message": "User 6ae09d619d890505678dac5d deleted!",
+                      "id": "6ae09d619d890505678dac5d"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 14,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": []
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customers": []
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Customers MCP Server running on stdio\\n"
+        }
+      ]
+    }
+  ]
+}

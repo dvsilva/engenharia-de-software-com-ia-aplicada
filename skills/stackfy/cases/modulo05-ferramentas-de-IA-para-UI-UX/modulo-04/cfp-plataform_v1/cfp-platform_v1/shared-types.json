@@ -1,0 +1,6 @@
+{
+  "module": "modulo05-ferramentas-de-IA-para-UI-UX/modulo-04/cfp-plataform_v1/cfp-platform_v1/shared-types",
+  "concepts": ["full-stack-monorepo"],
+  "recorded": "No cases: shared-types is the same library as in modulo-03's cfp-platform, compiled into the api and the frontend, holding the SpeakerDTO and EventDTO interfaces, which exist only at compile time, and a sharedTypes function the generator left, which nothing calls. It has no boundary of its own, so the cfp-platform_v1 cases check the shapes it declares, in the api's answers and in the bodies the frontend and its end-to-end tests send.",
+  "cases": []
+}

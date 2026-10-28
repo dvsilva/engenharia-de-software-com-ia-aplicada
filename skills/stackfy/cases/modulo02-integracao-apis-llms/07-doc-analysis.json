@@ -1,0 +1,949 @@
+{
+  "module": "modulo02-integracao-apis-llms/07-doc-analysis",
+  "concepts": ["rest-api", "chat-model", "state-graph", "model-routing"],
+  "recorded": "Every case passed against the original with Node.js 26.12.1, fastify 5.7.4, @fastify/multipart 9.4.0, @langchain/core 1.1.27, @langchain/langgraph 1.1.5, @langchain/openai 1.2.9, langchain 1.2.25, and zod 3.25.76, installed from the module's lockfile and run as \"node src/index.ts\" without a .env file, so LangSmith tracing stays off. The original always listens on port 4000 and always calls OpenRouter's address, so the copy that produced these cases listens on PORT, falling back to 4000, a one-line change in src/index.ts that leaves the banner naming 4000, and passes OPENAI_BASE_URL to ChatOpenAI as its base URL, falling back to OpenRouter's, a one-line change in src/services/openrouterService.ts. At startup the server sends its own route the PDF in docs/ through Fastify's inject and prints the answer, so every case waits for that answer and expects that request first, and a transcription keeps the docs folder beside its source. That request carries the whole 443686-byte PDF in base64, which the cases check by its first and last 64 characters and its length. The uploads are a one-page PDF of meeting notes written for these cases. No OpenRouter key was available, and Ollama rejects a PDF in an image_url part as an invalid image, so no stand-in model can answer the request the program sends. Every answer is therefore synthesized in OpenRouter's documented response format, with a text written from the PDF's text, extracted with PDFKit (the title, authors, abstract, introduction, and figures of the first two pages for the course's document), while the requests keep the model, the routing, and the parts the program sends. The rejected key comes from OpenRouter's documented error format, and the message it leaves in the answer, the runtime's own, is checked by the status code on its first line. Every upload puts the question before the file or after a small one, because @fastify/multipart never sees a question that follows a file larger than its stream buffer, which is not what the handler means. No case sends a file over the 10 MB limit, which ends in the same 500 as a body that is not multipart, or depends on the letter case or parameters of a media type. The LangGraph CLI's development server, which factory.ts and langgraph.json register the graph for, belongs to the CLI and has no cases.",
+  "prepare": {
+    "setup": ["npm ci --no-audit --no-fund"],
+    "patches": [
+      {
+        "file": "src/index.ts",
+        "find": "{ port: 4000, host",
+        "replace": "{ port: Number(process.env.PORT ?? 4000), host"
+      },
+      {
+        "file": "src/services/openrouterService.ts",
+        "find": "'https://openrouter.ai/api/v1'",
+        "replace": "process.env.OPENAI_BASE_URL ?? 'https://openrouter.ai/api/v1'"
+      }
+    ]
+  },
+  "originals": ["node src/index.ts"],
+  "env": {
+    "OPENROUTER_API_KEY": "replay"
+  },
+  "cases": [
+    {
+      "name": "at startup the server sends the PDF in its docs folder to the model and prints the answer, then answers questions about uploaded PDFs under any field name, the question before the file or after a small one",
+      "replay": [
+        {
+          "source": "synthesized from OpenRouter's documented response format, with an answer written from the PDF's text",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793103612-Hk4sWq9ZtLmB2vXc7RdN",
+            "model": "google/gemini-2.5-flash-lite-preview-09-2025",
+            "object": "chat.completion",
+            "created": 1793103612,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "STOP",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "This document is **\"A Comprehensive Overview of Large Language Models\"**, a survey paper by Humza Naveed, Asad Ullah Khan, Shi Qiu, Muhammad Saqib, Saeed Anwar, Muhammad Usman, Naveed Akhtar, Nick Barnes, and Ajmal Mian, from universities and research centers in Australia, Pakistan, Hong Kong, and Saudi Arabia (arXiv:2307.06435v10, October 2024).\n\nHere's what it contains:\n\n*   **Abstract:** LLM research is moving so fast that it is hard to see the bigger picture, so the paper offers a concise yet comprehensive overview that works both as a systematic survey and as a quick reference for researchers and practitioners.\n*   **Introduction:** how natural language processing evolved from statistical and neural language models to pre-trained language models and then to LLMs, and why fine-tuning with instructions and alignment with human preferences improve them.\n*   **Figures:** a chart of the papers released each year from 2018 to 2024 about LLMs, fine-tuning, and alignment, and a timeline of LLM releases, from T5 and GPT-3 to LLaMA 3, Gemini-1.5, and OpenAI o1, split into pre-trained and instruction-tuned, open-source and closed-source models.\n*   **Topics covered:** architectural innovations, training strategies, context length improvements, fine-tuning, multimodal and augmented LLMs, robotics, datasets, benchmarking, efficiency, applications, and challenges.\n\nKeywords include Large Language Models, chatGPT, Augmented LLMs, Multimodal LLMs, LLM training, and LLM Benchmarking.",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 15486,
+              "completion_tokens": 241,
+              "total_tokens": 15727,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented response format, with an answer written from the PDF's text",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793103640-pR7vNc2KxTe5YbWq8LsJ",
+            "model": "google/gemini-2.5-flash-lite-preview-09-2025",
+            "object": "chat.completion",
+            "created": 1793103640,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "STOP",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "Module 02 launches on **November 10, 2026**, and **Bruno** sends the budget by Friday.",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 304,
+              "completion_tokens": 27,
+              "total_tokens": 331,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented response format, with an answer written from the PDF's text",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793103644-Zb3mQw6TfVh9KdXs1NcR",
+            "model": "google/gemini-2.5-flash-lite-preview-09-2025",
+            "object": "chat.completion",
+            "created": 1793103644,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "STOP",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "The meeting was attended by **Ana**, **Bruno**, and **Carla**.",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 297,
+              "completion_tokens": 16,
+              "total_tokens": 313,
+              "cost": 0
+            }
+          }
+        }
+      ],
+      "serve": {
+        "port": 47961,
+        "after": "📝 AI Response:\\n[\\s\\S]*\\n\\n\\n$",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/chat",
+            "form": {
+              "question": "When does module 02 launch, and who sends the budget?",
+              "file": {
+                "name": "meeting-notes.pdf",
+                "type": "application/pdf",
+                "base64": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+PiA+PiAvQ29udGVudHMgNSAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9MZW5ndGggNDE1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgNzIgNzQwIFRkIChDb3Vyc2UgUGxhdGZvcm0gTWVldGluZyBOb3RlcykgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDcxOCBUZCAoRGF0ZTogT2N0b2JlciAyNywgMjAyNikgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDY5NiBUZCAoQXR0ZW5kZWVzOiBBbmEsIEJydW5vLCBhbmQgQ2FybGEpIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2NzQgVGQgKERlY2lzaW9uOiBtb2R1bGUgMDIgbGF1bmNoZXMgb24gTm92ZW1iZXIgMTAsIDIwMjYuKSBUaiBFVApCVCAvRjEgMTIgVGYgNzIgNjUyIFRkIChEZWNpc2lvbjogT3BlblJvdXRlciByb3V0ZXMgZXZlcnkgbW9kZWwgY2FsbC4pIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2MzAgVGQgKEFjdGlvbiBpdGVtOiBCcnVubyBzZW5kcyB0aGUgYnVkZ2V0IGJ5IEZyaWRheS4pIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzMTEgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo3NzcKJSVFT0YK"
+              }
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "form": {
+              "document": {
+                "name": "meeting-notes.pdf",
+                "type": "application/pdf",
+                "base64": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+PiA+PiAvQ29udGVudHMgNSAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9MZW5ndGggNDE1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgNzIgNzQwIFRkIChDb3Vyc2UgUGxhdGZvcm0gTWVldGluZyBOb3RlcykgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDcxOCBUZCAoRGF0ZTogT2N0b2JlciAyNywgMjAyNikgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDY5NiBUZCAoQXR0ZW5kZWVzOiBBbmEsIEJydW5vLCBhbmQgQ2FybGEpIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2NzQgVGQgKERlY2lzaW9uOiBtb2R1bGUgMDIgbGF1bmNoZXMgb24gTm92ZW1iZXIgMTAsIDIwMjYuKSBUaiBFVApCVCAvRjEgMTIgVGYgNzIgNjUyIFRkIChEZWNpc2lvbjogT3BlblJvdXRlciByb3V0ZXMgZXZlcnkgbW9kZWwgY2FsbC4pIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2MzAgVGQgKEFjdGlvbiBpdGVtOiBCcnVubyBzZW5kcyB0aGUgYnVkZ2V0IGJ5IEZyaWRheS4pIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzMTEgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo3NzcKJSVFT0YK"
+              },
+              "question": "Who attended the meeting?"
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "filename": "meeting-notes.pdf",
+                "question": "When does module 02 launch, and who sends the budget?",
+                "answer": "Module 02 launches on **November 10, 2026**, and **Bruno** sends the budget by Friday."
+              },
+              "pattern": "^(?![\\s\\S]*\"error\"\\s*:)"
+            },
+            {
+              "status": 200,
+              "match": {
+                "filename": "meeting-notes.pdf",
+                "question": "Who attended the meeting?",
+                "answer": "The meeting was attended by **Ana**, **Bruno**, and **Carla**."
+              },
+              "pattern": "^(?![\\s\\S]*\"error\"\\s*:)"
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^\n╔════════════════════════════════════════╗\n║   Document Q&A Pipeline Server         ║\n║   Running on http://0\\.0\\.0\\.0:\\d+ *║\n╚════════════════════════════════════════╝\n\n📚 Available endpoint:\n  • POST /chat  - Upload PDF and ask a question\n\nExample usage:\n  curl -X POST -F \"file=@document\\.pdf\" -F \"question=What is this about\\?\" \\\\\n    http://localhost:\\d+/chat\n\n🧪 Testing with default document\\.\\.\\.\n\n🤖 Sending document to multimodal model for analysis\\.\\.\\.\n✅ Model: google/gemini-2\\.5-flash-lite-preview-09-2025\n📝 AI Response:\nThis document is \\*\\*\"A Comprehensive Overview of Large Language Models\"\\*\\*, a survey paper by Humza Naveed, Asad Ullah Khan, Shi Qiu, Muhammad Saqib, Saeed Anwar, Muhammad Usman, Naveed Akhtar, Nick Barnes, and Ajmal Mian, from universities and research centers in Australia, Pakistan, Hong Kong, and Saudi Arabia \\(arXiv:2307\\.06435v10, October 2024\\)\\.\n\nHere's what it contains:\n\n\\*   \\*\\*Abstract:\\*\\* LLM research is moving so fast that it is hard to see the bigger picture, so the paper offers a concise yet comprehensive overview that works both as a systematic survey and as a quick reference for researchers and practitioners\\.\n\\*   \\*\\*Introduction:\\*\\* how natural language processing evolved from statistical and neural language models to pre-trained language models and then to LLMs, and why fine-tuning with instructions and alignment with human preferences improve them\\.\n\\*   \\*\\*Figures:\\*\\* a chart of the papers released each year from 2018 to 2024 about LLMs, fine-tuning, and alignment, and a timeline of LLM releases, from T5 and GPT-3 to LLaMA 3, Gemini-1\\.5, and OpenAI o1, split into pre-trained and instruction-tuned, open-source and closed-source models\\.\n\\*   \\*\\*Topics covered:\\*\\* architectural innovations, training strategies, context length improvements, fine-tuning, multimodal and augmented LLMs, robotics, datasets, benchmarking, efficiency, applications, and challenges\\.\n\nKeywords include Large Language Models, chatGPT, Augmented LLMs, Multimodal LLMs, LLM training, and LLM Benchmarking\\.\\n\\n\\n🤖 Sending document to multimodal model for analysis\\.\\.\\.\n✅ Model: google/gemini-2\\.5-flash-lite-preview-09-2025\n🤖 Sending document to multimodal model for analysis\\.\\.\\.\n✅ Model: google/gemini-2\\.5-flash-lite-preview-09-2025\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "google/gemini-2.5-flash-lite-preview-09-2025",
+                "models": ["google/gemini-2.5-flash-lite-preview-09-2025"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful AI assistant that can analyze documents and answer questions about them."
+                    },
+                    {
+                      "role": "user",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "describe what's on this document"
+                        },
+                        {
+                          "type": "image_url",
+                          "image_url": {
+                            "url": {
+                              "$pattern": "^data:application/pdf;base64,JVBERi0xLjcNCiWhs8XXDQoxIDAgb2JqDQo8PC9QYWdlcyAyIDAgUiAvVHlwZS9D[A-Za-z0-9+/]{591456}OEUxOEJENjVCREUxREQ\\+XT4\\+DQpzdGFydHhyZWYNCjQzODg4Mg0KJSVFT0YNCg==$"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "google/gemini-2.5-flash-lite-preview-09-2025",
+                "models": ["google/gemini-2.5-flash-lite-preview-09-2025"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful AI assistant that can analyze documents and answer questions about them."
+                    },
+                    {
+                      "role": "user",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "When does module 02 launch, and who sends the budget?"
+                        },
+                        {
+                          "type": "image_url",
+                          "image_url": {
+                            "url": "data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+PiA+PiAvQ29udGVudHMgNSAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9MZW5ndGggNDE1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgNzIgNzQwIFRkIChDb3Vyc2UgUGxhdGZvcm0gTWVldGluZyBOb3RlcykgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDcxOCBUZCAoRGF0ZTogT2N0b2JlciAyNywgMjAyNikgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDY5NiBUZCAoQXR0ZW5kZWVzOiBBbmEsIEJydW5vLCBhbmQgQ2FybGEpIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2NzQgVGQgKERlY2lzaW9uOiBtb2R1bGUgMDIgbGF1bmNoZXMgb24gTm92ZW1iZXIgMTAsIDIwMjYuKSBUaiBFVApCVCAvRjEgMTIgVGYgNzIgNjUyIFRkIChEZWNpc2lvbjogT3BlblJvdXRlciByb3V0ZXMgZXZlcnkgbW9kZWwgY2FsbC4pIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2MzAgVGQgKEFjdGlvbiBpdGVtOiBCcnVubyBzZW5kcyB0aGUgYnVkZ2V0IGJ5IEZyaWRheS4pIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzMTEgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo3NzcKJSVFT0YK"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "google/gemini-2.5-flash-lite-preview-09-2025",
+                "models": ["google/gemini-2.5-flash-lite-preview-09-2025"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful AI assistant that can analyze documents and answer questions about them."
+                    },
+                    {
+                      "role": "user",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "Who attended the meeting?"
+                        },
+                        {
+                          "type": "image_url",
+                          "image_url": {
+                            "url": "data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+PiA+PiAvQ29udGVudHMgNSAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9MZW5ndGggNDE1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgNzIgNzQwIFRkIChDb3Vyc2UgUGxhdGZvcm0gTWVldGluZyBOb3RlcykgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDcxOCBUZCAoRGF0ZTogT2N0b2JlciAyNywgMjAyNikgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDY5NiBUZCAoQXR0ZW5kZWVzOiBBbmEsIEJydW5vLCBhbmQgQ2FybGEpIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2NzQgVGQgKERlY2lzaW9uOiBtb2R1bGUgMDIgbGF1bmNoZXMgb24gTm92ZW1iZXIgMTAsIDIwMjYuKSBUaiBFVApCVCAvRjEgMTIgVGYgNzIgNjUyIFRkIChEZWNpc2lvbjogT3BlblJvdXRlciByb3V0ZXMgZXZlcnkgbW9kZWwgY2FsbC4pIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2MzAgVGQgKEFjdGlvbiBpdGVtOiBCcnVubyBzZW5kcyB0aGUgYnVkZ2V0IGJ5IEZyaWRheS4pIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzMTEgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo3NzcKJSVFT0YK"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "the route rejects a form without a file, without a question of 3 characters once trimmed, or whose first file is not declared a PDF, answers an empty PDF without the model, fails a body that is not multipart with 500, and leaves other routes to Fastify",
+      "replay": [
+        {
+          "source": "synthesized from OpenRouter's documented response format, with an answer written from the PDF's text",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793103612-Hk4sWq9ZtLmB2vXc7RdN",
+            "model": "google/gemini-2.5-flash-lite-preview-09-2025",
+            "object": "chat.completion",
+            "created": 1793103612,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "STOP",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "This document is **\"A Comprehensive Overview of Large Language Models\"**, a survey paper by Humza Naveed, Asad Ullah Khan, Shi Qiu, Muhammad Saqib, Saeed Anwar, Muhammad Usman, Naveed Akhtar, Nick Barnes, and Ajmal Mian, from universities and research centers in Australia, Pakistan, Hong Kong, and Saudi Arabia (arXiv:2307.06435v10, October 2024).\n\nHere's what it contains:\n\n*   **Abstract:** LLM research is moving so fast that it is hard to see the bigger picture, so the paper offers a concise yet comprehensive overview that works both as a systematic survey and as a quick reference for researchers and practitioners.\n*   **Introduction:** how natural language processing evolved from statistical and neural language models to pre-trained language models and then to LLMs, and why fine-tuning with instructions and alignment with human preferences improve them.\n*   **Figures:** a chart of the papers released each year from 2018 to 2024 about LLMs, fine-tuning, and alignment, and a timeline of LLM releases, from T5 and GPT-3 to LLaMA 3, Gemini-1.5, and OpenAI o1, split into pre-trained and instruction-tuned, open-source and closed-source models.\n*   **Topics covered:** architectural innovations, training strategies, context length improvements, fine-tuning, multimodal and augmented LLMs, robotics, datasets, benchmarking, efficiency, applications, and challenges.\n\nKeywords include Large Language Models, chatGPT, Augmented LLMs, Multimodal LLMs, LLM training, and LLM Benchmarking.",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 15486,
+              "completion_tokens": 241,
+              "total_tokens": 15727,
+              "cost": 0
+            }
+          }
+        }
+      ],
+      "serve": {
+        "port": 47962,
+        "after": "📝 AI Response:\\n[\\s\\S]*\\n\\n\\n$",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/chat",
+            "form": {
+              "question": "When does module 02 launch, and who sends the budget?"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "form": {
+              "file": {
+                "name": "meeting-notes.pdf",
+                "type": "application/pdf",
+                "base64": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+PiA+PiAvQ29udGVudHMgNSAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9MZW5ndGggNDE1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgNzIgNzQwIFRkIChDb3Vyc2UgUGxhdGZvcm0gTWVldGluZyBOb3RlcykgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDcxOCBUZCAoRGF0ZTogT2N0b2JlciAyNywgMjAyNikgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDY5NiBUZCAoQXR0ZW5kZWVzOiBBbmEsIEJydW5vLCBhbmQgQ2FybGEpIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2NzQgVGQgKERlY2lzaW9uOiBtb2R1bGUgMDIgbGF1bmNoZXMgb24gTm92ZW1iZXIgMTAsIDIwMjYuKSBUaiBFVApCVCAvRjEgMTIgVGYgNzIgNjUyIFRkIChEZWNpc2lvbjogT3BlblJvdXRlciByb3V0ZXMgZXZlcnkgbW9kZWwgY2FsbC4pIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2MzAgVGQgKEFjdGlvbiBpdGVtOiBCcnVubyBzZW5kcyB0aGUgYnVkZ2V0IGJ5IEZyaWRheS4pIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzMTEgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo3NzcKJSVFT0YK"
+              }
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "form": {
+              "question": "  ab  ",
+              "file": {
+                "name": "meeting-notes.pdf",
+                "type": "application/pdf",
+                "base64": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+PiA+PiAvQ29udGVudHMgNSAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9MZW5ndGggNDE1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgNzIgNzQwIFRkIChDb3Vyc2UgUGxhdGZvcm0gTWVldGluZyBOb3RlcykgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDcxOCBUZCAoRGF0ZTogT2N0b2JlciAyNywgMjAyNikgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDY5NiBUZCAoQXR0ZW5kZWVzOiBBbmEsIEJydW5vLCBhbmQgQ2FybGEpIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2NzQgVGQgKERlY2lzaW9uOiBtb2R1bGUgMDIgbGF1bmNoZXMgb24gTm92ZW1iZXIgMTAsIDIwMjYuKSBUaiBFVApCVCAvRjEgMTIgVGYgNzIgNjUyIFRkIChEZWNpc2lvbjogT3BlblJvdXRlciByb3V0ZXMgZXZlcnkgbW9kZWwgY2FsbC4pIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2MzAgVGQgKEFjdGlvbiBpdGVtOiBCcnVubyBzZW5kcyB0aGUgYnVkZ2V0IGJ5IEZyaWRheS4pIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzMTEgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo3NzcKJSVFT0YK"
+              }
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "form": {
+              "question": "When does module 02 launch, and who sends the budget?",
+              "file": {
+                "name": "meeting-notes.txt",
+                "type": "text/plain",
+                "base64": "Q291cnNlIFBsYXRmb3JtIE1lZXRpbmcgTm90ZXMKRGF0ZTogT2N0b2JlciAyNywgMjAyNgpBdHRlbmRlZXM6IEFuYSwgQnJ1bm8sIGFuZCBDYXJsYQpEZWNpc2lvbjogbW9kdWxlIDAyIGxhdW5jaGVzIG9uIE5vdmVtYmVyIDEwLCAyMDI2LgpEZWNpc2lvbjogT3BlblJvdXRlciByb3V0ZXMgZXZlcnkgbW9kZWwgY2FsbC4KQWN0aW9uIGl0ZW06IEJydW5vIHNlbmRzIHRoZSBidWRnZXQgYnkgRnJpZGF5Lgo="
+              }
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "form": {
+              "question": "When does module 02 launch, and who sends the budget?",
+              "file": {
+                "name": "meeting-notes.pdf",
+                "type": "application/octet-stream",
+                "base64": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+PiA+PiAvQ29udGVudHMgNSAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9MZW5ndGggNDE1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgNzIgNzQwIFRkIChDb3Vyc2UgUGxhdGZvcm0gTWVldGluZyBOb3RlcykgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDcxOCBUZCAoRGF0ZTogT2N0b2JlciAyNywgMjAyNikgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDY5NiBUZCAoQXR0ZW5kZWVzOiBBbmEsIEJydW5vLCBhbmQgQ2FybGEpIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2NzQgVGQgKERlY2lzaW9uOiBtb2R1bGUgMDIgbGF1bmNoZXMgb24gTm92ZW1iZXIgMTAsIDIwMjYuKSBUaiBFVApCVCAvRjEgMTIgVGYgNzIgNjUyIFRkIChEZWNpc2lvbjogT3BlblJvdXRlciByb3V0ZXMgZXZlcnkgbW9kZWwgY2FsbC4pIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2MzAgVGQgKEFjdGlvbiBpdGVtOiBCcnVubyBzZW5kcyB0aGUgYnVkZ2V0IGJ5IEZyaWRheS4pIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzMTEgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo3NzcKJSVFT0YK"
+              }
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "form": {
+              "question": "When does module 02 launch, and who sends the budget?",
+              "notes": {
+                "name": "meeting-notes.txt",
+                "type": "text/plain",
+                "base64": "Q291cnNlIFBsYXRmb3JtIE1lZXRpbmcgTm90ZXMKRGF0ZTogT2N0b2JlciAyNywgMjAyNgpBdHRlbmRlZXM6IEFuYSwgQnJ1bm8sIGFuZCBDYXJsYQpEZWNpc2lvbjogbW9kdWxlIDAyIGxhdW5jaGVzIG9uIE5vdmVtYmVyIDEwLCAyMDI2LgpEZWNpc2lvbjogT3BlblJvdXRlciByb3V0ZXMgZXZlcnkgbW9kZWwgY2FsbC4KQWN0aW9uIGl0ZW06IEJydW5vIHNlbmRzIHRoZSBidWRnZXQgYnkgRnJpZGF5Lgo="
+              },
+              "file": {
+                "name": "meeting-notes.pdf",
+                "type": "application/pdf",
+                "base64": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+PiA+PiAvQ29udGVudHMgNSAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9MZW5ndGggNDE1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgNzIgNzQwIFRkIChDb3Vyc2UgUGxhdGZvcm0gTWVldGluZyBOb3RlcykgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDcxOCBUZCAoRGF0ZTogT2N0b2JlciAyNywgMjAyNikgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDY5NiBUZCAoQXR0ZW5kZWVzOiBBbmEsIEJydW5vLCBhbmQgQ2FybGEpIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2NzQgVGQgKERlY2lzaW9uOiBtb2R1bGUgMDIgbGF1bmNoZXMgb24gTm92ZW1iZXIgMTAsIDIwMjYuKSBUaiBFVApCVCAvRjEgMTIgVGYgNzIgNjUyIFRkIChEZWNpc2lvbjogT3BlblJvdXRlciByb3V0ZXMgZXZlcnkgbW9kZWwgY2FsbC4pIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2MzAgVGQgKEFjdGlvbiBpdGVtOiBCcnVubyBzZW5kcyB0aGUgYnVkZ2V0IGJ5IEZyaWRheS4pIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzMTEgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo3NzcKJSVFT0YK"
+              }
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "form": {
+              "question": "When does module 02 launch, and who sends the budget?",
+              "file": {
+                "name": "empty.pdf",
+                "type": "application/pdf",
+                "base64": ""
+              }
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": {
+              "question": "When does module 02 launch, and who sends the budget?"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/chat"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 400,
+              "match": {
+                "error": "No file uploaded"
+              }
+            },
+            {
+              "status": 400,
+              "match": {
+                "error": "Question is required and must be at least 3 characters"
+              }
+            },
+            {
+              "status": 400,
+              "match": {
+                "error": "Question is required and must be at least 3 characters"
+              }
+            },
+            {
+              "status": 400,
+              "match": {
+                "error": "Only PDF files are supported"
+              }
+            },
+            {
+              "status": 400,
+              "match": {
+                "error": "Only PDF files are supported"
+              }
+            },
+            {
+              "status": 400,
+              "match": {
+                "error": "Only PDF files are supported"
+              }
+            },
+            {
+              "status": 200,
+              "match": {
+                "filename": "empty.pdf",
+                "question": "When does module 02 launch, and who sends the budget?",
+                "answer": "No document found in state"
+              },
+              "pattern": "^(?![\\s\\S]*\"error\"\\s*:)"
+            },
+            {
+              "status": 500,
+              "match": {
+                "error": {
+                  "$pattern": "\\S"
+                }
+              }
+            },
+            {
+              "status": 404,
+              "match": {
+                "message": "Route GET:/chat not found",
+                "error": "Not Found",
+                "statusCode": 404
+              }
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^\n╔════════════════════════════════════════╗\n║   Document Q&A Pipeline Server         ║\n║   Running on http://0\\.0\\.0\\.0:\\d+ *║\n╚════════════════════════════════════════╝\n\n📚 Available endpoint:\n  • POST /chat  - Upload PDF and ask a question\n\nExample usage:\n  curl -X POST -F \"file=@document\\.pdf\" -F \"question=What is this about\\?\" \\\\\n    http://localhost:\\d+/chat\n\n🧪 Testing with default document\\.\\.\\.\n\n🤖 Sending document to multimodal model for analysis\\.\\.\\.\n✅ Model: google/gemini-2\\.5-flash-lite-preview-09-2025\n📝 AI Response:\nThis document is \\*\\*\"A Comprehensive Overview of Large Language Models\"\\*\\*, a survey paper by Humza Naveed, Asad Ullah Khan, Shi Qiu, Muhammad Saqib, Saeed Anwar, Muhammad Usman, Naveed Akhtar, Nick Barnes, and Ajmal Mian, from universities and research centers in Australia, Pakistan, Hong Kong, and Saudi Arabia \\(arXiv:2307\\.06435v10, October 2024\\)\\.\n\nHere's what it contains:\n\n\\*   \\*\\*Abstract:\\*\\* LLM research is moving so fast that it is hard to see the bigger picture, so the paper offers a concise yet comprehensive overview that works both as a systematic survey and as a quick reference for researchers and practitioners\\.\n\\*   \\*\\*Introduction:\\*\\* how natural language processing evolved from statistical and neural language models to pre-trained language models and then to LLMs, and why fine-tuning with instructions and alignment with human preferences improve them\\.\n\\*   \\*\\*Figures:\\*\\* a chart of the papers released each year from 2018 to 2024 about LLMs, fine-tuning, and alignment, and a timeline of LLM releases, from T5 and GPT-3 to LLaMA 3, Gemini-1\\.5, and OpenAI o1, split into pre-trained and instruction-tuned, open-source and closed-source models\\.\n\\*   \\*\\*Topics covered:\\*\\* architectural innovations, training strategies, context length improvements, fine-tuning, multimodal and augmented LLMs, robotics, datasets, benchmarking, efficiency, applications, and challenges\\.\n\nKeywords include Large Language Models, chatGPT, Augmented LLMs, Multimodal LLMs, LLM training, and LLM Benchmarking\\.\\n\\n\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Error analyzing document: [\\s\\S]+$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "google/gemini-2.5-flash-lite-preview-09-2025",
+                "models": ["google/gemini-2.5-flash-lite-preview-09-2025"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful AI assistant that can analyze documents and answer questions about them."
+                    },
+                    {
+                      "role": "user",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "describe what's on this document"
+                        },
+                        {
+                          "type": "image_url",
+                          "image_url": {
+                            "url": {
+                              "$pattern": "^data:application/pdf;base64,JVBERi0xLjcNCiWhs8XXDQoxIDAgb2JqDQo8PC9QYWdlcyAyIDAgUiAvVHlwZS9D[A-Za-z0-9+/]{591456}OEUxOEJENjVCREUxREQ\\+XT4\\+DQpzdGFydHhyZWYNCjQzODg4Mg0KJSVFT0YNCg==$"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "when OpenRouter rejects the key, the startup test and the route answer the failure as text instead of failing",
+      "replay": [
+        {
+          "source": "synthesized from OpenRouter's documented error format for a key it does not know",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "User not found.",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format for a key it does not know",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "User not found.",
+              "code": 401
+            }
+          }
+        }
+      ],
+      "serve": {
+        "port": 47963,
+        "after": "📝 AI Response:\\n[\\s\\S]*\\n\\n\\n$",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/chat",
+            "form": {
+              "question": "When does module 02 launch, and who sends the budget?",
+              "file": {
+                "name": "meeting-notes.pdf",
+                "type": "application/pdf",
+                "base64": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+PiA+PiAvQ29udGVudHMgNSAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9MZW5ndGggNDE1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgNzIgNzQwIFRkIChDb3Vyc2UgUGxhdGZvcm0gTWVldGluZyBOb3RlcykgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDcxOCBUZCAoRGF0ZTogT2N0b2JlciAyNywgMjAyNikgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDY5NiBUZCAoQXR0ZW5kZWVzOiBBbmEsIEJydW5vLCBhbmQgQ2FybGEpIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2NzQgVGQgKERlY2lzaW9uOiBtb2R1bGUgMDIgbGF1bmNoZXMgb24gTm92ZW1iZXIgMTAsIDIwMjYuKSBUaiBFVApCVCAvRjEgMTIgVGYgNzIgNjUyIFRkIChEZWNpc2lvbjogT3BlblJvdXRlciByb3V0ZXMgZXZlcnkgbW9kZWwgY2FsbC4pIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2MzAgVGQgKEFjdGlvbiBpdGVtOiBCcnVubyBzZW5kcyB0aGUgYnVkZ2V0IGJ5IEZyaWRheS4pIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzMTEgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo3NzcKJSVFT0YK"
+              }
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "filename": "meeting-notes.pdf",
+                "question": "When does module 02 launch, and who sends the budget?",
+                "answer": {
+                  "$pattern": "^Failed to generate answer: Multimodal generation failed: [^\\n]*401"
+                }
+              },
+              "pattern": "^(?![\\s\\S]*\"error\"\\s*:)"
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^\n╔════════════════════════════════════════╗\n║   Document Q&A Pipeline Server         ║\n║   Running on http://0\\.0\\.0\\.0:\\d+ *║\n╚════════════════════════════════════════╝\n\n📚 Available endpoint:\n  • POST /chat  - Upload PDF and ask a question\n\nExample usage:\n  curl -X POST -F \"file=@document\\.pdf\" -F \"question=What is this about\\?\" \\\\\n    http://localhost:\\d+/chat\n\n🧪 Testing with default document\\.\\.\\.\n\n🤖 Sending document to multimodal model for analysis\\.\\.\\.\n📝 AI Response:\nFailed to generate answer: Multimodal generation failed: [^\\n]*401[\\s\\S]*\\n\\n\\n🤖 Sending document to multimodal model for analysis\\.\\.\\.\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Error in answerGenerationNode: [^\\n]*401[\\s\\S]*\\nError in answerGenerationNode: [^\\n]*401[\\s\\S]*$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "google/gemini-2.5-flash-lite-preview-09-2025",
+                "models": ["google/gemini-2.5-flash-lite-preview-09-2025"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful AI assistant that can analyze documents and answer questions about them."
+                    },
+                    {
+                      "role": "user",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "describe what's on this document"
+                        },
+                        {
+                          "type": "image_url",
+                          "image_url": {
+                            "url": {
+                              "$pattern": "^data:application/pdf;base64,JVBERi0xLjcNCiWhs8XXDQoxIDAgb2JqDQo8PC9QYWdlcyAyIDAgUiAvVHlwZS9D[A-Za-z0-9+/]{591456}OEUxOEJENjVCREUxREQ\\+XT4\\+DQpzdGFydHhyZWYNCjQzODg4Mg0KJSVFT0YNCg==$"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "google/gemini-2.5-flash-lite-preview-09-2025",
+                "models": ["google/gemini-2.5-flash-lite-preview-09-2025"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful AI assistant that can analyze documents and answer questions about them."
+                    },
+                    {
+                      "role": "user",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "When does module 02 launch, and who sends the budget?"
+                        },
+                        {
+                          "type": "image_url",
+                          "image_url": {
+                            "url": "data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+PiA+PiAvQ29udGVudHMgNSAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9MZW5ndGggNDE1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgNzIgNzQwIFRkIChDb3Vyc2UgUGxhdGZvcm0gTWVldGluZyBOb3RlcykgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDcxOCBUZCAoRGF0ZTogT2N0b2JlciAyNywgMjAyNikgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDY5NiBUZCAoQXR0ZW5kZWVzOiBBbmEsIEJydW5vLCBhbmQgQ2FybGEpIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2NzQgVGQgKERlY2lzaW9uOiBtb2R1bGUgMDIgbGF1bmNoZXMgb24gTm92ZW1iZXIgMTAsIDIwMjYuKSBUaiBFVApCVCAvRjEgMTIgVGYgNzIgNjUyIFRkIChEZWNpc2lvbjogT3BlblJvdXRlciByb3V0ZXMgZXZlcnkgbW9kZWwgY2FsbC4pIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2MzAgVGQgKEFjdGlvbiBpdGVtOiBCcnVubyBzZW5kcyB0aGUgYnVkZ2V0IGJ5IEZyaWRheS4pIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzMTEgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo3NzcKJSVFT0YK"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "an empty answer from the model becomes No answer generated, in the startup test and in the route",
+      "replay": [
+        {
+          "source": "synthesized from OpenRouter's documented response format, with an empty answer",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793103781-Xq3LmT8vRk2NwYb6PzHd",
+            "model": "google/gemini-2.5-flash-lite-preview-09-2025",
+            "object": "chat.completion",
+            "created": 1793103781,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "STOP",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1290,
+              "completion_tokens": 0,
+              "total_tokens": 1290,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented response format, with an empty answer",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793103783-Jt7cVn4QsMa9EwRf2LkU",
+            "model": "google/gemini-2.5-flash-lite-preview-09-2025",
+            "object": "chat.completion",
+            "created": 1793103783,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "STOP",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1290,
+              "completion_tokens": 0,
+              "total_tokens": 1290,
+              "cost": 0
+            }
+          }
+        }
+      ],
+      "serve": {
+        "port": 47964,
+        "after": "📝 AI Response:\\n[\\s\\S]*\\n\\n\\n$",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/chat",
+            "form": {
+              "question": "When does module 02 launch, and who sends the budget?",
+              "file": {
+                "name": "meeting-notes.pdf",
+                "type": "application/pdf",
+                "base64": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+PiA+PiAvQ29udGVudHMgNSAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9MZW5ndGggNDE1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgNzIgNzQwIFRkIChDb3Vyc2UgUGxhdGZvcm0gTWVldGluZyBOb3RlcykgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDcxOCBUZCAoRGF0ZTogT2N0b2JlciAyNywgMjAyNikgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDY5NiBUZCAoQXR0ZW5kZWVzOiBBbmEsIEJydW5vLCBhbmQgQ2FybGEpIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2NzQgVGQgKERlY2lzaW9uOiBtb2R1bGUgMDIgbGF1bmNoZXMgb24gTm92ZW1iZXIgMTAsIDIwMjYuKSBUaiBFVApCVCAvRjEgMTIgVGYgNzIgNjUyIFRkIChEZWNpc2lvbjogT3BlblJvdXRlciByb3V0ZXMgZXZlcnkgbW9kZWwgY2FsbC4pIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2MzAgVGQgKEFjdGlvbiBpdGVtOiBCcnVubyBzZW5kcyB0aGUgYnVkZ2V0IGJ5IEZyaWRheS4pIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzMTEgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo3NzcKJSVFT0YK"
+              }
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "filename": "meeting-notes.pdf",
+                "question": "When does module 02 launch, and who sends the budget?",
+                "answer": "No answer generated"
+              },
+              "pattern": "^(?![\\s\\S]*\"error\"\\s*:)"
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^\n╔════════════════════════════════════════╗\n║   Document Q&A Pipeline Server         ║\n║   Running on http://0\\.0\\.0\\.0:\\d+ *║\n╚════════════════════════════════════════╝\n\n📚 Available endpoint:\n  • POST /chat  - Upload PDF and ask a question\n\nExample usage:\n  curl -X POST -F \"file=@document\\.pdf\" -F \"question=What is this about\\?\" \\\\\n    http://localhost:\\d+/chat\n\n🧪 Testing with default document\\.\\.\\.\n\n🤖 Sending document to multimodal model for analysis\\.\\.\\.\n✅ Model: google/gemini-2\\.5-flash-lite-preview-09-2025\n📝 AI Response:\nNo answer generated\\n\\n\\n🤖 Sending document to multimodal model for analysis\\.\\.\\.\n✅ Model: google/gemini-2\\.5-flash-lite-preview-09-2025\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "google/gemini-2.5-flash-lite-preview-09-2025",
+                "models": ["google/gemini-2.5-flash-lite-preview-09-2025"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful AI assistant that can analyze documents and answer questions about them."
+                    },
+                    {
+                      "role": "user",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "describe what's on this document"
+                        },
+                        {
+                          "type": "image_url",
+                          "image_url": {
+                            "url": {
+                              "$pattern": "^data:application/pdf;base64,JVBERi0xLjcNCiWhs8XXDQoxIDAgb2JqDQo8PC9QYWdlcyAyIDAgUiAvVHlwZS9D[A-Za-z0-9+/]{591456}OEUxOEJENjVCREUxREQ\\+XT4\\+DQpzdGFydHhyZWYNCjQzODg4Mg0KJSVFT0YNCg==$"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "google/gemini-2.5-flash-lite-preview-09-2025",
+                "models": ["google/gemini-2.5-flash-lite-preview-09-2025"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful AI assistant that can analyze documents and answer questions about them."
+                    },
+                    {
+                      "role": "user",
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "When does module 02 launch, and who sends the budget?"
+                        },
+                        {
+                          "type": "image_url",
+                          "image_url": {
+                            "url": "data:application/pdf;base64,JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA0IDAgUiA+PiA+PiAvQ29udGVudHMgNSAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iago1IDAgb2JqCjw8IC9MZW5ndGggNDE1ID4+CnN0cmVhbQpCVCAvRjEgMTYgVGYgNzIgNzQwIFRkIChDb3Vyc2UgUGxhdGZvcm0gTWVldGluZyBOb3RlcykgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDcxOCBUZCAoRGF0ZTogT2N0b2JlciAyNywgMjAyNikgVGogRVQKQlQgL0YxIDEyIFRmIDcyIDY5NiBUZCAoQXR0ZW5kZWVzOiBBbmEsIEJydW5vLCBhbmQgQ2FybGEpIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2NzQgVGQgKERlY2lzaW9uOiBtb2R1bGUgMDIgbGF1bmNoZXMgb24gTm92ZW1iZXIgMTAsIDIwMjYuKSBUaiBFVApCVCAvRjEgMTIgVGYgNzIgNjUyIFRkIChEZWNpc2lvbjogT3BlblJvdXRlciByb3V0ZXMgZXZlcnkgbW9kZWwgY2FsbC4pIFRqIEVUCkJUIC9GMSAxMiBUZiA3MiA2MzAgVGQgKEFjdGlvbiBpdGVtOiBCcnVubyBzZW5kcyB0aGUgYnVkZ2V0IGJ5IEZyaWRheS4pIFRqIEVUCmVuZHN0cmVhbQplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDAzMTEgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo3NzcKJSVFT0YK"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

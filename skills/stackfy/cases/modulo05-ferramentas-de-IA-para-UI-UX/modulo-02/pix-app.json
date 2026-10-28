@@ -1,0 +1,373 @@
+{
+  "module": "modulo05-ferramentas-de-IA-para-UI-UX/modulo-02/pix-app",
+  "concepts": [
+    "component-framework",
+    "web-accessibility",
+    "browser-app",
+    "coding-agent-harness"
+  ],
+  "recorded": "Original built and served by the Angular CLI 21.2.1 dev server after npm ci in a copy, and driven in headless Google Chrome 152. It ran with npx ng serve --port $PORT --host 127.0.0.1 instead of npm start, which fixes port 4200, and no file was patched. The page loads Material Symbols from Google Fonts, but the cases read each icon's ligature name, which the page shows with or without network access. Fields are filled through the native value setter followed by input and change events, so frameworks that track the value they set, as React does, see the change. The statement's dates are converted to the browser's time zone, so that case fixes it at America/Sao_Paulo, and the theme cases fix the color scheme. The behavior is deterministic, and every case passed in each of 5 runs.",
+  "prepare": { "setup": ["npm ci --no-audit --no-fund"] },
+  "originals": [
+    "NG_CLI_ANALYTICS=false npx ng serve --port $PORT --host 127.0.0.1"
+  ],
+  "cases": [
+    {
+      "name": "redirects to the Pix transfer form and moves between it and the statement through the side menu",
+      "serve": {
+        "port": 47520,
+        "ready": "/",
+        "page": {
+          "steps": [
+            { "wait": "document.querySelector('form') !== null" },
+            { "read": "[location.pathname, document.title]" },
+            {
+              "read": "[...document.querySelectorAll('aside nav a')].map((link) => [link.textContent.trim(), link.getAttribute('href')])"
+            },
+            {
+              "read": "document.querySelector('section h2').textContent.trim()"
+            },
+            {
+              "read": "[...document.querySelectorAll('form input')].map((input) => [input.id, input.type, input.required, input.labels[0]?.textContent.trim() ?? null])"
+            },
+            {
+              "read": "[...document.querySelectorAll('form button')].map((button) => [button.type, button.textContent.trim()])"
+            },
+            { "click": "aside nav a[href='/extrato']" },
+            {
+              "wait": "document.querySelectorAll('.transaction-item').length === 3"
+            },
+            {
+              "read": "[location.pathname, document.querySelector('form') === null]"
+            },
+            { "click": "aside nav a[href='/pix']" },
+            { "wait": "document.querySelector('form') !== null" },
+            {
+              "read": "[location.pathname, document.querySelectorAll('.transaction-item').length]"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            ["/pix", "PixApp"],
+            [
+              ["Pix", "/pix"],
+              ["Extrato", "/extrato"]
+            ],
+            "Transferência Pix",
+            [
+              ["pixKey", "text", true, "Chave Pix"],
+              ["transferAmount", "number", true, "Valor da Transferência"],
+              ["schedulingDate", "date", true, "Data de Agendamento"]
+            ],
+            [["submit", "Confirmar"]],
+            ["/extrato", true],
+            ["/pix", 0]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "shows the receipt in place of the form for a transfer up to the limit, until the page leaves the route",
+      "serve": {
+        "port": 47520,
+        "ready": "/",
+        "page": {
+          "steps": [
+            { "fill": "#pixKey", "value": "Erick S." },
+            { "fill": "#transferAmount", "value": "1234.5" },
+            { "fill": "#schedulingDate", "value": "2024-05-24" },
+            { "click": "form button[type='submit']" },
+            { "wait": "document.querySelector('.receipt-card') !== null" },
+            {
+              "read": "[location.pathname, document.querySelector('form') === null, document.querySelector('[role=alertdialog]') === null]"
+            },
+            {
+              "read": "[document.querySelector('.receipt-title').textContent.trim(), document.querySelector('.receipt-amount').textContent.trim()]"
+            },
+            {
+              "read": "[...document.querySelectorAll('.detail-row')].map((row) => [...row.querySelectorAll('.detail-label, .detail-value, .detail-subvalue')].map((element) => element.textContent.trim()))"
+            },
+            {
+              "read": "[...document.querySelectorAll('.receipt-card .material-symbols-outlined')].map((icon) => icon.textContent.trim())"
+            },
+            {
+              "read": "[...document.querySelectorAll('.receipt-card button')].map((button) => [...button.childNodes].filter((node) => !node.classList?.contains('material-symbols-outlined')).map((node) => node.textContent).join(' ').replace(/\\s+/g, ' ').trim())"
+            },
+            {
+              "read": "[...document.querySelectorAll('.receipt-card button')].map((button) => getComputedStyle(button).marginTop)"
+            },
+            { "click": "aside nav a[href='/extrato']" },
+            {
+              "wait": "document.querySelectorAll('.transaction-item').length === 3"
+            },
+            { "click": "aside nav a[href='/pix']" },
+            { "wait": "document.querySelector('form') !== null" },
+            {
+              "read": "[...document.querySelectorAll('form input')].map((input) => input.value)"
+            },
+            { "fill": "#pixKey", "value": "Ana" },
+            { "fill": "#transferAmount", "value": "5000" },
+            { "click": "form button[type='submit']" },
+            { "wait": "document.querySelector('.receipt-card') !== null" },
+            {
+              "read": "[document.querySelector('.receipt-amount').textContent.trim(), document.querySelector('.detail-value').textContent.trim()]"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            ["/pix", true, true],
+            ["Transferência Realizada", "R$1,234.50"],
+            [
+              ["Destinatário", "Erick S."],
+              ["Data e Hora", "24 de Maio, 2024", "14:30:45"],
+              ["Instituição", "Banco Neon"],
+              ["ID da Transação", "PIX9823749823BCN9283"]
+            ],
+            ["check_circle", "share", "file_download", "print", "home"],
+            [
+              "Compartilhar",
+              "Baixar PDF",
+              "Imprimir",
+              "Voltar ao Início",
+              "Fazer nova transferência"
+            ],
+            ["0px", "0px", "0px", "0px", "0px"],
+            ["", "", ""],
+            ["R$5,000.00", "Ana"]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "blocks a transfer above the limit with an alert dialog that takes focus and closes with its button, Escape, or the backdrop",
+      "serve": {
+        "port": 47520,
+        "ready": "/",
+        "page": {
+          "steps": [
+            { "fill": "#pixKey", "value": "Erick S." },
+            { "fill": "#transferAmount", "value": "5000.01" },
+            { "click": "form button[type='submit']" },
+            {
+              "wait": "document.querySelector('[role=alertdialog]') !== null"
+            },
+            {
+              "read": "(() => { const dialog = document.querySelector('[role=alertdialog]'); const textOf = (attribute) => document.getElementById(dialog.getAttribute(attribute))?.textContent.trim() ?? null; return [dialog.getAttribute('aria-modal'), textOf('aria-labelledby'), textOf('aria-describedby')]; })()"
+            },
+            {
+              "read": "[document.activeElement?.tagName, document.activeElement?.getAttribute('aria-label'), document.activeElement?.querySelector('[aria-hidden=true]')?.textContent.trim() ?? null]"
+            },
+            {
+              "read": "[document.querySelector('form') !== null, document.querySelector('.receipt-card') === null, document.querySelector('#pixKey').value, document.querySelector('#transferAmount').value]"
+            },
+            {
+              "read": "getComputedStyle(document.querySelector('[role=alertdialog] button')).marginTop"
+            },
+            { "press": "Escape" },
+            {
+              "wait": "document.querySelector('[role=alertdialog]') === null"
+            },
+            { "click": "form button[type='submit']" },
+            {
+              "wait": "document.querySelector('[role=alertdialog]') !== null"
+            },
+            { "click": ".modal-backdrop" },
+            {
+              "wait": "document.querySelector('[role=alertdialog]') === null"
+            },
+            { "click": "form button[type='submit']" },
+            {
+              "wait": "document.querySelector('[role=alertdialog]') !== null"
+            },
+            { "click": "[role=alertdialog] button[aria-label='Fechar']" },
+            {
+              "wait": "document.querySelector('[role=alertdialog]') === null"
+            },
+            {
+              "read": "[document.querySelector('form') !== null, document.querySelector('.receipt-card') === null]"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              "true",
+              "Limite Excedido",
+              "Para sua segurança, transferências Pix acima de R$ 5.000,00 precisam ser aprovadas pelo seu gerente."
+            ],
+            ["BUTTON", "Fechar", "×"],
+            [true, true, "Erick S.", "5000.01"],
+            "0px",
+            [true, true]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "submits empty fields as a transfer of zero to nobody, since the form never validates",
+      "serve": {
+        "port": 47520,
+        "ready": "/",
+        "page": {
+          "steps": [
+            { "click": "form button[type='submit']" },
+            { "wait": "document.querySelector('.receipt-card') !== null" },
+            {
+              "read": "[document.querySelector('.receipt-amount').textContent.trim(), document.querySelector('.detail-value').textContent.trim()]"
+            }
+          ]
+        }
+      },
+      "expect": [{ "type": "page", "values": [["R$0.00", ""]] }]
+    },
+    {
+      "name": "lists the statement's transactions in the browser's time zone, marked by direction",
+      "serve": {
+        "port": 47520,
+        "ready": "/",
+        "page": {
+          "path": "/extrato",
+          "timezone": "America/Sao_Paulo",
+          "steps": [
+            {
+              "wait": "document.querySelectorAll('.transaction-item').length === 3"
+            },
+            { "read": "location.pathname" },
+            {
+              "read": "[...document.querySelectorAll('.transaction-item')].map((item) => ['.icon', '.transaction-title', '.transaction-date', '.transaction-amount'].map((selector) => item.querySelector(selector).textContent.replace(/\\s+/g, ' ').trim()))"
+            },
+            {
+              "read": "[...document.querySelectorAll('.transaction-item')].map((item) => ['icon-received', 'icon-sent', 'amount-received', 'amount-sent'].filter((name) => item.querySelector(`.${name}`) !== null))"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            "/extrato",
+            [
+              [
+                "arrow_downward",
+                "Transferência Recebida",
+                "27/10/2023 07:00",
+                "+ R$150.00"
+              ],
+              [
+                "arrow_upward",
+                "Transferência Enviada",
+                "26/10/2023 12:30",
+                "- R$50.00"
+              ],
+              [
+                "arrow_downward",
+                "Transferência Recebida",
+                "25/10/2023 06:15",
+                "+ R$300.50"
+              ]
+            ],
+            [
+              ["icon-received", "amount-received"],
+              ["icon-sent", "amount-sent"],
+              ["icon-received", "amount-received"]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "lays the menu beside the content and themes both with the light design tokens by default",
+      "serve": {
+        "port": 47520,
+        "ready": "/",
+        "page": {
+          "media": { "prefers-color-scheme": "light" },
+          "steps": [
+            { "wait": "document.querySelector('form') !== null" },
+            {
+              "read": "['--color-primary', '--color-action', '--color-error', '--color-background', '--color-text', '--font-heading', '--font-body', '--spacing-small', '--spacing-medium', '--spacing-large', '--spacing-extra-large'].map((name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim().toLowerCase().replace(/[\"']/g, ''))"
+            },
+            {
+              "read": "(() => { const aside = document.querySelector('aside').getBoundingClientRect(); const main = document.querySelector('main').getBoundingClientRect(); return [aside.top === main.top, aside.right <= main.left, main.bottom >= innerHeight]; })()"
+            },
+            {
+              "read": "[getComputedStyle(document.querySelector('aside')).backgroundColor, getComputedStyle(document.querySelector('main')).backgroundColor, getComputedStyle(document.querySelector('section h2')).color, getComputedStyle(document.querySelector('form button')).backgroundColor]"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              "#0a192f",
+              "#64ffda",
+              "#ff6b6b",
+              "#f8f9fa",
+              "#0a192f",
+              "montserrat, sans-serif",
+              "inter, sans-serif",
+              "8px",
+              "16px",
+              "24px",
+              "32px"
+            ],
+            [true, true, true],
+            [
+              "rgb(10, 25, 47)",
+              "rgb(248, 249, 250)",
+              "rgb(10, 25, 47)",
+              "rgb(100, 255, 218)"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "switches the background and text tokens when the system prefers a dark color scheme",
+      "serve": {
+        "port": 47520,
+        "ready": "/",
+        "page": {
+          "media": { "prefers-color-scheme": "dark" },
+          "steps": [
+            { "wait": "document.querySelector('form') !== null" },
+            {
+              "read": "['--color-primary', '--color-action', '--color-error', '--color-background', '--color-text'].map((name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim().toLowerCase())"
+            },
+            {
+              "read": "[getComputedStyle(document.querySelector('aside')).backgroundColor, getComputedStyle(document.querySelector('main')).backgroundColor, getComputedStyle(document.querySelector('section h2')).color, getComputedStyle(document.querySelector('form button')).backgroundColor]"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            ["#0a192f", "#64ffda", "#ff6b6b", "#112240", "#f8f9fa"],
+            [
+              "rgb(10, 25, 47)",
+              "rgb(17, 34, 64)",
+              "rgb(248, 249, 250)",
+              "rgb(100, 255, 218)"
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

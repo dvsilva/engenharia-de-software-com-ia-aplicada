@@ -1,0 +1,2101 @@
+{
+  "module": "modulo03-mcp-na-pratica/06-your-legacy-api-as-mcp/customers-mcp-z",
+  "concepts": [
+    "model-context-protocol",
+    "rest-api",
+    "schema-validation",
+    "layered-architecture"
+  ],
+  "recorded": "Every case passed 10 runs against the original with Node.js 26.12.1, @modelcontextprotocol/sdk 1.27.1, and zod 3.25.76, run unchanged as node src/index.ts, the file npm start runs with type stripping. The server always calls the legacy API at http://localhost:9999/v1, so the services build and run the lesson's nodejs-fastify-mongodb-crud from its compose file, on Node.js 20.11, with MongoDB 9.0.4 from the mongo image at latest, publishing the API on port 9999, which must be free, and leaving MongoDB unpublished. An override passed on standard input names both containers, drops the bind mounts, so the API runs the code its image copied and writes nothing into the course folder, and adds a health check on /v1/health, so the cases start once the API answers. It needs Docker Compose 2.24.4 or later, and the built image goes away with the containers. Every case deletes the customers it creates, so each starts from an empty collection. ObjectIds are generated, so the cases check 24 lowercase hex digits and compare later answers with the ids the server returned. Texts that hold JSON are compared by value, so spacing and key order are free. Tools and the prompt's arguments are compared in any order, the prompt's arguments by name and description, since an optional argument may leave out required, get_customer's nullable customer in the output schema by its description, since each SDK writes nullability its own way, and capabilities by presence. The answers the API gives to an unchanged update, a missing phone, or a malformed id may come back with isError false or without it, never true. Invalid arguments and unknown tools may come back as a tool result with isError or as a JSON-RPC error with code -32602, and the lookup of a malformed _id as a tool result with isError or any JSON-RPC error. No case deletes a well-formed id that matches nothing, since the legacy API never answers it.",
+  "prepare": {
+    "copy": "modulo03-mcp-na-pratica/06-your-legacy-api-as-mcp",
+    "setup": ["npm ci"]
+  },
+  "originals": ["node src/index.ts"],
+  "services": {
+    "up": "docker compose -f ../nodejs-fastify-mongodb-crud/docker-compose.yml -f - -p stackfy-06-legacy-api-mcp-z up -d --wait <<'EOF'\nservices:\n  api01-test:\n    container_name: stackfy-06-legacy-api-mcp-z-api\n    volumes: !reset []\n    healthcheck:\n      test: ['CMD', 'wget', '-qO', '/dev/null', 'http://127.0.0.1:9999/v1/health']\n      interval: 1s\n      retries: 60\n  mongodb:\n    container_name: stackfy-06-legacy-api-mcp-z-mongodb\n    ports: !reset []\nEOF",
+    "down": "docker compose -f ../nodejs-fastify-mongodb-crud/docker-compose.yml -p stackfy-06-legacy-api-mcp-z down -v --rmi local",
+    "ready": [
+      {
+        "port": 9999
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "introduces itself as @erickwendel/ew-customers-mcp and lists its five customer tools with their input and output schemas",
+      "timeout": 60000,
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/list"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ew-customers-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "result": {
+                  "$like": {
+                    "tools": {
+                      "$unordered": [
+                        {
+                          "name": "list_customers",
+                          "description": "List all customers",
+                          "inputSchema": {
+                            "type": "object"
+                          },
+                          "outputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "customers": {
+                                "type": "array",
+                                "description": "Array of all customers",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "_id": {
+                                      "type": "string"
+                                    },
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "phone": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": ["name", "phone"]
+                                }
+                              }
+                            },
+                            "required": ["customers"]
+                          }
+                        },
+                        {
+                          "name": "get_customer",
+                          "description": "Find a customer by _id, name, or phone number",
+                          "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the customer"
+                              },
+                              "name": {
+                                "type": "string",
+                                "description": "Full name of the customer"
+                              },
+                              "phone": {
+                                "type": "string",
+                                "description": "phone number of the customer"
+                              }
+                            }
+                          },
+                          "outputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "customer": {
+                                "description": "Customer details if found, otherwise null!"
+                              }
+                            },
+                            "required": ["customer"]
+                          }
+                        },
+                        {
+                          "name": "create_customer",
+                          "description": "Create a customers",
+                          "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "Full name of the customer"
+                              },
+                              "phone": {
+                                "type": "string",
+                                "description": "phone number of the customer"
+                              }
+                            },
+                            "required": ["name", "phone"]
+                          },
+                          "outputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectID of newerly created customer"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "Confirmation message"
+                              }
+                            },
+                            "required": ["id", "message"]
+                          }
+                        },
+                        {
+                          "name": "update_customer",
+                          "description": "Update an existing customer's name and/or phone number by their _id",
+                          "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the customer"
+                              },
+                              "name": {
+                                "type": "string",
+                                "description": "Full name of the customer"
+                              },
+                              "phone": {
+                                "type": "string",
+                                "description": "phone number of the customer"
+                              }
+                            },
+                            "required": ["_id"]
+                          },
+                          "outputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the customer"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "Confirmation message"
+                              },
+                              "isError": {
+                                "type": "boolean",
+                                "description": "Indicates if an error occurred"
+                              },
+                              "customer": {
+                                "type": "object",
+                                "description": "The found customer",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "phone": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["name", "phone"]
+                              },
+                              "customers": {
+                                "type": "array",
+                                "description": "List of customers"
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "name": "delete_customer",
+                          "description": "Delete a customer by their _id",
+                          "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "_id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectID of the customer to delete"
+                              }
+                            },
+                            "required": ["_id"]
+                          },
+                          "outputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "MongoDB ObjectId of the customer"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "Confirmation message"
+                              },
+                              "isError": {
+                                "type": "boolean",
+                                "description": "Indicates if an error occurred"
+                              },
+                              "customer": {
+                                "type": "object",
+                                "description": "The found customer",
+                                "properties": {
+                                  "_id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "phone": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": ["name", "phone"]
+                              },
+                              "customers": {
+                                "type": "array",
+                                "description": "List of customers"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Customers MCP Server running on stdio\\n"
+        }
+      ]
+    },
+    {
+      "name": "offers the customers://api-info resource describing the wrapped API and find_customer_prompt, which renders the query as compact JSON in the order _id, name, phone",
+      "timeout": 60000,
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "resources/list"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "resources/read",
+            "params": {
+              "uri": "customers://api-info"
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "prompts/list"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "prompts/get",
+            "params": {
+              "name": "find_customer_prompt",
+              "arguments": {
+                "name": "John"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "prompts/get",
+            "params": {
+              "name": "find_customer_prompt",
+              "arguments": {
+                "phone": "123456789",
+                "name": "John Doe",
+                "_id": "66fbfd09785d518f5c747366"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "prompts/get",
+            "params": {
+              "name": "find_customer_prompt",
+              "arguments": {}
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ew-customers-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "result": {
+                  "$like": {
+                    "resources": [
+                      {
+                        "uri": "customers://api-info",
+                        "name": "customers://api-info",
+                        "description": "describes the customers rest API that this MCP server wraps"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "result": {
+                  "$like": {
+                    "contents": [
+                      {
+                        "uri": "customers://api-info",
+                        "mimeType": "text/plain",
+                        "text": "\nCustomers API\n\n  Base URL : http://localhost:9999/v1\n  Endpoints:\n    GET    /customers          — list all customers\n    GET    /customers/:id      — get customer by id\n    POST   /customers          — create customer  { name, phone }\n    PUT    /customers/:id      — update customer  { name, phone }\n    DELETE /customers/:id      — delete customer\n\n  Customer shape: { _id: string, name: string, phone: string }\n"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 4,
+                "result": {
+                  "$like": {
+                    "prompts": [
+                      {
+                        "name": "find_customer_prompt",
+                        "description": "Prompt to search a customer using any combination of _id, name or phone",
+                        "arguments": {
+                          "$unordered": [
+                            {
+                              "name": "_id",
+                              "description": "MongoDB ObjectId of the customer"
+                            },
+                            {
+                              "name": "name",
+                              "description": "Full name of the customer"
+                            },
+                            {
+                              "name": "phone",
+                              "description": "phone number of the customer"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 5,
+                "result": {
+                  "$like": {
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": {
+                          "type": "text",
+                          "text": "Please find the customer matching the following query using the get_customer or list_customers tool.\nQuery: {\"name\":\"John\"}"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 6,
+                "result": {
+                  "$like": {
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": {
+                          "type": "text",
+                          "text": "Please find the customer matching the following query using the get_customer or list_customers tool.\nQuery: {\"_id\":\"66fbfd09785d518f5c747366\",\"name\":\"John Doe\",\"phone\":\"123456789\"}"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 7,
+                "result": {
+                  "$like": {
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": {
+                          "type": "text",
+                          "text": "Please find the customer matching the following query using the get_customer or list_customers tool.\nQuery: {}"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Customers MCP Server running on stdio\\n"
+        }
+      ]
+    },
+    {
+      "name": "creates customers through the legacy API and lists them by name as MongoDB compares bytes, from an empty collection back to an empty one after deleting them",
+      "timeout": 60000,
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/call",
+            "params": {
+              "name": "list_customers",
+              "arguments": {}
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "tools/call",
+            "params": {
+              "name": "create_customer",
+              "arguments": {
+                "name": "bruno",
+                "phone": "555-0101"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "tools/call",
+            "params": {
+              "name": "create_customer",
+              "arguments": {
+                "name": "Ágata",
+                "phone": "111222333"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "tools/call",
+            "params": {
+              "name": "create_customer",
+              "arguments": {
+                "name": "Ana",
+                "phone": "999-000-111"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "tools/call",
+            "params": {
+              "name": "list_customers",
+              "arguments": {}
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "tools/call",
+            "params": {
+              "name": "delete_customer",
+              "arguments": {
+                "_id": "{responses.2.result.structuredContent.id}"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 8,
+            "method": "tools/call",
+            "params": {
+              "name": "delete_customer",
+              "arguments": {
+                "_id": "{responses.3.result.structuredContent.id}"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 9,
+            "method": "tools/call",
+            "params": {
+              "name": "delete_customer",
+              "arguments": {
+                "_id": "{responses.4.result.structuredContent.id}"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 10,
+            "method": "tools/call",
+            "params": {
+              "name": "list_customers",
+              "arguments": {}
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ew-customers-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": []
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customers": []
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "message": "user bruno created!",
+                            "id": "{responses.2.result.structuredContent.id}"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "$like": {
+                        "message": "user bruno created!",
+                        "id": {
+                          "$pattern": "^[0-9a-f]{24}$"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 4,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "message": "user Ágata created!",
+                            "id": "{responses.3.result.structuredContent.id}"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "$like": {
+                        "message": "user Ágata created!",
+                        "id": {
+                          "$pattern": "^[0-9a-f]{24}$"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 5,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "message": "user Ana created!",
+                            "id": "{responses.4.result.structuredContent.id}"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "$like": {
+                        "message": "user Ana created!",
+                        "id": {
+                          "$pattern": "^[0-9a-f]{24}$"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 6,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": [
+                            {
+                              "_id": "{responses.4.result.structuredContent.id}",
+                              "name": "Ana",
+                              "phone": "999-000-111"
+                            },
+                            {
+                              "_id": "{responses.2.result.structuredContent.id}",
+                              "name": "bruno",
+                              "phone": "555-0101"
+                            },
+                            {
+                              "_id": "{responses.3.result.structuredContent.id}",
+                              "name": "Ágata",
+                              "phone": "111222333"
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customers": [
+                        {
+                          "_id": "{responses.4.result.structuredContent.id}",
+                          "name": "Ana",
+                          "phone": "999-000-111"
+                        },
+                        {
+                          "_id": "{responses.2.result.structuredContent.id}",
+                          "name": "bruno",
+                          "phone": "555-0101"
+                        },
+                        {
+                          "_id": "{responses.3.result.structuredContent.id}",
+                          "name": "Ágata",
+                          "phone": "111222333"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 7,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "User {responses.2.result.structuredContent.id} deleted!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "message": "User {responses.2.result.structuredContent.id} deleted!",
+                      "id": "{responses.2.result.structuredContent.id}"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 8,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "User {responses.3.result.structuredContent.id} deleted!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "message": "User {responses.3.result.structuredContent.id} deleted!",
+                      "id": "{responses.3.result.structuredContent.id}"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 9,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "User {responses.4.result.structuredContent.id} deleted!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "message": "User {responses.4.result.structuredContent.id} deleted!",
+                      "id": "{responses.4.result.structuredContent.id}"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 10,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": []
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customers": []
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Customers MCP Server running on stdio\\n"
+        }
+      ]
+    },
+    {
+      "name": "finds a customer by _id as the API answers it, with id, or else the first in name order whose fields contain every given text, case-sensitive, and null when none does",
+      "timeout": 60000,
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/call",
+            "params": {
+              "name": "create_customer",
+              "arguments": {
+                "name": "Ana",
+                "phone": "999-000-111"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "tools/call",
+            "params": {
+              "name": "create_customer",
+              "arguments": {
+                "name": "bruno",
+                "phone": "555-0101"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "_id": "{responses.1.result.structuredContent.id}"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "name": "run"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "phone": "555"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "name": "ana"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 8,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "name": "Ana",
+                "phone": "555"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 9,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {}
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 10,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "_id": "66fbfd09785d518f5c747366"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 11,
+            "method": "tools/call",
+            "params": {
+              "name": "delete_customer",
+              "arguments": {
+                "_id": "{responses.1.result.structuredContent.id}"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 12,
+            "method": "tools/call",
+            "params": {
+              "name": "delete_customer",
+              "arguments": {
+                "_id": "{responses.2.result.structuredContent.id}"
+              }
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ew-customers-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "message": "user Ana created!",
+                            "id": "{responses.1.result.structuredContent.id}"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "$like": {
+                        "message": "user Ana created!",
+                        "id": {
+                          "$pattern": "^[0-9a-f]{24}$"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "message": "user bruno created!",
+                            "id": "{responses.2.result.structuredContent.id}"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "$like": {
+                        "message": "user bruno created!",
+                        "id": {
+                          "$pattern": "^[0-9a-f]{24}$"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 4,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "id": "{responses.1.result.structuredContent.id}",
+                            "name": "Ana",
+                            "phone": "999-000-111"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": {
+                        "id": "{responses.1.result.structuredContent.id}",
+                        "name": "Ana",
+                        "phone": "999-000-111"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 5,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "_id": "{responses.2.result.structuredContent.id}",
+                            "name": "bruno",
+                            "phone": "555-0101"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": {
+                        "_id": "{responses.2.result.structuredContent.id}",
+                        "name": "bruno",
+                        "phone": "555-0101"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 6,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "_id": "{responses.2.result.structuredContent.id}",
+                            "name": "bruno",
+                            "phone": "555-0101"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": {
+                        "_id": "{responses.2.result.structuredContent.id}",
+                        "name": "bruno",
+                        "phone": "555-0101"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 7,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": null
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": null
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 8,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": null
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": null
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 9,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "_id": "{responses.1.result.structuredContent.id}",
+                            "name": "Ana",
+                            "phone": "999-000-111"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": {
+                        "_id": "{responses.1.result.structuredContent.id}",
+                        "name": "Ana",
+                        "phone": "999-000-111"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 10,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": null
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": null
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 11,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "User {responses.1.result.structuredContent.id} deleted!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "message": "User {responses.1.result.structuredContent.id} deleted!",
+                      "id": "{responses.1.result.structuredContent.id}"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 12,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "User {responses.2.result.structuredContent.id} deleted!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "message": "User {responses.2.result.structuredContent.id} deleted!",
+                      "id": "{responses.2.result.structuredContent.id}"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Customers MCP Server running on stdio\\n"
+        }
+      ]
+    },
+    {
+      "name": "updates a customer and passes the API's answer through as a regular result when nothing changed, the phone is missing, or the id is malformed",
+      "timeout": 60000,
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/call",
+            "params": {
+              "name": "create_customer",
+              "arguments": {
+                "name": "Xuxa da Silva",
+                "phone": "12331236"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "tools/call",
+            "params": {
+              "name": "update_customer",
+              "arguments": {
+                "_id": "{responses.1.result.structuredContent.id}",
+                "name": "Jozé da silva",
+                "phone": "12331236"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "_id": "{responses.1.result.structuredContent.id}"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "tools/call",
+            "params": {
+              "name": "update_customer",
+              "arguments": {
+                "_id": "{responses.1.result.structuredContent.id}",
+                "name": "Jozé da silva",
+                "phone": "12331236"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "tools/call",
+            "params": {
+              "name": "update_customer",
+              "arguments": {
+                "_id": "{responses.1.result.structuredContent.id}",
+                "name": "Xuxa"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "tools/call",
+            "params": {
+              "name": "update_customer",
+              "arguments": {
+                "_id": "123",
+                "name": "Xuxa",
+                "phone": "1"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 8,
+            "method": "tools/call",
+            "params": {
+              "name": "delete_customer",
+              "arguments": {
+                "_id": "123"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 9,
+            "method": "tools/call",
+            "params": {
+              "name": "delete_customer",
+              "arguments": {
+                "_id": "{responses.1.result.structuredContent.id}"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 10,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "_id": "{responses.1.result.structuredContent.id}"
+              }
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ew-customers-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "message": "user Xuxa da Silva created!",
+                            "id": "{responses.1.result.structuredContent.id}"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "$like": {
+                        "message": "user Xuxa da Silva created!",
+                        "id": {
+                          "$pattern": "^[0-9a-f]{24}$"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "User {responses.1.result.structuredContent.id} updated!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "message": "User {responses.1.result.structuredContent.id} updated!",
+                      "id": "{responses.1.result.structuredContent.id}"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 4,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": {
+                            "id": "{responses.1.result.structuredContent.id}",
+                            "name": "Jozé da silva",
+                            "phone": "12331236"
+                          }
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": {
+                        "id": "{responses.1.result.structuredContent.id}",
+                        "name": "Jozé da silva",
+                        "phone": "12331236"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "User not found or no changes made"
+                          }
+                        ],
+                        "structuredContent": {
+                          "message": "User not found or no changes made",
+                          "id": "{responses.1.result.structuredContent.id}"
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "User not found or no changes made"
+                        }
+                      ],
+                      "structuredContent": {
+                        "message": "User not found or no changes made",
+                        "id": "{responses.1.result.structuredContent.id}"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 6,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "body must have required property 'phone'"
+                          }
+                        ],
+                        "structuredContent": {
+                          "message": "body must have required property 'phone'"
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 6,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "body must have required property 'phone'"
+                        }
+                      ],
+                      "structuredContent": {
+                        "message": "body must have required property 'phone'"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 7,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "the id is invalid!"
+                          }
+                        ],
+                        "structuredContent": {
+                          "message": "the id is invalid!",
+                          "id": "123"
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 7,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "the id is invalid!"
+                        }
+                      ],
+                      "structuredContent": {
+                        "message": "the id is invalid!",
+                        "id": "123"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 8,
+                    "result": {
+                      "$like": {
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "the id is invalid!"
+                          }
+                        ],
+                        "structuredContent": {
+                          "message": "the id is invalid!",
+                          "id": "123"
+                        },
+                        "isError": false
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 8,
+                    "result": {
+                      "content": [
+                        {
+                          "type": "text",
+                          "text": "the id is invalid!"
+                        }
+                      ],
+                      "structuredContent": {
+                        "message": "the id is invalid!",
+                        "id": "123"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 9,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "User {responses.1.result.structuredContent.id} deleted!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "message": "User {responses.1.result.structuredContent.id} deleted!",
+                      "id": "{responses.1.result.structuredContent.id}"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 10,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": null
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customer": null
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Customers MCP Server running on stdio\\n"
+        }
+      ]
+    },
+    {
+      "name": "rejects missing arguments and an unknown tool, and fails a lookup whose malformed _id the API answers without a customer",
+      "timeout": 60000,
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/call",
+            "params": {
+              "name": "create_customer",
+              "arguments": {
+                "name": "Ana"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "tools/call",
+            "params": {
+              "name": "update_customer",
+              "arguments": {
+                "name": "Ana",
+                "phone": "999-000-111"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "tools/call",
+            "params": {
+              "name": "remove_customer",
+              "arguments": {
+                "_id": "66fbfd09785d518f5c747366"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "tools/call",
+            "params": {
+              "name": "get_customer",
+              "arguments": {
+                "_id": "123"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "tools/call",
+            "params": {
+              "name": "list_customers",
+              "arguments": {}
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ew-customers-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "result": {
+                      "$like": {
+                        "isError": true
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "error": {
+                      "$like": {
+                        "code": -32602
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "result": {
+                      "$like": {
+                        "isError": true
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "error": {
+                      "$like": {
+                        "code": -32602
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "result": {
+                      "$like": {
+                        "isError": true
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "error": {
+                      "$like": {
+                        "code": -32602
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "result": {
+                      "$like": {
+                        "isError": true
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "error": {
+                      "$like": {}
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 6,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$json": []
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "customers": []
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Customers MCP Server running on stdio\\n"
+        }
+      ]
+    }
+  ]
+}

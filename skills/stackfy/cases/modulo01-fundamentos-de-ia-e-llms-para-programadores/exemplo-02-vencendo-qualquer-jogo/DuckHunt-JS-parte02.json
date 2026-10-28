@@ -1,0 +1,48 @@
+{
+  "module": "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-02-vencendo-qualquer-jogo/DuckHunt-JS-parte02",
+  "concepts": ["browser-app", "object-detection"],
+  "recorded": "Original served by webpack-dev-server 5.2.2 with webpack 5.101.0 and PixiJS 8.11.0, and driven in headless Google Chrome 152. It ran with npx webpack-dev-server --port $PORT --no-open instead of npm start, which fixes port 8080 and opens a browser, and no file was patched. The worker loads TensorFlow.js from jsdelivr (latest, 4.22.0 when recorded), so the page needs network access. The game draws on a canvas, so a script that runs before the page's own catches the PixiJS application through its devtools hook (__PIXI_APP_INIT__), records each text the stage shows in session storage, which survives the reload of a replay, and keeps what the page logs. The ducks fly at random, so the case checks the shape of each detection and that the game reaches level 2 without reloading. The case passed in each of 14 runs, 10 of them alone, and the original reached level 2 in 39 of 40 runs, shooting five or six of the first level's six ducks in each of 8 runs inspected. The run that did not, among three games played at once, showed no level 2 within 150 seconds.",
+  "prepare": {
+    "setup": ["npm ci --no-audit --no-fund"]
+  },
+  "originals": ["npx webpack-dev-server --port $PORT --no-open"],
+  "cases": [
+    {
+      "name": "shoots the ducks it detects, shows each detection's confidence, and clears the first level",
+      "serve": {
+        "port": 47332,
+        "ready": "/",
+        "page": {
+          "timeout": 150000,
+          "init": "(() => { if (window !== window.top) return; globalThis.__PIXI_APP_INIT__ = (app) => { globalThis.pixiApp = app; }; globalThis.loggedMessages = []; const log = console.log.bind(console); console.log = (...parts) => { loggedMessages.push({ text: parts.join(' '), time: performance.now() }); log(...parts); }; globalThis.canvasTexts = () => { const texts = []; const visit = (node) => { if (!node.visible) return; if (typeof node.text === 'string' && node.text !== '') texts.push(node.text); node.children.forEach(visit); }; if (globalThis.pixiApp) visit(pixiApp.stage); return texts; }; sessionStorage.setItem('pageLoads', String(Number(sessionStorage.getItem('pageLoads')) + 1)); const shownTexts = JSON.parse(sessionStorage.getItem('shownTexts') ?? '[]'); const record = () => { const fresh = canvasTexts().filter((text) => !shownTexts.includes(text)); if (fresh.length === 0) return; shownTexts.push(...fresh); sessionStorage.setItem('shownTexts', JSON.stringify(shownTexts)); }; setInterval(record, 50); addEventListener('pagehide', record); })()",
+          "steps": [
+            {
+              "wait": "['Level 2', 'You Lose!'].some((status) => JSON.parse(sessionStorage.getItem('shownTexts') ?? '[]').includes(status))"
+            },
+            {
+              "read": "JSON.parse(sessionStorage.getItem('shownTexts')).filter((text) => /^(Level \\d+|wave \\d+ of \\d+|You (Win|Lose)!|.+ Play Again\\?)$/.test(text))"
+            },
+            { "read": "sessionStorage.getItem('pageLoads')" },
+            {
+              "read": "(() => { const predictions = loggedMessages.filter(({ text }) => text.startsWith('🎯 ')).map(({ text }) => text); return [predictions.every((text) => /^🎯 AI predicted at: \\(-?\\d+(\\.\\d+)?, -?\\d+(\\.\\d+)?\\)$/.test(text)), new Set(predictions).size > 1]; })()"
+            },
+            {
+              "read": "canvasTexts().filter((text) => /^(Score|Predictions):/.test(text)).map((text) => /^Score: \\d+\\.\\d{2}$/.test(text) ? Number(text.slice('Score: '.length)) >= 40 : /^Predictions: \\(-?\\d+, -?\\d+\\)$/.test(text))"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            ["Level 1", "wave 1 of 3", "wave 2 of 3", "wave 3 of 3", "Level 2"],
+            "1",
+            [true, true],
+            [true, true]
+          ]
+        }
+      ]
+    }
+  ]
+}

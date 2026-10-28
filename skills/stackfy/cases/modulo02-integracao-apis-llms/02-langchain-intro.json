@@ -1,0 +1,235 @@
+{
+  "module": "modulo02-integracao-apis-llms/02-langchain-intro",
+  "concepts": ["state-graph", "rest-api", "chat-model"],
+  "recorded": "Every case passed against the original with Node.js 26.12.1, @langchain/core 1.1.19, @langchain/langgraph 1.1.4, langchain 1.2.17, and fastify 5.7.4, installed from the module's lockfile and run as \"node {program}.ts\" without a .env file, so LangSmith tracing stays off, where the programs are the server, src/index, and the module's end-to-end tests, tests/router.e2e.test. The original always listens on port 3000, so the copy that produced these cases listens on PORT and prints it, falling back to 3000, a two-line change in src/index.ts. The module calls no model, so the cases replay nothing and expect no requests, and its answers are deterministic and compared exactly as plain text. Fastify's error bodies are checked by status code, statusCode, and error, with any non-empty message, because the validation messages come from Ajv, except the unknown route, whose message is short and checked exactly. A graph failure is never checked, because the original sets status 500 without sending it, so the request never gets an answer. The tests program is checked by whether it succeeds, never by its report. The LangGraph CLI's development server, which factory.ts and langgraph.json register the graph for, belongs to the CLI and has no cases.",
+  "prepare": {
+    "setup": ["npm ci --no-audit --no-fund"],
+    "patches": [
+      {
+        "file": "src/index.ts",
+        "find": "{ port: 3000, host",
+        "replace": "{ port: Number(process.env.PORT ?? 3000), host"
+      },
+      {
+        "file": "src/index.ts",
+        "find": "'server running at 3000'",
+        "replace": "`server running at ${process.env.PORT ?? 3000}`"
+      }
+    ]
+  },
+  "originals": ["node {program}.ts"],
+  "cases": [
+    {
+      "name": "the route answers the question in uppercase, in lowercase, or with the commands it knows",
+      "program": "src/index",
+      "serve": {
+        "port": 47861,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "make THis message UPPER please!" }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "MAKE THIS MESSAGE LOWER PLEASE!" }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "HEY THERE!" }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            { "status": 200, "pattern": "^MAKE THIS MESSAGE UPPER PLEASE!$" },
+            { "status": 200, "pattern": "^make this message lower please!$" },
+            {
+              "status": 200,
+              "pattern": "^Unknown command\\. Try 'make this uppercase' or 'convert to lowercase'$"
+            }
+          ]
+        },
+        { "type": "output", "pattern": "^server running at 47861\\n$" },
+        { "type": "output", "stream": "stderr", "pattern": "^$" },
+        { "type": "requests", "requests": [] }
+      ]
+    },
+    {
+      "name": "the command is upper before lower anywhere in the question, even inside a word, and the answer keeps its spacing and accents",
+      "program": "src/index",
+      "serve": {
+        "port": 47862,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "upper and lower" }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "Lower then UPPER" }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "supper time" }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "Flowers Bloom" }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "  upper  " }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "deixe em UPPER: ação e coração" }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "upper", "command": "lowercase" }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            { "status": 200, "pattern": "^UPPER AND LOWER$" },
+            { "status": 200, "pattern": "^LOWER THEN UPPER$" },
+            { "status": 200, "pattern": "^SUPPER TIME$" },
+            { "status": 200, "pattern": "^flowers bloom$" },
+            { "status": 200, "pattern": "^  UPPER  $" },
+            { "status": 200, "pattern": "^DEIXE EM UPPER: AÇÃO E CORAÇÃO$" },
+            { "status": 200, "pattern": "^UPPER$" }
+          ]
+        },
+        { "type": "output", "pattern": "^server running at 47862\\n$" },
+        { "type": "output", "stream": "stderr", "pattern": "^$" },
+        { "type": "requests", "requests": [] }
+      ]
+    },
+    {
+      "name": "the route rejects a missing, short, or unparsable question and unknown routes",
+      "program": "src/index",
+      "serve": {
+        "port": 47863,
+        "requests": [
+          { "method": "POST", "path": "/chat", "json": {} },
+          { "method": "POST", "path": "/chat", "json": { "question": "uppe" } },
+          { "method": "POST", "path": "/chat", "json": { "question": "ação" } },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": { "question": "🙂🙂🙂" }
+          },
+          { "method": "POST", "path": "/chat", "json": ["make it upper"] },
+          { "method": "POST", "path": "/chat" },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "headers": { "content-type": "application/json" },
+            "body": "{\"question\":"
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "headers": { "content-type": "text/plain" },
+            "body": "make it upper"
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "headers": {
+              "content-type": "application/x-www-form-urlencoded"
+            },
+            "body": "question=make+it+upper"
+          },
+          { "method": "GET", "path": "/chat" }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 400,
+              "match": { "statusCode": 400, "error": "Bad Request" },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": { "statusCode": 400, "error": "Bad Request" },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": { "statusCode": 400, "error": "Bad Request" },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": { "statusCode": 400, "error": "Bad Request" },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": { "statusCode": 400, "error": "Bad Request" },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": { "statusCode": 400, "error": "Bad Request" },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": { "statusCode": 400, "error": "Bad Request" },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": { "statusCode": 400, "error": "Bad Request" },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 415,
+              "match": { "statusCode": 415, "error": "Unsupported Media Type" },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 404,
+              "match": {
+                "statusCode": 404,
+                "error": "Not Found",
+                "message": "Route GET:/chat not found"
+              }
+            }
+          ]
+        },
+        { "type": "output", "pattern": "^server running at 47863\\n$" },
+        { "type": "output", "stream": "stderr", "pattern": "^$" },
+        { "type": "requests", "requests": [] }
+      ]
+    },
+    {
+      "name": "the tests send the three commands through the route and pass",
+      "program": "tests/router.e2e.test",
+      "expect": [
+        { "type": "exit", "code": 0 },
+        { "type": "requests", "requests": [] }
+      ]
+    }
+  ]
+}

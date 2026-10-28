@@ -1,0 +1,1647 @@
+{
+  "module": "modulo09-processamento-de-dados-e-fine-tuning-de-modelos/modulo-04-lora-e-peft",
+  "concepts": [
+    "parameter-efficient-fine-tuning",
+    "model-fine-tuning",
+    "investment-analysis"
+  ],
+  "recorded": "Every case passed against both originals, the JavaScript versions with Node.js 26.12.1 and the Python versions with Python 3.13.17, in a copy of the module run through two commands: run() { if [ -f {program}.js ]; then node {program}.js \"$@\"; else f={program}.py; [ -f \"$f\" ] || f=$(echo \"$f\" | tr - _); python3 \"$f\" \"$@\"; fi; }; run for JavaScript and run() { f={program}.py; [ -f \"$f\" ] || f=$(echo \"$f\" | tr - _); python3 \"$f\" \"$@\"; }; run for Python, since every Python file turns the hyphens into underscores except local-lora-training-hf-tool.py, which has no JavaScript counterpart, so its cases ran against Python only. That python3 had torch 2.14.1, transformers 5.21.0, and peft 0.21.2 installed, which the script imports before it looks for a CUDA device, and the case that hides every CUDA device with CUDA_VISIBLE_DEVICES needs them. The rank trade-off, full fine-tuning, and regional NPV tools are deterministic and compared exactly, and the regional tool imports lesson 01's decision framework tool by its relative path. The training tool reads ../modulo-03-fine-tuning-via-api/dataset-treinado.jsonl and writes mlx-data, so its cases remove the three splits before the run and restore them afterwards, and two replace lesson 03's file for the run with a 20-example dataset and with one whose second example has no model turn. The splits are compared by their JSON values, since Python writes a space after each colon and comma, and its self-check reports, like every tool's, are compared only by their totals. The comparison tools run python3 -m mlx_lm generate, which the cases answer with a stand-in python3 that lets every other launch through to the installed one. Its answers were recorded from mlx-lm 0.32.2 with MLX 0.32.4 on Apple Silicon, generating with mlx-community/gemma-4-e2b-it-bf16 and the adapters the lesson ships, which repeated the lesson's token counts and answers while the base model thought aloud in other words, with the adapter paths inside the folder the command runs in. The missing rank 16 adapter is mlx_lm's real error with that folder moved away, and the missing mlx-lm is what Homebrew's Python 3.15.2 printed without it. The Python versions print parsed JSON with spaces, booleans as True and False, configuracao(oes) without accents, and their own wording of the adapter tool's conclusion, and the patterns accept either. The managed API tool sends to a hardcoded https://api.together.ai, so the copy that produced these cases replaces that origin with TOGETHER_BASE_URL, the variable Together AI's SDKs read, only where it sends, a one-line change in each version that keeps the request it builds and checks. No Together AI key was available, so its job and its 401 are synthesized from Together AI's documented formats, and its error line goes to standard error in JavaScript and to standard output in Python, so the patterns accept it on either. The cases cover the seven tool pairs, the script's checks, and its refusal without CUDA, and leave out the two Google Colab notebooks and the script's training run. Every case passed in 3 runs of each original.",
+  "blocked": {
+    "status": "partial",
+    "reason": "The two Google Colab notebooks and the Hugging Face script's training run need a CUDA GPU: the script refuses to run without one, and the notebooks, run unchanged on Apple Silicon, stall loading their models with device_map=\"auto\" on MPS, so only the seven tool pairs, the script's checks, and its refusal without CUDA have passing cases",
+    "completion": "requires a CUDA GPU, such as Google Colab's T4"
+  },
+  "prepare": {
+    "copy": "modulo09-processamento-de-dados-e-fine-tuning-de-modelos",
+    "setup": [
+      "uv venv -q --python 3.13 .venv && uv pip install -q --python .venv/bin/python torch==2.14.1 transformers==5.21.0 peft==0.21.2"
+    ],
+    "patches": [
+      {
+        "file": "lora-managed-api-preview-tool.js",
+        "find": "await fetch(requisicao.url, {",
+        "replace": "await fetch(requisicao.url.replace('https://api.together.ai', process.env.TOGETHER_BASE_URL ?? 'https://api.together.ai'), {"
+      },
+      {
+        "file": "lora_managed_api_preview_tool.py",
+        "find": "urllib.request.Request(requisicao[\"url\"], ",
+        "replace": "urllib.request.Request(requisicao[\"url\"].replace(\"https://api.together.ai\", os.environ.get(\"TOGETHER_BASE_URL\", \"https://api.together.ai\")), "
+      }
+    ]
+  },
+  "originals": [
+    "run() { if [ -f {program}.js ]; then node {program}.js \"$@\"; else f={program}.py; [ -f \"$f\" ] || f=$(echo \"$f\" | tr - _); .venv/bin/python3 \"$f\" \"$@\"; fi; }; run",
+    "run() { f={program}.py; [ -f \"$f\" ] || f=$(echo \"$f\" | tr - _); .venv/bin/python3 \"$f\" \"$@\"; }; run"
+  ],
+  "cases": [
+    {
+      "name": "checks itself, then lays out the three real LoRA runs by rank, what each doubling of rank costs and returns, the smallest rank within 10% of the best val loss, QLoRA against bf16, and DoRA against LoRA",
+      "program": "lora-rank-tradeoff-tool",
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes[^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n?)+Total: 13 teste\\(s\\), 13 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n\n===== Trade-off real: rank do LoRA vs\\. parâmetros, memória, velocidade e qualidade =====\n\nMesmo dataset \\(157 exemplos\\), mesmo modelo \\(Gemma 4 E2B\\), mesmos hiperparâmetros,\nsó o rank muda\\. Três treinos reais, rodados nesta disciplina\\.\n\n  Rank 4:\n    Parâmetros treináveis: 3\\.408M \\(0\\.074% do modelo\\)\n    Val loss: 4\\.752 -> 1\\.246 \\(73\\.78% de redução\\)\n    Pico de memória: 10\\.787 GB\n    Velocidade: 7\\.401 it/s\n    Adaptador salvo: 13 MB\n\n  Rank 8:\n    Parâmetros treináveis: 6\\.816M \\(0\\.147% do modelo\\)\n    Val loss: 4\\.752 -> 0\\.895 \\(81\\.17% de redução\\)\n    Pico de memória: 10\\.833 GB\n    Velocidade: 7\\.295 it/s\n    Adaptador salvo: 26 MB\n\n  Rank 16:\n    Parâmetros treináveis: 13\\.631M \\(0\\.295% do modelo\\)\n    Val loss: 4\\.752 -> 0\\.725 \\(84\\.74% de redução\\)\n    Pico de memória: 10\\.93 GB\n    Velocidade: 7\\.253 it/s\n    Adaptador salvo: 52 MB\n\n  --- O que cada dobra de rank custa e entrega ---\n  Rank 4 -> 8: parâmetros x2\\.0, val loss melhora 0\\.351 \\(28\\.17%\\), memória \\+0\\.046GB\n  Rank 8 -> 16: parâmetros x2\\.0, val loss melhora 0\\.17 \\(18\\.99%\\), memória \\+0\\.097GB\n\n  Recomendação \\(margem de 10% do melhor val loss\\): rank 16\n  Aviso: recomendação medida em iters=20, o mesmo checkpoint que o Módulo 4\\.2 mostrou subtreinado \\(melhor iteração real = 90\\)\\. Serve pra comparar a ordem entre os postos, não como valor final de produção\\.\n\n===== QLoRA de verdade: o mesmo rank 8, contra o modelo pré-quantizado em 4-bit =====\n\n  bf16:  modelo em disco 10\\.241GB, pico de memória no treino 10\\.833GB, val loss final 0\\.895\n  4-bit: modelo em disco 3\\.583GB, pico de memória no treino 4\\.193GB, val loss final 0\\.932\n\n  Quantização economiza 65\\.0% de disco e 61\\.3% de pico de memória no treino,\n  ao custo de 0\\.037 de val loss \\(4\\.1% pior - maior que a faixa de ruído entre execuções medida no Módulo 4\\.2 \\(~2,3%\\), então é custo real da quantização, não ruído\\)\\.\n  Geração com o adaptador QLoRA contra o mesmo exemplo de teste: JSON correto, campo a campo,\n  com pico de memória de só 2\\.794GB\\.\n\n===== DoRA de verdade: o mesmo rank 8, weight-decomposed LoRA em vez de LoRA puro =====\n\n  LoRA: 6\\.816M parâmetros, pico de memória 10\\.833GB, val loss final 0\\.895, adaptador 26MB\n  DoRA: 7\\.328M parâmetros, pico de memória 11\\.099GB, val loss final 0\\.895, adaptador 28MB\n\n  DoRA usa 1\\.07x mais parâmetros treináveis e \\+0\\.266GB de pico de memória,\n  mas o val loss final empata exatamente, dentro da faixa de ruído entre execuções medida no\n  Módulo 4\\.2 \\(~2,3%\\)\\. Neste treino pequeno \\(20 iterações\\) e nesta tarefa já simples pro modelo,\n  o ganho que a literatura relata pra DoRA não aparece - ela descreve ganho em tarefa complexa\n  e treino mais longo, não garantia universal\\.\n$"
+        }
+      ]
+    },
+    {
+      "name": "checks itself, then compares full fine-tuning with LoRA ranks 4, 8, and 16 and rejects its extra cost under the 20% val loss threshold",
+      "program": "full-vs-lora-tradeoff-tool",
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes[^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n?)+Total: 8 teste\\(s\\), 8 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n\n===== Full Fine-Tuning vs\\. LoRA: a resposta, com números reais =====\n\n  LoRA rank 4:\n    Parâmetros treináveis: 0\\.074% do modelo\n    Val loss final: 1\\.246\n    Pico de memória: 10\\.787 GB\n    Checkpoint salvo: 13 MB\n\n  LoRA rank 8:\n    Parâmetros treináveis: 0\\.147% do modelo\n    Val loss final: 0\\.895\n    Pico de memória: 10\\.833 GB\n    Checkpoint salvo: 26 MB\n\n  LoRA rank 16:\n    Parâmetros treináveis: 0\\.295% do modelo\n    Val loss final: 0\\.725\n    Pico de memória: 10\\.930 GB\n    Checkpoint salvo: 52 MB\n\n  Full fine-tuning:\n    Parâmetros treináveis: 22\\.567% do modelo\n    Val loss final: 0\\.612\n    Pico de memória: 15\\.338 GB\n    Checkpoint salvo: 1992 MB\n\n  --- Full fine-tuning vs\\. LoRA rank 8 ---\n  Val loss 31\\.62% melhor, com 153\\.5x mais parâmetros,\n  1\\.42x mais memória de pico, e checkpoint 76\\.6x maior\\.\n\n  Vale a pena\\? Comparado ao melhor LoRA \\(LoRA rank 16\\), o ganho real é de 15\\.59%\\.\n  Com limiar de 20% pra justificar o custo extra: NÃO, fica abaixo do limiar\\.\n\n  --- Inferência real, mesmos dois exemplos dos Módulos 4\\.2 e 4\\.3 ---\n  Exemplo fácil \\(Felipe Alves Monteiro\\): full fine-tuning acerta, campo a campo\\.\n  Exemplo com distratores \\(Ricardo Alves Monteiro\\): full fine-tuning acerta, campo a campo\\.\n  Mesmo resultado observável que LoRA rank 4, 8 e 16 nos dois casos\\.\n\n-----------------------------------------------------------------------------\nExiste teto, e é real: full fine-tuning chega a um val loss melhor que qualquer\nLoRA testado\\. Mas pra esta tarefa, extração estruturada e estreita, esse teto\nnão aparece em comportamento observável, nem no caso fácil, nem no difícil\\. O\ncusto aparece sempre: 76\\.6x mais disco, ~42% mais memória, 153\\.5x mais parâmetros\\.\n  \\(medido em iters=20 pros dois lados - o Módulo 4\\.2 mostrou esse checkpoint subtreinado, melhor iteração real = 90\\. O teto pode ser real, mas o tamanho exato ainda não foi medido até convergência\\.\\)\n-----------------------------------------------------------------------------\n$"
+        }
+      ]
+    },
+    {
+      "name": "checks itself, then runs a regional partnership's 400 monthly calls through lesson 01's NPV with a rented GPU and with local LoRA, and scales both to five partnerships",
+      "program": "regional-lora-vs-cloud-npv",
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes[^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n?)+Total: 5 teste\\(s\\), 5 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n\n===== Demo: uma parceria regional, dois caminhos de fine-tuning =====\n\nVolume: 400/mês \\(vs\\. 8\\.000/mês da Amplitude Auto nacional\\)\nMesmo custo por chamada do Módulo 1\\.3: status quo R\\$ 0\\.045, fine-tunado R\\$ 0\\.016\n\n--- Caminho 1: GPU alugada na nuvem ---\n  Custo fixo de treino: R\\$ 2400\\.00\n  NPV em 24 meses: R\\$ -2040\\.99\n  Breakeven: não atinge no horizonte\n\n--- Caminho 2: LoRA local \\(Módulo 4\\) ---\n  Custo fixo de treino: R\\$ 0\\.00 \\(hardware já existe, custo marginal é tempo de máquina\\)\n  NPV em 24 meses: R\\$ 359\\.01\n  Breakeven: mês 1\n\n--- Escalando pra 5 parcerias regionais ---\n  5 GPUs alugadas: custo fixo total R\\$ 12000\\.00, nenhuma atinge breakeven sozinha\n  5 adaptadores LoRA locais: custo fixo total ~R\\$ 0, cada um com NPV positivo desde o mês 1\n\n-----------------------------------------------------------------------------\nMesma fórmula de NPV do Módulo 1\\.3, mesmo caso aprovado no gate\\. O que muda é\no custo fixo por unidade de treino: perto de zero pra LoRA local, fixo e alto\npra GPU alugada\\. Em volume pequeno, essa diferença decide o resultado\\.\n-----------------------------------------------------------------------------\n$"
+        }
+      ]
+    },
+    {
+      "name": "checks the request it builds, then prints the Together AI LoRA job it would create and sends nothing when TOGETHER_API_KEY is empty",
+      "program": "lora-managed-api-preview-tool",
+      "env": {
+        "TOGETHER_API_KEY": ""
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes[^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+)+\\n6/6 testes passaram\\.\\nTOGETHER_API_KEY não configurada -- modo preview, nada foi enviado\\.\\n\\{\\n"
+        },
+        {
+          "type": "json",
+          "values": [
+            {
+              "url": "https://api.together.ai/v1/fine-tunes",
+              "method": "POST",
+              "headers": {
+                "Authorization": "Bearer <TOGETHER_API_KEY>",
+                "Content-Type": "application/json"
+              },
+              "body": {
+                "model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Reference",
+                "training_file": "file-exemplo-amplitude-seguros",
+                "training_type": {
+                  "type": "Lora",
+                  "lora_r": 8,
+                  "lora_alpha": 20,
+                  "lora_dropout": 0,
+                  "lora_trainable_modules": "all-linear"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sends the local rank 8 LoRA settings to Together AI with the key as a bearer token and prints the job it created",
+      "program": "lora-managed-api-preview-tool",
+      "env": {
+        "TOGETHER_API_KEY": "together-stackfy",
+        "TOGETHER_BASE_URL": "{replay}"
+      },
+      "replay": [
+        {
+          "method": "POST",
+          "path": "/v1/fine-tunes",
+          "matchHeaders": {
+            "authorization": "^Bearer together-stackfy$"
+          },
+          "json": {
+            "id": "ft-stackfy-4d2c8e1a",
+            "training_file": "file-exemplo-amplitude-seguros",
+            "validation_file": "",
+            "model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Reference",
+            "output_name": "stackfy/Meta-Llama-3.1-8B-Instruct-Reference-ft-stackfy-4d2c8e1a",
+            "n_epochs": 1,
+            "n_checkpoints": 1,
+            "batch_size": 8,
+            "learning_rate": 0.00001,
+            "training_type": {
+              "type": "Lora",
+              "lora_r": 8,
+              "lora_alpha": 20,
+              "lora_dropout": 0,
+              "lora_trainable_modules": "all-linear"
+            },
+            "training_method": {
+              "method": "sft",
+              "train_on_inputs": "auto"
+            },
+            "status": "pending",
+            "created_at": "2026-10-27T12:00:00.000Z",
+            "updated_at": "2026-10-27T12:00:00.000Z"
+          },
+          "source": "synthesized from Together AI's documented fine-tuning job format",
+          "synthesized": true
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/fine-tunes",
+              "body": {
+                "model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Reference",
+                "training_file": "file-exemplo-amplitude-seguros",
+                "training_type": {
+                  "type": "Lora",
+                  "lora_r": 8,
+                  "lora_alpha": 20,
+                  "lora_dropout": 0,
+                  "lora_trainable_modules": "all-linear"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes[^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+)+\\n6/6 testes passaram\\.\\nJob de fine-tuning LoRA criado de verdade: \\{[\\s\\S]*'?id'?: 'ft-stackfy-4d2c8e1a'[\\s\\S]*'?status'?: 'pending'[\\s\\S]*\\}\\n$"
+        }
+      ]
+    },
+    {
+      "name": "stops with an error that carries the status and body when Together AI rejects the key",
+      "program": "lora-managed-api-preview-tool",
+      "env": {
+        "TOGETHER_API_KEY": "together-stackfy",
+        "TOGETHER_BASE_URL": "{replay}"
+      },
+      "replay": [
+        {
+          "method": "POST",
+          "path": "/v1/fine-tunes",
+          "matchHeaders": {
+            "authorization": "^Bearer together-stackfy$"
+          },
+          "status": 401,
+          "json": {
+            "error": {
+              "message": "Invalid API key provided. You can find your API key at https://api.together.ai/settings/api-keys.",
+              "type": "invalid_request_error",
+              "param": null,
+              "code": "invalid_api_key"
+            }
+          },
+          "source": "synthesized from Together AI's documented error format",
+          "synthesized": true
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/fine-tunes",
+              "body": {
+                "model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Reference",
+                "training_file": "file-exemplo-amplitude-seguros",
+                "training_type": {
+                  "type": "Lora",
+                  "lora_r": 8,
+                  "lora_alpha": 20,
+                  "lora_dropout": 0,
+                  "lora_trainable_modules": "all-linear"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes[^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+)+\\n6/6 testes passaram\\.\\n(?:Erro: Together AI recusou a requisição \\(401\\): \\{\"error\":\\{\"message\":\"Invalid API key provided\\. You can find your API key at https://api\\.together\\.ai/settings/api-keys\\.\",\"type\":\"invalid_request_error\",\"param\":null,\"code\":\"invalid_api_key\"\\}\\}\\n)?$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^(?:Erro: Together AI recusou a requisição \\(401\\): \\{\"error\":\\{\"message\":\"Invalid API key provided\\. You can find your API key at https://api\\.together\\.ai/settings/api-keys\\.\",\"type\":\"invalid_request_error\",\"param\":null,\"code\":\"invalid_api_key\"\\}\\}\\n)?$"
+        }
+      ]
+    },
+    {
+      "name": "checks itself, converts the 200 examples of lesson 03 into messages, splits them by person into 157, 30, and 13 without splitting anyone, and reads the 20 and 120 iteration convergence curves",
+      "program": "local-lora-training-tool",
+      "files": {
+        "mlx-data/train.jsonl": null,
+        "mlx-data/valid.jsonl": null,
+        "mlx-data/test.jsonl": null
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes[^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n?)+Total: 16 teste\\(s\\), 16 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n\\n===== Preparando dados reais pro treino local \\(a partir do dataset do Módulo 3\\) =====\\n\\nDataset de origem: [^\\n]*/modulo-03-fine-tuning-via-api/dataset-treinado\\.jsonl\\nTotal de exemplos: 200\\n  train\\.jsonl: 157 exemplos\\n  valid\\.jsonl: 30 exemplos\\n  test\\.jsonl:  13 exemplos\\nEscrito em: [^\\n]*/mlx-data\\n\n===== Curva de convergência: o treino de 20 iterações ainda estava caindo\\? =====\n\nRepetição das 20 iterações originais \\(val loss final 0,895 no treino original, 0,907 aqui -- ruído normal\\):\n  Iter  1: val loss 4\\.752\n  Iter  5: val loss 2\\.923\n  Iter 10: val loss 1\\.567\n  Iter 15: val loss 1\\.173\n  Iter 20: val loss 0\\.907\n  -> melhor iteração: 20 \\(val loss 0\\.907\\)\n  -> queda relativa entre os 2 últimos pontos medidos: 22\\.7%\n  -> ainda caindo forte\\? (?:true|True)  \\(limiar: 3%\\)\n  -> sinal de overfitting\\? (?:false|False)\n\nMesmo treino, estendido pra 120 iterações \\(pra ver o que 20 iterações não mostra\\):\n  Iter   1: val loss 4\\.752\n  Iter  10: val loss 1\\.533\n  Iter  20: val loss 0\\.916\n  Iter  30: val loss 0\\.687\n  Iter  40: val loss 0\\.624\n  Iter  50: val loss 0\\.536\n  Iter  60: val loss 0\\.553\n  Iter  70: val loss 0\\.513\n  Iter  80: val loss 0\\.504\n  Iter  90: val loss 0\\.474\n  Iter 100: val loss 0\\.485\n  Iter 110: val loss 0\\.496\n  Iter 120: val loss 0\\.520\n  -> melhor iteração: 90 \\(val loss 0\\.474\\)\n  -> queda relativa entre os 2 últimos pontos medidos: -4\\.8%\n  -> ainda caindo forte\\? (?:false|False)  \\(limiar: 3%\\)\n  -> sinal de overfitting\\? (?:true|True)\n\nConclusão: em iters=20 o val loss ainda estava caindo mais de 20% a cada 5 iterações -- não é convergência, é subtreino, o treino parou antes de terminar de aprender\\. Estendendo pra 120 iterações, o val loss melhora até a iteração 90, e as iterações 100 a 120 já mostram sinal de piora \\(early stopping pararia em 90, não em 120\\)\\.\n$"
+        },
+        {
+          "type": "file",
+          "path": "mlx-data/test.jsonl",
+          "pattern": "^(?:\\{[^\\n]*\\}\\n){13}$",
+          "values": [
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nATIVA ORCAMENTOS AUTOMOTIVOS OFICINA ESTRELA LTDA CNPJ 12.345.678/0001-90 Rua das Turbinas 450 Distrito Industrial Segurado: Anderson Machado Freitas Placa do veiculo: WER-4481 Data do sinistro: 01/07/2026 Descricao do servico: reparo de lataria e pintura no para-choque dianteiro Valor total do reparo: R$ 3.390,60"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Anderson Machado Freitas\",\"placa\":\"WER-4481\",\"valor\":3390.6}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nATIVA ORCAMENTOS AUTOMOTIVOS OFICINA ESTRELA LTDA CNPJ 12.345.678/0001-90 Rua das Turbinas 450 Distrito Industrial Segurado: Debora Martins Cardoso Placa do veiculo: LKM-3376 Data do sinistro: 14/03/2026 Descricao do servico: reparo de lataria e pintura no para-choque dianteiro Valor total do reparo: R$ 4.780,60"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Debora Martins Cardoso\",\"placa\":\"LKM-3376\",\"valor\":4780.6}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nATIVA ORCAMENTOS AUTOMOTIVOS OFICINA ESTRELA LTDA CNPJ 12.345.678/0001-90 Rua das Turbinas 450 Distrito Industrial Segurado: Fabio Vinicius Andrade Pereira Placa do veiculo: UJM-7726 Data do sinistro: 23/06/2026 Descricao do servico: reparo de lataria e pintura no para-choque dianteiro Valor total do reparo: R$ 6.310,90"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Fabio Vinicius Andrade Pereira\",\"placa\":\"UJM-7726\",\"valor\":6310.9}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nATIVA ORCAMENTOS AUTOMOTIVOS OFICINA ESTRELA LTDA CNPJ 12.345.678/0001-90 Rua das Turbinas 450 Distrito Industrial Segurado: Vanessa Costa Miranda Placa do veiculo: DFG-7784 Data do sinistro: 27/02/2026 Descricao do servico: reparo de lataria e pintura no para-choque dianteiro Valor total do reparo: R$ 2.150,80"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Vanessa Costa Miranda\",\"placa\":\"DFG-7784\",\"valor\":2150.8}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nATIVA ORCAMENTOS AUTOMOTIVOS OFICINA ESTRELA LTDA CNPJ 12.345.678/0001-90 Rua das Turbinas 450 Distrito Industrial Segurado: Carolina Almeida Correia Placa do veiculo: QJK-4F82 Data do sinistro: 11/05/2026 Descricao do servico: reparo de lataria e pintura no para-choque dianteiro Valor total do reparo: R$ 2.510,30"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Carolina Almeida Correia\",\"placa\":\"QJK-4F82\",\"valor\":2510.3}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nAUTO CENTER SILVA - FUNILARIA E PINTURA - CNPJ 98.765.432/0001-11 Av. dos Mecanicos 220 Cliente/Segurado: Carolina Almeida Correia Placa: QJK-4F82 Data do atendimento: 11/05/2026 Servico executado: troca de para-lama e revisao de suspensao dianteira Valor: R$ 2.510,30"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Carolina Almeida Correia\",\"placa\":\"QJK-4F82\",\"valor\":2510.3}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nATIVA ORCAMENTOS AUTOMOTIVOS OFICINA ESTRELA LTDA CNPJ 12.345.678/0001-90 Rua das Turbinas 450 Distrito Industrial Segurado: Felipe Alves Monteiro Placa do veiculo: YHN-5520 Data do sinistro: 18/05/2026 Descricao do servico: reparo de lataria e pintura no para-choque dianteiro Valor total do reparo: R$ 3.450,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Felipe Alves Monteiro\",\"placa\":\"YHN-5520\",\"valor\":3450}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nAUTO CENTER SILVA - FUNILARIA E PINTURA - CNPJ 98.765.432/0001-11 Av. dos Mecanicos 220 Cliente/Segurado: Felipe Alves Monteiro Placa: YHN-5520 Data do atendimento: 18/05/2026 Servico executado: troca de para-lama e revisao de suspensao dianteira Valor: R$ 3.450,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Felipe Alves Monteiro\",\"placa\":\"YHN-5520\",\"valor\":3450}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCLINICA VITALIS SAUDE OCUPACIONAL CNPJ 33.222.111/0001-44 Av. Paulista 900 Paciente/Beneficiario: Felipe Alves Monteiro Procedimento: consulta de clinica geral Data do atendimento: 18/05/2026 Valor cobrado: R$ 3.450,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Felipe Alves Monteiro\",\"procedimento\":\"consulta de clinica geral\",\"valor\":3450}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nATIVA ORCAMENTOS AUTOMOTIVOS OFICINA ESTRELA LTDA CNPJ 12.345.678/0001-90 Rua das Turbinas 450 Distrito Industrial Segurado: Amanda Pedro Salgado Placa do veiculo: MJU-6624 Data do sinistro: 17/03/2026 Descricao do servico: reparo de lataria e pintura no para-choque dianteiro Valor total do reparo: R$ 1.870,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Amanda Pedro Salgado\",\"placa\":\"MJU-6624\",\"valor\":1870}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nAUTO CENTER SILVA - FUNILARIA E PINTURA - CNPJ 98.765.432/0001-11 Av. dos Mecanicos 220 Cliente/Segurado: Amanda Pedro Salgado Placa: MJU-6624 Data do atendimento: 17/03/2026 Servico executado: troca de para-lama e revisao de suspensao dianteira Valor: R$ 1.870,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Amanda Pedro Salgado\",\"placa\":\"MJU-6624\",\"valor\":1870}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nFUNILARIA RIO BONITO ME CNPJ 45.111.222/0001-33 Rua Rio Bonito 88 Nome do segurado: Amanda Pedro Salgado Placa do veiculo: MJU-6624 Data: 17/03/2026 Orcamento: substituicao de parachoque traseiro e polimento Valor total: R$ 1.870,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Amanda Pedro Salgado\",\"placa\":\"MJU-6624\",\"valor\":1870}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCLINICA VITALIS SAUDE OCUPACIONAL CNPJ 33.222.111/0001-44 Av. Paulista 900 Paciente/Beneficiario: Amanda Pedro Salgado Procedimento: exame de audiometria Data do atendimento: 17/03/2026 Valor cobrado: R$ 1.870,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Amanda Pedro Salgado\",\"procedimento\":\"exame de audiometria\",\"valor\":1870}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "file",
+          "path": "mlx-data/valid.jsonl",
+          "pattern": "^(?:\\{[^\\n]*\\}\\n){30}$",
+          "values": [
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nATIVA ORCAMENTOS AUTOMOTIVOS OFICINA ESTRELA LTDA CNPJ 12.345.678/0001-90 Rua das Turbinas 450 Distrito Industrial Segurado: Rodrigo Braga Quintanilha Placa do veiculo: ZXC-2298 Data do sinistro: 29/07/2026 Descricao do servico: reparo de lataria e pintura no para-choque dianteiro Valor total do reparo: R$ 1.660,40"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Rodrigo Braga Quintanilha\",\"placa\":\"ZXC-2298\",\"valor\":1660.4}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nAUTO CENTER SILVA - FUNILARIA E PINTURA - CNPJ 98.765.432/0001-11 Av. dos Mecanicos 220 Cliente/Segurado: Rodrigo Braga Quintanilha Placa: ZXC-2298 Data do atendimento: 29/07/2026 Servico executado: troca de para-lama e revisao de suspensao dianteira Valor: R$ 1.660,40"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Rodrigo Braga Quintanilha\",\"placa\":\"ZXC-2298\",\"valor\":1660.4}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nFUNILARIA RIO BONITO ME CNPJ 45.111.222/0001-33 Rua Rio Bonito 88 Nome do segurado: Rodrigo Braga Quintanilha Placa do veiculo: ZXC-2298 Data: 29/07/2026 Orcamento: substituicao de parachoque traseiro e polimento Valor total: R$ 1.660,40"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Rodrigo Braga Quintanilha\",\"placa\":\"ZXC-2298\",\"valor\":1660.4}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nOFICINA NOVA ALIANCA LTDA CNPJ 22.333.444/0001-55 Estrada Velha 1200 Segurado: Rodrigo Braga Quintanilha Placa do carro: ZXC-2298 Data do orcamento: 29/07/2026 Descricao: reparo de amassado na porta dianteira Valor cobrado: R$ 1.660,40"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Rodrigo Braga Quintanilha\",\"placa\":\"ZXC-2298\",\"valor\":1660.4}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCLINICA VITALIS SAUDE OCUPACIONAL CNPJ 33.222.111/0001-44 Av. Paulista 900 Paciente/Beneficiario: Rodrigo Braga Quintanilha Procedimento: sessao de terapia ocupacional Data do atendimento: 29/07/2026 Valor cobrado: R$ 1.660,40"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Rodrigo Braga Quintanilha\",\"procedimento\":\"sessao de terapia ocupacional\",\"valor\":1660.4}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nATIVA ORCAMENTOS AUTOMOTIVOS OFICINA ESTRELA LTDA CNPJ 12.345.678/0001-90 Rua das Turbinas 450 Distrito Industrial Segurado: Leonardo Batista Cavalcanti Placa do veiculo: YUI-2216 Data do sinistro: 30/04/2026 Descricao do servico: reparo de lataria e pintura no para-choque dianteiro Valor total do reparo: R$ 2.220,80"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Leonardo Batista Cavalcanti\",\"placa\":\"YUI-2216\",\"valor\":2220.8}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nAUTO CENTER SILVA - FUNILARIA E PINTURA - CNPJ 98.765.432/0001-11 Av. dos Mecanicos 220 Cliente/Segurado: Leonardo Batista Cavalcanti Placa: YUI-2216 Data do atendimento: 30/04/2026 Servico executado: troca de para-lama e revisao de suspensao dianteira Valor: R$ 2.220,80"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Leonardo Batista Cavalcanti\",\"placa\":\"YUI-2216\",\"valor\":2220.8}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nFUNILARIA RIO BONITO ME CNPJ 45.111.222/0001-33 Rua Rio Bonito 88 Nome do segurado: Leonardo Batista Cavalcanti Placa do veiculo: YUI-2216 Data: 30/04/2026 Orcamento: substituicao de parachoque traseiro e polimento Valor total: R$ 2.220,80"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Leonardo Batista Cavalcanti\",\"placa\":\"YUI-2216\",\"valor\":2220.8}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nOFICINA NOVA ALIANCA LTDA CNPJ 22.333.444/0001-55 Estrada Velha 1200 Segurado: Leonardo Batista Cavalcanti Placa do carro: YUI-2216 Data do orcamento: 30/04/2026 Descricao: reparo de amassado na porta dianteira Valor cobrado: R$ 2.220,80"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Leonardo Batista Cavalcanti\",\"placa\":\"YUI-2216\",\"valor\":2220.8}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCLINICA VITALIS SAUDE OCUPACIONAL CNPJ 33.222.111/0001-44 Av. Paulista 900 Paciente/Beneficiario: Leonardo Batista Cavalcanti Procedimento: exame de imagem (ressonancia) Data do atendimento: 30/04/2026 Valor cobrado: R$ 2.220,80"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Leonardo Batista Cavalcanti\",\"procedimento\":\"exame de imagem (ressonancia)\",\"valor\":2220.8}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nHOSPITAL SANTA CLARA CNPJ 66.555.444/0001-22 Rua das Acacias 310 Beneficiario: Leonardo Batista Cavalcanti Procedimento realizado: exame de imagem (ressonancia) Data: 30/04/2026 Valor total: R$ 2.220,80"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Leonardo Batista Cavalcanti\",\"procedimento\":\"exame de imagem (ressonancia)\",\"valor\":2220.8}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nATIVA ORCAMENTOS AUTOMOTIVOS OFICINA ESTRELA LTDA CNPJ 12.345.678/0001-90 Rua das Turbinas 450 Distrito Industrial Segurado: Priscila Regina Coutinho Placa do veiculo: WSX-6656 Data do sinistro: 03/06/2026 Descricao do servico: reparo de lataria e pintura no para-choque dianteiro Valor total do reparo: R$ 4.310,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Priscila Regina Coutinho\",\"placa\":\"WSX-6656\",\"valor\":4310}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nAUTO CENTER SILVA - FUNILARIA E PINTURA - CNPJ 98.765.432/0001-11 Av. dos Mecanicos 220 Cliente/Segurado: Priscila Regina Coutinho Placa: WSX-6656 Data do atendimento: 03/06/2026 Servico executado: troca de para-lama e revisao de suspensao dianteira Valor: R$ 4.310,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Priscila Regina Coutinho\",\"placa\":\"WSX-6656\",\"valor\":4310}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nFUNILARIA RIO BONITO ME CNPJ 45.111.222/0001-33 Rua Rio Bonito 88 Nome do segurado: Priscila Regina Coutinho Placa do veiculo: WSX-6656 Data: 03/06/2026 Orcamento: substituicao de parachoque traseiro e polimento Valor total: R$ 4.310,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Priscila Regina Coutinho\",\"placa\":\"WSX-6656\",\"valor\":4310}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nOFICINA NOVA ALIANCA LTDA CNPJ 22.333.444/0001-55 Estrada Velha 1200 Segurado: Priscila Regina Coutinho Placa do carro: WSX-6656 Data do orcamento: 03/06/2026 Descricao: reparo de amassado na porta dianteira Valor cobrado: R$ 4.310,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Priscila Regina Coutinho\",\"placa\":\"WSX-6656\",\"valor\":4310}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCLINICA VITALIS SAUDE OCUPACIONAL CNPJ 33.222.111/0001-44 Av. Paulista 900 Paciente/Beneficiario: Priscila Regina Coutinho Procedimento: exame de densitometria ossea Data do atendimento: 03/06/2026 Valor cobrado: R$ 4.310,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Priscila Regina Coutinho\",\"procedimento\":\"exame de densitometria ossea\",\"valor\":4310}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nHOSPITAL SANTA CLARA CNPJ 66.555.444/0001-22 Rua das Acacias 310 Beneficiario: Priscila Regina Coutinho Procedimento realizado: exame de densitometria ossea Data: 03/06/2026 Valor total: R$ 4.310,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Priscila Regina Coutinho\",\"procedimento\":\"exame de densitometria ossea\",\"valor\":4310}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nATIVA ORCAMENTOS AUTOMOTIVOS OFICINA ESTRELA LTDA CNPJ 12.345.678/0001-90 Rua das Turbinas 450 Distrito Industrial Segurado: Sabrina Rocha Pimentel Placa do veiculo: FDS-8842 Data do sinistro: 08/06/2026 Descricao do servico: reparo de lataria e pintura no para-choque dianteiro Valor total do reparo: R$ 890,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Sabrina Rocha Pimentel\",\"placa\":\"FDS-8842\",\"valor\":890}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nAUTO CENTER SILVA - FUNILARIA E PINTURA - CNPJ 98.765.432/0001-11 Av. dos Mecanicos 220 Cliente/Segurado: Sabrina Rocha Pimentel Placa: FDS-8842 Data do atendimento: 08/06/2026 Servico executado: troca de para-lama e revisao de suspensao dianteira Valor: R$ 890,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Sabrina Rocha Pimentel\",\"placa\":\"FDS-8842\",\"valor\":890}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nFUNILARIA RIO BONITO ME CNPJ 45.111.222/0001-33 Rua Rio Bonito 88 Nome do segurado: Sabrina Rocha Pimentel Placa do veiculo: FDS-8842 Data: 08/06/2026 Orcamento: substituicao de parachoque traseiro e polimento Valor total: R$ 890,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Sabrina Rocha Pimentel\",\"placa\":\"FDS-8842\",\"valor\":890}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nOFICINA NOVA ALIANCA LTDA CNPJ 22.333.444/0001-55 Estrada Velha 1200 Segurado: Sabrina Rocha Pimentel Placa do carro: FDS-8842 Data do orcamento: 08/06/2026 Descricao: reparo de amassado na porta dianteira Valor cobrado: R$ 890,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Sabrina Rocha Pimentel\",\"placa\":\"FDS-8842\",\"valor\":890}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCLINICA VITALIS SAUDE OCUPACIONAL CNPJ 33.222.111/0001-44 Av. Paulista 900 Paciente/Beneficiario: Sabrina Rocha Pimentel Procedimento: exame de tomografia Data do atendimento: 08/06/2026 Valor cobrado: R$ 890,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Sabrina Rocha Pimentel\",\"procedimento\":\"exame de tomografia\",\"valor\":890}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nHOSPITAL SANTA CLARA CNPJ 66.555.444/0001-22 Rua das Acacias 310 Beneficiario: Sabrina Rocha Pimentel Procedimento realizado: exame de tomografia Data: 08/06/2026 Valor total: R$ 890,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Sabrina Rocha Pimentel\",\"procedimento\":\"exame de tomografia\",\"valor\":890}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nATIVA ORCAMENTOS AUTOMOTIVOS OFICINA ESTRELA LTDA CNPJ 12.345.678/0001-90 Rua das Turbinas 450 Distrito Industrial Segurado: Mariana dos Santos Pena Placa do veiculo: QWE-1150 Data do sinistro: 24/06/2026 Descricao do servico: reparo de lataria e pintura no para-choque dianteiro Valor total do reparo: R$ 1.485,70"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Mariana dos Santos Pena\",\"placa\":\"QWE-1150\",\"valor\":1485.7}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nAUTO CENTER SILVA - FUNILARIA E PINTURA - CNPJ 98.765.432/0001-11 Av. dos Mecanicos 220 Cliente/Segurado: Mariana dos Santos Pena Placa: QWE-1150 Data do atendimento: 24/06/2026 Servico executado: troca de para-lama e revisao de suspensao dianteira Valor: R$ 1.485,70"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Mariana dos Santos Pena\",\"placa\":\"QWE-1150\",\"valor\":1485.7}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nFUNILARIA RIO BONITO ME CNPJ 45.111.222/0001-33 Rua Rio Bonito 88 Nome do segurado: Mariana dos Santos Pena Placa do veiculo: QWE-1150 Data: 24/06/2026 Orcamento: substituicao de parachoque traseiro e polimento Valor total: R$ 1.485,70"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Mariana dos Santos Pena\",\"placa\":\"QWE-1150\",\"valor\":1485.7}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nOFICINA NOVA ALIANCA LTDA CNPJ 22.333.444/0001-55 Estrada Velha 1200 Segurado: Mariana dos Santos Pena Placa do carro: QWE-1150 Data do orcamento: 24/06/2026 Descricao: reparo de amassado na porta dianteira Valor cobrado: R$ 1.485,70"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Mariana dos Santos Pena\",\"placa\":\"QWE-1150\",\"valor\":1485.7}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCLINICA VITALIS SAUDE OCUPACIONAL CNPJ 33.222.111/0001-44 Av. Paulista 900 Paciente/Beneficiario: Mariana dos Santos Pena Procedimento: sessao de pilates terapeutico Data do atendimento: 24/06/2026 Valor cobrado: R$ 1.485,70"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Mariana dos Santos Pena\",\"procedimento\":\"sessao de pilates terapeutico\",\"valor\":1485.7}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nHOSPITAL SANTA CLARA CNPJ 66.555.444/0001-22 Rua das Acacias 310 Beneficiario: Mariana dos Santos Pena Procedimento realizado: sessao de pilates terapeutico Data: 24/06/2026 Valor total: R$ 1.485,70"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Mariana dos Santos Pena\",\"procedimento\":\"sessao de pilates terapeutico\",\"valor\":1485.7}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCENTRO MEDICO BEM ESTAR CNPJ 77.888.999/0001-66 Rua da Saude 45 Nome do beneficiario: Mariana dos Santos Pena Procedimento: sessao de pilates terapeutico Data da consulta: 24/06/2026 Valor cobrado: R$ 1.485,70"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Mariana dos Santos Pena\",\"procedimento\":\"sessao de pilates terapeutico\",\"valor\":1485.7}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "file",
+          "path": "mlx-data/train.jsonl",
+          "pattern": "^(?:\\{[^\\n]*\\}\\n){157}$",
+          "values": [
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nATIVA ORCAMENTOS AUTOMOTIVOS OFICINA ESTRELA LTDA CNPJ 12.345.678/0001-90 Rua das Turbinas 450 Distrito Industrial Segurado: Vinicius Augusto Teixeira Placa do veiculo: YHN-3392 Data do sinistro: 20/02/2026 Descricao do servico: reparo de lataria e pintura no para-choque dianteiro Valor total do reparo: R$ 3.780,90"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Vinicius Augusto Teixeira\",\"placa\":\"YHN-3392\",\"valor\":3780.9}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nAUTO CENTER SILVA - FUNILARIA E PINTURA - CNPJ 98.765.432/0001-11 Av. dos Mecanicos 220 Cliente/Segurado: Vinicius Augusto Teixeira Placa: YHN-3392 Data do atendimento: 20/02/2026 Servico executado: troca de para-lama e revisao de suspensao dianteira Valor: R$ 3.780,90"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Vinicius Augusto Teixeira\",\"placa\":\"YHN-3392\",\"valor\":3780.9}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCLINICA SAO RAFAEL CNPJ 84.111.222/0001-37 Rua Sao Rafael 512 Paciente/Beneficiario: Rafael Lopes Assuncao Procedimento: exame de mamografia Data do atendimento: 12/03/2026 Valor total: R$ 5.640,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Rafael Lopes Assuncao\",\"procedimento\":\"exame de mamografia\",\"valor\":5640}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nINSTITUTO SAUDE PLENA LTDA CNPJ 91.333.555/0001-08 Av. da Saude Plena 78 Beneficiario: Rafael Lopes Assuncao Procedimento realizado: exame de mamografia Data: 12/03/2026 Valor cobrado: R$ 5.640,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Rafael Lopes Assuncao\",\"procedimento\":\"exame de mamografia\",\"valor\":5640}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "fills the test split, then validation, with the people who appear least, breaking ties by name, and leaves the examples without a person at the end of training",
+      "program": "local-lora-training-tool",
+      "files": {
+        "../modulo-03-fine-tuning-via-api/dataset-treinado.jsonl": "{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia segurado, placa e valor do orçamento de oficina abaixo.\\n\\nOFICINA ESTRELA Segurado: Gustavo Pires Placa do veiculo: GPI-1001 Valor total do reparo: R$ 1200,00\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"segurado\\\":\\\"Gustavo Pires\\\",\\\"placa\\\":\\\"GPI-1001\\\",\\\"valor\\\":1200}\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia beneficiário, procedimento e valor do recibo médico abaixo.\\n\\nCLINICA VITALIS Beneficiario: Bruno Costa Procedimento: consulta de clinica geral Valor cobrado: R$ 350,00\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"beneficiario\\\":\\\"Bruno Costa\\\",\\\"procedimento\\\":\\\"consulta de clinica geral\\\",\\\"valor\\\":350}\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia segurado, placa e valor do orçamento de oficina abaixo.\\n\\nAUTO CENTER SILVA Segurado: Diego Reis Placa do veiculo: DRE-2002 Valor total do reparo: R$ 980,50\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"segurado\\\":\\\"Diego Reis\\\",\\\"placa\\\":\\\"DRE-2002\\\",\\\"valor\\\":980.5}\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia beneficiário, procedimento e valor do recibo médico abaixo.\\n\\nCLINICA VITALIS Beneficiario: Gustavo Pires Procedimento: exame de sangue Valor cobrado: R$ 120,00\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"beneficiario\\\":\\\"Gustavo Pires\\\",\\\"procedimento\\\":\\\"exame de sangue\\\",\\\"valor\\\":120}\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia segurado, placa e valor do orçamento de oficina abaixo.\\n\\nDocumento ilegivel\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"nao foi possivel extrair\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia segurado, placa e valor do orçamento de oficina abaixo.\\n\\nFUNILARIA RIO BONITO Segurado: Fabio Nunes Placa do veiculo: FNU-3003 Valor total do reparo: R$ 2310,75\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"segurado\\\":\\\"Fabio Nunes\\\",\\\"placa\\\":\\\"FNU-3003\\\",\\\"valor\\\":2310.75}\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia segurado, placa e valor do orçamento de oficina abaixo.\\n\\nOFICINA NOVA ALIANCA Segurado: Elisa Moura Placa do veiculo: EMO-4004 Valor total do reparo: R$ 640,00\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"segurado\\\":\\\"Elisa Moura\\\",\\\"placa\\\":\\\"EMO-4004\\\",\\\"valor\\\":640}\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia segurado, placa e valor do orçamento de oficina abaixo.\\n\\nOFICINA ESTRELA Segurado: Carla Dias Placa do veiculo: CDI-5005 Valor total do reparo: R$ 1500,00\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"segurado\\\":\\\"Carla Dias\\\",\\\"placa\\\":\\\"CDI-5005\\\",\\\"valor\\\":1500}\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia segurado, placa e valor do orçamento de oficina abaixo.\\n\\nAUTO CENTER SILVA Segurado: Gustavo Pires Placa do veiculo: GPI-1001 Valor total do reparo: R$ 1200,00\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"segurado\\\":\\\"Gustavo Pires\\\",\\\"placa\\\":\\\"GPI-1001\\\",\\\"valor\\\":1200}\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia beneficiário, procedimento e valor do recibo médico abaixo.\\n\\nCLINICA VITALIS Beneficiario: Fabio Nunes Procedimento: raio-x de torax Valor cobrado: R$ 210,00\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"beneficiario\\\":\\\"Fabio Nunes\\\",\\\"procedimento\\\":\\\"raio-x de torax\\\",\\\"valor\\\":210}\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia segurado, placa e valor do orçamento de oficina abaixo.\\n\\nFUNILARIA RIO BONITO Segurado: Diego Reis Placa do veiculo: DRE-2002 Valor total do reparo: R$ 980,50\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"segurado\\\":\\\"Diego Reis\\\",\\\"placa\\\":\\\"DRE-2002\\\",\\\"valor\\\":980.5}\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia segurado, placa e valor do orçamento de oficina abaixo.\\n\\nOFICINA ESTRELA Segurado: Ana Lima Placa do veiculo: ALI-6006 Valor total do reparo: R$ 3780,90\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"segurado\\\":\\\"Ana Lima\\\",\\\"placa\\\":\\\"ALI-6006\\\",\\\"valor\\\":3780.9}\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia beneficiário, procedimento e valor do recibo médico abaixo.\\n\\nCLINICA VITALIS Beneficiario: Elisa Moura Procedimento: consulta de cardiologia Valor cobrado: R$ 450,00\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"beneficiario\\\":\\\"Elisa Moura\\\",\\\"procedimento\\\":\\\"consulta de cardiologia\\\",\\\"valor\\\":450}\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia segurado, placa e valor do orçamento de oficina abaixo.\\n\\nOrcamento sem segurado Placa: ZZZ-0000 Valor: R$ 100,00\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"placa\\\":\\\"ZZZ-0000\\\",\\\"valor\\\":100}\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia segurado, placa e valor do orçamento de oficina abaixo.\\n\\nFUNILARIA RIO BONITO Segurado: Gustavo Pires Placa do veiculo: GPI-1001 Valor total do reparo: R$ 1200,00\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"segurado\\\":\\\"Gustavo Pires\\\",\\\"placa\\\":\\\"GPI-1001\\\",\\\"valor\\\":1200}\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia beneficiário, procedimento e valor do recibo médico abaixo.\\n\\nCLINICA VITALIS Beneficiario: Carla Dias Procedimento: sessao de fisioterapia Valor cobrado: R$ 90,00\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"beneficiario\\\":\\\"Carla Dias\\\",\\\"procedimento\\\":\\\"sessao de fisioterapia\\\",\\\"valor\\\":90}\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia segurado, placa e valor do orçamento de oficina abaixo.\\n\\nOFICINA NOVA ALIANCA Segurado: Fabio Nunes Placa do veiculo: FNU-3003 Valor total do reparo: R$ 2310,75\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"segurado\\\":\\\"Fabio Nunes\\\",\\\"placa\\\":\\\"FNU-3003\\\",\\\"valor\\\":2310.75}\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia segurado, placa e valor do orçamento de oficina abaixo.\\n\\nAUTO CENTER SILVA Segurado: Elisa Moura Placa do veiculo: EMO-4004 Valor total do reparo: R$ 640,00\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"segurado\\\":\\\"Elisa Moura\\\",\\\"placa\\\":\\\"EMO-4004\\\",\\\"valor\\\":640}\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia beneficiário, procedimento e valor do recibo médico abaixo.\\n\\nCLINICA VITALIS Beneficiario: Gustavo Pires Procedimento: consulta de clinica geral Valor cobrado: R$ 350,00\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"beneficiario\\\":\\\"Gustavo Pires\\\",\\\"procedimento\\\":\\\"consulta de clinica geral\\\",\\\"valor\\\":350}\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia beneficiário, procedimento e valor do recibo médico abaixo.\\n\\nCLINICA VITALIS Beneficiario: Fabio Nunes Procedimento: exame de audiometria Valor cobrado: R$ 1870,00\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"beneficiario\\\":\\\"Fabio Nunes\\\",\\\"procedimento\\\":\\\"exame de audiometria\\\",\\\"valor\\\":1870}\"}]}]}\n",
+        "mlx-data/train.jsonl": null,
+        "mlx-data/valid.jsonl": null,
+        "mlx-data/test.jsonl": null
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes[^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n?)+Total: 16 teste\\(s\\), 16 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n\\n===== Preparando dados reais pro treino local \\(a partir do dataset do Módulo 3\\) =====\\n\\nDataset de origem: [^\\n]*/modulo-03-fine-tuning-via-api/dataset-treinado\\.jsonl\\nTotal de exemplos: 20\\n  train\\.jsonl: 16 exemplos\\n  valid\\.jsonl: 3 exemplos\\n  test\\.jsonl:  1 exemplos\\nEscrito em: [^\\n]*/mlx-data\\n"
+        },
+        {
+          "type": "file",
+          "path": "mlx-data/test.jsonl",
+          "pattern": "^(?:\\{[^\\n]*\\}\\n){1}$",
+          "values": [
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nOFICINA ESTRELA Segurado: Ana Lima Placa do veiculo: ALI-6006 Valor total do reparo: R$ 3780,90"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Ana Lima\",\"placa\":\"ALI-6006\",\"valor\":3780.9}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "file",
+          "path": "mlx-data/valid.jsonl",
+          "pattern": "^(?:\\{[^\\n]*\\}\\n){3}$",
+          "values": [
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCLINICA VITALIS Beneficiario: Bruno Costa Procedimento: consulta de clinica geral Valor cobrado: R$ 350,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Bruno Costa\",\"procedimento\":\"consulta de clinica geral\",\"valor\":350}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nOFICINA ESTRELA Segurado: Carla Dias Placa do veiculo: CDI-5005 Valor total do reparo: R$ 1500,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Carla Dias\",\"placa\":\"CDI-5005\",\"valor\":1500}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCLINICA VITALIS Beneficiario: Carla Dias Procedimento: sessao de fisioterapia Valor cobrado: R$ 90,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Carla Dias\",\"procedimento\":\"sessao de fisioterapia\",\"valor\":90}"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "file",
+          "path": "mlx-data/train.jsonl",
+          "pattern": "^(?:\\{[^\\n]*\\}\\n){16}$",
+          "values": [
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nAUTO CENTER SILVA Segurado: Diego Reis Placa do veiculo: DRE-2002 Valor total do reparo: R$ 980,50"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Diego Reis\",\"placa\":\"DRE-2002\",\"valor\":980.5}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nFUNILARIA RIO BONITO Segurado: Diego Reis Placa do veiculo: DRE-2002 Valor total do reparo: R$ 980,50"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Diego Reis\",\"placa\":\"DRE-2002\",\"valor\":980.5}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nOFICINA NOVA ALIANCA Segurado: Elisa Moura Placa do veiculo: EMO-4004 Valor total do reparo: R$ 640,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Elisa Moura\",\"placa\":\"EMO-4004\",\"valor\":640}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCLINICA VITALIS Beneficiario: Elisa Moura Procedimento: consulta de cardiologia Valor cobrado: R$ 450,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Elisa Moura\",\"procedimento\":\"consulta de cardiologia\",\"valor\":450}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nAUTO CENTER SILVA Segurado: Elisa Moura Placa do veiculo: EMO-4004 Valor total do reparo: R$ 640,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Elisa Moura\",\"placa\":\"EMO-4004\",\"valor\":640}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nFUNILARIA RIO BONITO Segurado: Fabio Nunes Placa do veiculo: FNU-3003 Valor total do reparo: R$ 2310,75"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Fabio Nunes\",\"placa\":\"FNU-3003\",\"valor\":2310.75}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCLINICA VITALIS Beneficiario: Fabio Nunes Procedimento: raio-x de torax Valor cobrado: R$ 210,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Fabio Nunes\",\"procedimento\":\"raio-x de torax\",\"valor\":210}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nOFICINA NOVA ALIANCA Segurado: Fabio Nunes Placa do veiculo: FNU-3003 Valor total do reparo: R$ 2310,75"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Fabio Nunes\",\"placa\":\"FNU-3003\",\"valor\":2310.75}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCLINICA VITALIS Beneficiario: Fabio Nunes Procedimento: exame de audiometria Valor cobrado: R$ 1870,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Fabio Nunes\",\"procedimento\":\"exame de audiometria\",\"valor\":1870}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nOFICINA ESTRELA Segurado: Gustavo Pires Placa do veiculo: GPI-1001 Valor total do reparo: R$ 1200,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Gustavo Pires\",\"placa\":\"GPI-1001\",\"valor\":1200}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCLINICA VITALIS Beneficiario: Gustavo Pires Procedimento: exame de sangue Valor cobrado: R$ 120,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Gustavo Pires\",\"procedimento\":\"exame de sangue\",\"valor\":120}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nAUTO CENTER SILVA Segurado: Gustavo Pires Placa do veiculo: GPI-1001 Valor total do reparo: R$ 1200,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Gustavo Pires\",\"placa\":\"GPI-1001\",\"valor\":1200}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nFUNILARIA RIO BONITO Segurado: Gustavo Pires Placa do veiculo: GPI-1001 Valor total do reparo: R$ 1200,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"segurado\":\"Gustavo Pires\",\"placa\":\"GPI-1001\",\"valor\":1200}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCLINICA VITALIS Beneficiario: Gustavo Pires Procedimento: consulta de clinica geral Valor cobrado: R$ 350,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"beneficiario\":\"Gustavo Pires\",\"procedimento\":\"consulta de clinica geral\",\"valor\":350}"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nDocumento ilegivel"
+                },
+                {
+                  "role": "assistant",
+                  "content": "nao foi possivel extrair"
+                }
+              ]
+            },
+            {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nOrcamento sem segurado Placa: ZZZ-0000 Valor: R$ 100,00"
+                },
+                {
+                  "role": "assistant",
+                  "content": "{\"placa\":\"ZZZ-0000\",\"valor\":100}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "stops before writing any split when an example of lesson 03 has no model turn",
+      "program": "local-lora-training-tool",
+      "files": {
+        "../modulo-03-fine-tuning-via-api/dataset-treinado.jsonl": "{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia segurado, placa e valor do orçamento de oficina abaixo.\\n\\nOFICINA ESTRELA Segurado: Gustavo Pires Placa do veiculo: GPI-1001 Valor total do reparo: R$ 1200,00\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"segurado\\\":\\\"Gustavo Pires\\\",\\\"placa\\\":\\\"GPI-1001\\\",\\\"valor\\\":1200}\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia segurado, placa e valor do orçamento de oficina abaixo.\\n\\nOFICINA ESTRELA Segurado: Ana Lima\"}]}]}\n{\"contents\":[{\"role\":\"user\",\"parts\":[{\"text\":\"Extraia beneficiário, procedimento e valor do recibo médico abaixo.\\n\\nCLINICA VITALIS Beneficiario: Bruno Costa Procedimento: consulta de clinica geral Valor cobrado: R$ 350,00\"}]},{\"role\":\"model\",\"parts\":[{\"text\":\"{\\\"beneficiario\\\":\\\"Bruno Costa\\\",\\\"procedimento\\\":\\\"consulta de clinica geral\\\",\\\"valor\\\":350}\"}]}]}\n",
+        "mlx-data/train.jsonl": null,
+        "mlx-data/valid.jsonl": null,
+        "mlx-data/test.jsonl": null
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes[^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n?)+Total: 16 teste\\(s\\), 16 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n\\n===== Preparando dados reais pro treino local \\(a partir do dataset do Módulo 3\\) =====\\n\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "exemplo incompleto: precisa de um turno \"user\" e um turno \"model\""
+        }
+      ]
+    },
+    {
+      "name": "checks its hyperparameters, the 157, 30, and 13 examples in mlx-data, and its rank and step budget without a GPU",
+      "program": "local-lora-training-hf-tool",
+      "args": ["--test"],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes[^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+)+\\nTotal: 9 teste\\(s\\), 9 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n$"
+        }
+      ]
+    },
+    {
+      "name": "fails the validation count check when mlx-data holds 2 validation examples instead of 30",
+      "program": "local-lora-training-hf-tool",
+      "args": ["--test"],
+      "files": {
+        "mlx-data/valid.jsonl": "{\"messages\": [{\"role\": \"user\", \"content\": \"Extraia segurado, placa e valor do orçamento de oficina abaixo.\\n\\nATIVA ORCAMENTOS AUTOMOTIVOS OFICINA ESTRELA LTDA CNPJ 12.345.678/0001-90 Rua das Turbinas 450 Distrito Industrial Segurado: Rodrigo Braga Quintanilha Placa do veiculo: ZXC-2298 Data do sinistro: 29/07/2026 Descricao do servico: reparo de lataria e pintura no para-choque dianteiro Valor total do reparo: R$ 1.660,40\"}, {\"role\": \"assistant\", \"content\": \"{\\\"segurado\\\":\\\"Rodrigo Braga Quintanilha\\\",\\\"placa\\\":\\\"ZXC-2298\\\",\\\"valor\\\":1660.4}\"}]}\n{\"messages\": [{\"role\": \"user\", \"content\": \"Extraia segurado, placa e valor do orçamento de oficina abaixo.\\n\\nAUTO CENTER SILVA - FUNILARIA E PINTURA - CNPJ 98.765.432/0001-11 Av. dos Mecanicos 220 Cliente/Segurado: Rodrigo Braga Quintanilha Placa: ZXC-2298 Data do atendimento: 29/07/2026 Servico executado: troca de para-lama e revisao de suspensao dianteira Valor: R$ 1.660,40\"}, {\"role\": \"assistant\", \"content\": \"{\\\"segurado\\\":\\\"Rodrigo Braga Quintanilha\\\",\\\"placa\\\":\\\"ZXC-2298\\\",\\\"valor\\\":1660.4}\"}]}\n"
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes[^\\n]*\\n(?:  \\[(?:OK|FALHOU)\\] [^\\n]*\\n)+)+\\nTotal: 9 teste\\(s\\), 8 passou\\(passaram\\), 1 falhou\\(falharam\\)\\.\\n$"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n  \\[FALHOU\\] [^\\n]*valid[^\\n]*\\n"
+        }
+      ]
+    },
+    {
+      "name": "replaces the four dataset checks with one failure that asks to run the data preparation first when mlx-data has no training split",
+      "program": "local-lora-training-hf-tool",
+      "args": ["--test"],
+      "files": {
+        "mlx-data/train.jsonl": null
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes[^\\n]*\\n(?:  \\[(?:OK|FALHOU)\\] [^\\n]*\\n)+)+\\nTotal: 6 teste\\(s\\), 5 passou\\(passaram\\), 1 falhou\\(falharam\\)\\.\\n$"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n  \\[FALHOU\\] [^\\n]*mlx-data/train\\.jsonl[^\\n]*local-lora-training-tool\\.js[^\\n]*\\n"
+        }
+      ]
+    },
+    {
+      "name": "validates its hyperparameters and loads the splits, then refuses to load the 4-bit model when no CUDA GPU is visible",
+      "program": "local-lora-training-hf-tool",
+      "env": {
+        "CUDA_VISIBLE_DEVICES": ""
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "output",
+          "pattern": "^Passo 1 - Validando hiperparâmetros antes de treinar\\.\\.\\.\\n  OK: rank=8, max_steps=20, learning_rate=0\\.0002\\n\\nPasso 2 - Carregando dataset real \\(200 exemplos, Amplitude Auto \\+ Saúde Empresarial\\)\\.\\.\\.\\n  157 treino, 30 validação, 13 teste\\n\\nPasso 3 - Carregando modelo em 4-bit \\(QLoRA\\) \\+ configurando LoRA\\.\\.\\.\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Nenhuma GPU CUDA detectada\\. Este script precisa de GPU NVIDIA real -- sem uma, usem o colab-lora-training-notebook\\.ipynb \\(mesma pasta\\), que roda de graça numa GPU do Google Colab\\.\\n$"
+        }
+      ]
+    },
+    {
+      "name": "runs mlx_lm generate on the medical receipt at index 8 of the test split without and with the rank 8 adapter, and finds the exact answer only with it",
+      "program": "adapter-comparison-tool",
+      "commands": {
+        "python3": [
+          {
+            "args": [
+              "-m",
+              "mlx_lm",
+              "generate",
+              "--model",
+              "mlx-community/gemma-4-e2b-it-bf16",
+              "--prompt",
+              "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCLINICA VITALIS SAUDE OCUPACIONAL CNPJ 33.222.111/0001-44 Av. Paulista 900 Paciente/Beneficiario: Felipe Alves Monteiro Procedimento: consulta de clinica geral Data do atendimento: 18/05/2026 Valor cobrado: R$ 3.450,00",
+              "--max-tokens",
+              "80"
+            ],
+            "stdout": "==========\n<|channel>thought\nHere's a thinking process to extract the requested information:\n\n1.  **Analyze the Request:** The user wants to extract three specific pieces of information (beneficiário, procedimento, and valor) from the provided medical receipt/information text.\n\n2.  **Analyze the Input Text:**\n    *   *CLINICA VITALIS SAUDE OCUPACIONAL\n==========\nPrompt: 119 tokens, 701.861 tokens-per-sec\nGeneration: 80 tokens, 56.596 tokens-per-sec\nPeak memory: 9.431 GB\n",
+            "stderr": "\rFetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]\rFetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 4777.66it/s]\n",
+            "code": 0,
+            "source": "recorded from mlx-lm 0.32.2 on Apple Silicon (MLX 0.32.4, Python 3.13) generating with mlx-community/gemma-4-e2b-it-bf16 and the adapters the lesson ships"
+          },
+          {
+            "args": [
+              "-m",
+              "mlx_lm",
+              "generate",
+              "--model",
+              "mlx-community/gemma-4-e2b-it-bf16",
+              "--prompt",
+              "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCLINICA VITALIS SAUDE OCUPACIONAL CNPJ 33.222.111/0001-44 Av. Paulista 900 Paciente/Beneficiario: Felipe Alves Monteiro Procedimento: consulta de clinica geral Data do atendimento: 18/05/2026 Valor cobrado: R$ 3.450,00",
+              "--max-tokens",
+              "80",
+              "--adapter-path",
+              "{cwd}/mlx-adapters"
+            ],
+            "stdout": "==========\n{\"beneficiario\":\"Felipe Alves Monteiro\",\"procedimento\":\"consulta de clinica geral\",\"valor\":3450}\n==========\nPrompt: 119 tokens, 636.217 tokens-per-sec\nGeneration: 28 tokens, 32.987 tokens-per-sec\nPeak memory: 9.431 GB\n",
+            "stderr": "\rFetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]\rFetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 4291.73it/s]\n",
+            "code": 0,
+            "source": "recorded from mlx-lm 0.32.2 on Apple Silicon (MLX 0.32.4, Python 3.13) generating with mlx-community/gemma-4-e2b-it-bf16 and the adapters the lesson ships"
+          },
+          {
+            "passthrough": true
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes[^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+)+\\n7/7 testes passaram\\.\\n\n===== Demo parte 3: mesmo exemplo real, com e sem o adaptador =====\n\nExemplo \\(índice 8, mlx-data/test\\.jsonl\\):\nExtraia beneficiário, procedimento e valor do recibo médico abaixo\\.  \\.\\.\\.\n\nRodando SEM adaptador \\(carrega o modelo, ~15-20s\\)\\.\\.\\.\nRodando COM adaptador \\(~15-20s\\)\\.\\.\\.\\n\\n--- SEM adaptador ---\\n80 tokens gerados -- bateu no limite, não terminou\\n<\\|channel>thought\nHere's a thinking process to extract the requested information:\n\n1\\.  \\*\\*Analyze the Request:\\*\\* The user wants to extract three specific pieces of information \\(beneficiário, procedimento, and valor\\) from \\.\\.\\.\\nBate com o gabarito\\? (?:false|False)\\n\\n--- COM adaptador ---\\n28 tokens gerados\\n\\{\"beneficiario\":\"Felipe Alves Monteiro\",\"procedimento\":\"consulta de clinica geral\",\"valor\":3450\\}\\nBate com o gabarito\\? (?:true|True)\\n\\nConclusão: (?:28 tokens de diferença de configuração \\(o adaptador de 26MB\\) são|a diferença de configuração \\(o adaptador de 26MB\\) é) a diferença entre um modelo que não chega a um JSON e um modelo que acerta o formato inteiro, campo a campo, num exemplo que nunca esteve no treino\\.\\n$"
+        }
+      ]
+    },
+    {
+      "name": "stops at the first generation with the message python3 printed when mlx-lm is not installed",
+      "program": "adapter-comparison-tool",
+      "commands": {
+        "python3": [
+          {
+            "args": [
+              "-m",
+              "mlx_lm",
+              "generate",
+              "--model",
+              "mlx-community/gemma-4-e2b-it-bf16",
+              "--prompt",
+              "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCLINICA VITALIS SAUDE OCUPACIONAL CNPJ 33.222.111/0001-44 Av. Paulista 900 Paciente/Beneficiario: Felipe Alves Monteiro Procedimento: consulta de clinica geral Data do atendimento: 18/05/2026 Valor cobrado: R$ 3.450,00",
+              "--max-tokens",
+              "80"
+            ],
+            "stderr": "/opt/homebrew/opt/python@3.15/bin/python3.15: No module named mlx_lm\n",
+            "code": 1,
+            "source": "recorded from Homebrew Python 3.15.2 without mlx-lm installed"
+          },
+          {
+            "args": [
+              "-m",
+              "mlx_lm",
+              "generate",
+              "--model",
+              "mlx-community/gemma-4-e2b-it-bf16",
+              "--prompt",
+              "Extraia beneficiário, procedimento e valor do recibo médico abaixo.\n\nCLINICA VITALIS SAUDE OCUPACIONAL CNPJ 33.222.111/0001-44 Av. Paulista 900 Paciente/Beneficiario: Felipe Alves Monteiro Procedimento: consulta de clinica geral Data do atendimento: 18/05/2026 Valor cobrado: R$ 3.450,00",
+              "--max-tokens",
+              "80",
+              "--adapter-path",
+              "{cwd}/mlx-adapters"
+            ],
+            "stderr": "/opt/homebrew/opt/python@3.15/bin/python3.15: No module named mlx_lm\n",
+            "code": 1,
+            "source": "recorded from Homebrew Python 3.15.2 without mlx-lm installed"
+          },
+          {
+            "passthrough": true
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes[^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+)+\\n7/7 testes passaram\\.\\n\n===== Demo parte 3: mesmo exemplo real, com e sem o adaptador =====\n\nExemplo \\(índice 8, mlx-data/test\\.jsonl\\):\nExtraia beneficiário, procedimento e valor do recibo médico abaixo\\.  \\.\\.\\.\n\nRodando SEM adaptador \\(carrega o modelo, ~15-20s\\)\\.\\.\\.\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "mlx_lm generate saiu com código 1:\\n/opt/homebrew/opt/python@3\\.15/bin/python3\\.15: No module named mlx_lm\n"
+        }
+      ]
+    },
+    {
+      "name": "runs mlx_lm generate on the Boa Vista workshop estimate without an adapter and with ranks 4, 8, and 16, and every adapter finds its total among the distractors while the base model never answers",
+      "program": "rank-adapter-comparison-tool",
+      "commands": {
+        "python3": [
+          {
+            "args": [
+              "-m",
+              "mlx_lm",
+              "generate",
+              "--model",
+              "mlx-community/gemma-4-e2b-it-bf16",
+              "--prompt",
+              "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nBOA VISTA REPAROS AUTOMOTIVOS CNPJ 21.098.765/0001-32 Rua dos Mecanicos 310 Segurado: Ricardo Alves Monteiro Placa do veiculo: JBR-9021 Data do sinistro: 09/06/2026 Valor das pecas: R$ 1.850,00 Valor da mao de obra: R$ 970,00 Valor total do orcamento: R$ 2.820,00",
+              "--max-tokens",
+              "80"
+            ],
+            "stdout": "==========\n<|channel>thought\nHere's a thinking process to extract the requested information:\n\n1.  **Analyze the Request:** The user wants to extract three specific pieces of information from the provided text (an auto repair quote/budget):\n    *   Segurado (Insured person)\n    *   Placa (License plate)\n    *   Valor do orçamento (Total value of the quote\n==========\nPrompt: 155 tokens, 818.760 tokens-per-sec\nGeneration: 80 tokens, 55.845 tokens-per-sec\nPeak memory: 9.468 GB\n",
+            "stderr": "\rFetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]\rFetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 4899.32it/s]\n",
+            "code": 0,
+            "source": "recorded from mlx-lm 0.32.2 on Apple Silicon (MLX 0.32.4, Python 3.13) generating with mlx-community/gemma-4-e2b-it-bf16 and the adapters the lesson ships"
+          },
+          {
+            "args": [
+              "-m",
+              "mlx_lm",
+              "generate",
+              "--model",
+              "mlx-community/gemma-4-e2b-it-bf16",
+              "--prompt",
+              "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nBOA VISTA REPAROS AUTOMOTIVOS CNPJ 21.098.765/0001-32 Rua dos Mecanicos 310 Segurado: Ricardo Alves Monteiro Placa do veiculo: JBR-9021 Data do sinistro: 09/06/2026 Valor das pecas: R$ 1.850,00 Valor da mao de obra: R$ 970,00 Valor total do orcamento: R$ 2.820,00",
+              "--max-tokens",
+              "80",
+              "--adapter-path",
+              "{cwd}/mlx-adapters-rank4"
+            ],
+            "stdout": "==========\n{\"segurado\":\"Ricardo Alves Monteiro\",\"placa\":\"JBR-9021\",\"valor\":2820}\n==========\nPrompt: 155 tokens, 671.619 tokens-per-sec\nGeneration: 27 tokens, 33.772 tokens-per-sec\nPeak memory: 9.468 GB\n",
+            "stderr": "\rFetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]\rFetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 4004.87it/s]\n",
+            "code": 0,
+            "source": "recorded from mlx-lm 0.32.2 on Apple Silicon (MLX 0.32.4, Python 3.13) generating with mlx-community/gemma-4-e2b-it-bf16 and the adapters the lesson ships"
+          },
+          {
+            "args": [
+              "-m",
+              "mlx_lm",
+              "generate",
+              "--model",
+              "mlx-community/gemma-4-e2b-it-bf16",
+              "--prompt",
+              "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nBOA VISTA REPAROS AUTOMOTIVOS CNPJ 21.098.765/0001-32 Rua dos Mecanicos 310 Segurado: Ricardo Alves Monteiro Placa do veiculo: JBR-9021 Data do sinistro: 09/06/2026 Valor das pecas: R$ 1.850,00 Valor da mao de obra: R$ 970,00 Valor total do orcamento: R$ 2.820,00",
+              "--max-tokens",
+              "80",
+              "--adapter-path",
+              "{cwd}/mlx-adapters"
+            ],
+            "stdout": "==========\n{\"segurado\":\"Ricardo Alves Monteiro\",\"placa\":\"JBR-9021\",\"valor\":2820}\n==========\nPrompt: 155 tokens, 726.291 tokens-per-sec\nGeneration: 27 tokens, 32.735 tokens-per-sec\nPeak memory: 9.468 GB\n",
+            "stderr": "\rFetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]\rFetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 4642.28it/s]\n",
+            "code": 0,
+            "source": "recorded from mlx-lm 0.32.2 on Apple Silicon (MLX 0.32.4, Python 3.13) generating with mlx-community/gemma-4-e2b-it-bf16 and the adapters the lesson ships"
+          },
+          {
+            "args": [
+              "-m",
+              "mlx_lm",
+              "generate",
+              "--model",
+              "mlx-community/gemma-4-e2b-it-bf16",
+              "--prompt",
+              "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nBOA VISTA REPAROS AUTOMOTIVOS CNPJ 21.098.765/0001-32 Rua dos Mecanicos 310 Segurado: Ricardo Alves Monteiro Placa do veiculo: JBR-9021 Data do sinistro: 09/06/2026 Valor das pecas: R$ 1.850,00 Valor da mao de obra: R$ 970,00 Valor total do orcamento: R$ 2.820,00",
+              "--max-tokens",
+              "80",
+              "--adapter-path",
+              "{cwd}/mlx-adapters-rank16"
+            ],
+            "stdout": "==========\n{\"segurado\":\"Ricardo Alves Monteiro\",\"placa\":\"JBR-9021\",\"valor\":2820}\n==========\nPrompt: 155 tokens, 476.212 tokens-per-sec\nGeneration: 27 tokens, 32.307 tokens-per-sec\nPeak memory: 9.468 GB\n",
+            "stderr": "\rFetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]\rFetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 4466.30it/s]\n",
+            "code": 0,
+            "source": "recorded from mlx-lm 0.32.2 on Apple Silicon (MLX 0.32.4, Python 3.13) generating with mlx-community/gemma-4-e2b-it-bf16 and the adapters the lesson ships"
+          },
+          {
+            "passthrough": true
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^== Testes[^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n3/3 testes passaram\\.\\n\\n===== Boa Vista Reparos Automotivos: sem adaptador vs\\. rank 4/8/16 =====\\n\\n--- sem adaptador ---\\n80 tokens, bate com o gabarito\\? (?:false|False)\\n--- rank 4 ---\\n27 tokens, bate com o gabarito\\? (?:true|True)\\n\\{\"segurado\": ?\"Ricardo Alves Monteiro\", ?\"placa\": ?\"JBR-9021\", ?\"valor\": ?2820\\}\\n--- rank 8 ---\\n27 tokens, bate com o gabarito\\? (?:true|True)\\n\\{\"segurado\": ?\"Ricardo Alves Monteiro\", ?\"placa\": ?\"JBR-9021\", ?\"valor\": ?2820\\}\\n--- rank 16 ---\\n27 tokens, bate com o gabarito\\? (?:true|True)\\n\\{\"segurado\": ?\"Ricardo Alves Monteiro\", ?\"placa\": ?\"JBR-9021\", ?\"valor\": ?2820\\}\\n$"
+        }
+      ]
+    },
+    {
+      "name": "reports the rank 16 failure with what mlx_lm printed and still compares the other three configurations",
+      "program": "rank-adapter-comparison-tool",
+      "commands": {
+        "python3": [
+          {
+            "args": [
+              "-m",
+              "mlx_lm",
+              "generate",
+              "--model",
+              "mlx-community/gemma-4-e2b-it-bf16",
+              "--prompt",
+              "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nBOA VISTA REPAROS AUTOMOTIVOS CNPJ 21.098.765/0001-32 Rua dos Mecanicos 310 Segurado: Ricardo Alves Monteiro Placa do veiculo: JBR-9021 Data do sinistro: 09/06/2026 Valor das pecas: R$ 1.850,00 Valor da mao de obra: R$ 970,00 Valor total do orcamento: R$ 2.820,00",
+              "--max-tokens",
+              "80"
+            ],
+            "stdout": "==========\n<|channel>thought\nHere's a thinking process to extract the requested information:\n\n1.  **Analyze the Request:** The user wants to extract three specific pieces of information from the provided text (an auto repair quote/budget):\n    *   Segurado (Insured person)\n    *   Placa (License plate)\n    *   Valor do orçamento (Total value of the quote\n==========\nPrompt: 155 tokens, 827.968 tokens-per-sec\nGeneration: 80 tokens, 55.153 tokens-per-sec\nPeak memory: 9.468 GB\n",
+            "stderr": "\rFetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]\rFetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 4466.30it/s]\n",
+            "code": 0,
+            "source": "recorded from mlx-lm 0.32.2 on Apple Silicon (MLX 0.32.4, Python 3.13) generating with mlx-community/gemma-4-e2b-it-bf16 and the adapters the lesson ships"
+          },
+          {
+            "args": [
+              "-m",
+              "mlx_lm",
+              "generate",
+              "--model",
+              "mlx-community/gemma-4-e2b-it-bf16",
+              "--prompt",
+              "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nBOA VISTA REPAROS AUTOMOTIVOS CNPJ 21.098.765/0001-32 Rua dos Mecanicos 310 Segurado: Ricardo Alves Monteiro Placa do veiculo: JBR-9021 Data do sinistro: 09/06/2026 Valor das pecas: R$ 1.850,00 Valor da mao de obra: R$ 970,00 Valor total do orcamento: R$ 2.820,00",
+              "--max-tokens",
+              "80",
+              "--adapter-path",
+              "{cwd}/mlx-adapters-rank4"
+            ],
+            "stdout": "==========\n{\"segurado\":\"Ricardo Alves Monteiro\",\"placa\":\"JBR-9021\",\"valor\":2820}\n==========\nPrompt: 155 tokens, 612.163 tokens-per-sec\nGeneration: 27 tokens, 33.301 tokens-per-sec\nPeak memory: 9.468 GB\n",
+            "stderr": "\rFetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]\rFetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 4506.61it/s]\n",
+            "code": 0,
+            "source": "recorded from mlx-lm 0.32.2 on Apple Silicon (MLX 0.32.4, Python 3.13) generating with mlx-community/gemma-4-e2b-it-bf16 and the adapters the lesson ships"
+          },
+          {
+            "args": [
+              "-m",
+              "mlx_lm",
+              "generate",
+              "--model",
+              "mlx-community/gemma-4-e2b-it-bf16",
+              "--prompt",
+              "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nBOA VISTA REPAROS AUTOMOTIVOS CNPJ 21.098.765/0001-32 Rua dos Mecanicos 310 Segurado: Ricardo Alves Monteiro Placa do veiculo: JBR-9021 Data do sinistro: 09/06/2026 Valor das pecas: R$ 1.850,00 Valor da mao de obra: R$ 970,00 Valor total do orcamento: R$ 2.820,00",
+              "--max-tokens",
+              "80",
+              "--adapter-path",
+              "{cwd}/mlx-adapters"
+            ],
+            "stdout": "==========\n{\"segurado\":\"Ricardo Alves Monteiro\",\"placa\":\"JBR-9021\",\"valor\":2820}\n==========\nPrompt: 155 tokens, 594.304 tokens-per-sec\nGeneration: 27 tokens, 33.294 tokens-per-sec\nPeak memory: 9.468 GB\n",
+            "stderr": "\rFetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]\rFetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 4384.14it/s]\n",
+            "code": 0,
+            "source": "recorded from mlx-lm 0.32.2 on Apple Silicon (MLX 0.32.4, Python 3.13) generating with mlx-community/gemma-4-e2b-it-bf16 and the adapters the lesson ships"
+          },
+          {
+            "args": [
+              "-m",
+              "mlx_lm",
+              "generate",
+              "--model",
+              "mlx-community/gemma-4-e2b-it-bf16",
+              "--prompt",
+              "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nBOA VISTA REPAROS AUTOMOTIVOS CNPJ 21.098.765/0001-32 Rua dos Mecanicos 310 Segurado: Ricardo Alves Monteiro Placa do veiculo: JBR-9021 Data do sinistro: 09/06/2026 Valor das pecas: R$ 1.850,00 Valor da mao de obra: R$ 970,00 Valor total do orcamento: R$ 2.820,00",
+              "--max-tokens",
+              "80",
+              "--adapter-path",
+              "{cwd}/mlx-adapters-rank16"
+            ],
+            "stdout": "",
+            "stderr": "\rFetching 10 files:   0%|          | 0/10 [00:00<?, ?it/s]\rFetching 10 files: 100%|██████████| 10/10 [00:00<00:00, 4111.66it/s]\nTraceback (most recent call last):\n  File \"<frozen runpy>\", line 203, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/Volumes/T5/stackfy-m09-l04/venv-mlx/lib/python3.13/site-packages/mlx_lm/__main__.py\", line 6, in <module>\n    cli.main()\n    ~~~~~~~~^^\n  File \"/Volumes/T5/stackfy-m09-l04/venv-mlx/lib/python3.13/site-packages/mlx_lm/cli.py\", line 40, in main\n    submodule.main()\n    ~~~~~~~~~~~~~~^^\n  File \"/Volumes/T5/stackfy-m09-l04/venv-mlx/lib/python3.13/site-packages/mlx_lm/generate.py\", line 2073, in main\n    model, tokenizer, config = load(\n                               ~~~~^\n        model_path,\n        ^^^^^^^^^^^\n    ...<4 lines>...\n        trust_remote_code=args.trust_remote_code,\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/Volumes/T5/stackfy-m09-l04/venv-mlx/lib/python3.13/site-packages/mlx_lm/utils.py\", line 697, in load\n    model = load_adapters(model, adapter_path)\n  File \"/Volumes/T5/stackfy-m09-l04/venv-mlx/lib/python3.13/site-packages/mlx_lm/utils.py\", line 610, in load_adapters\n    return _load_adapters(model, adapter_path)\n  File \"/Volumes/T5/stackfy-m09-l04/venv-mlx/lib/python3.13/site-packages/mlx_lm/tuner/utils.py\", line 136, in load_adapters\n    raise FileNotFoundError(f\"The adapter path does not exist: {adapter_path}\")\nFileNotFoundError: The adapter path does not exist: {cwd}/mlx-adapters-rank16\n",
+            "code": 1,
+            "source": "recorded from mlx-lm 0.32.2 on Apple Silicon (MLX 0.32.4, Python 3.13) generating with mlx-community/gemma-4-e2b-it-bf16 and the adapters the lesson ships"
+          },
+          {
+            "passthrough": true
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^== Testes[^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n3/3 testes passaram\\.\\n\\n===== Boa Vista Reparos Automotivos: sem adaptador vs\\. rank 4/8/16 =====\\n\\n--- sem adaptador ---\\n80 tokens, bate com o gabarito\\? (?:false|False)\\n--- rank 4 ---\\n27 tokens, bate com o gabarito\\? (?:true|True)\\n\\{\"segurado\": ?\"Ricardo Alves Monteiro\", ?\"placa\": ?\"JBR-9021\", ?\"valor\": ?2820\\}\\n--- rank 8 ---\\n27 tokens, bate com o gabarito\\? (?:true|True)\\n\\{\"segurado\": ?\"Ricardo Alves Monteiro\", ?\"placa\": ?\"JBR-9021\", ?\"valor\": ?2820\\}\\n--- rank 16 ---\\n\\[FALHOU\\] mlx_lm generate falhou \\(1\\):\\n[\\s\\S]*FileNotFoundError: The adapter path does not exist: [^\\n]*/mlx-adapters-rank16\\n\\n\\n1/4 configura(?:ção|cao)\\((?:ões|oes)\\) falharam ao rodar mlx_lm generate\\.\\n$"
+        }
+      ]
+    },
+    {
+      "name": "fails all four configurations when mlx-lm is not installed and stops with an error",
+      "program": "rank-adapter-comparison-tool",
+      "commands": {
+        "python3": [
+          {
+            "args": [
+              "-m",
+              "mlx_lm",
+              "generate",
+              "--model",
+              "mlx-community/gemma-4-e2b-it-bf16",
+              "--prompt",
+              "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nBOA VISTA REPAROS AUTOMOTIVOS CNPJ 21.098.765/0001-32 Rua dos Mecanicos 310 Segurado: Ricardo Alves Monteiro Placa do veiculo: JBR-9021 Data do sinistro: 09/06/2026 Valor das pecas: R$ 1.850,00 Valor da mao de obra: R$ 970,00 Valor total do orcamento: R$ 2.820,00",
+              "--max-tokens",
+              "80"
+            ],
+            "stderr": "/opt/homebrew/opt/python@3.15/bin/python3.15: No module named mlx_lm\n",
+            "code": 1,
+            "source": "recorded from Homebrew Python 3.15.2 without mlx-lm installed"
+          },
+          {
+            "args": [
+              "-m",
+              "mlx_lm",
+              "generate",
+              "--model",
+              "mlx-community/gemma-4-e2b-it-bf16",
+              "--prompt",
+              "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nBOA VISTA REPAROS AUTOMOTIVOS CNPJ 21.098.765/0001-32 Rua dos Mecanicos 310 Segurado: Ricardo Alves Monteiro Placa do veiculo: JBR-9021 Data do sinistro: 09/06/2026 Valor das pecas: R$ 1.850,00 Valor da mao de obra: R$ 970,00 Valor total do orcamento: R$ 2.820,00",
+              "--max-tokens",
+              "80",
+              "--adapter-path",
+              "{cwd}/mlx-adapters-rank4"
+            ],
+            "stderr": "/opt/homebrew/opt/python@3.15/bin/python3.15: No module named mlx_lm\n",
+            "code": 1,
+            "source": "recorded from Homebrew Python 3.15.2 without mlx-lm installed"
+          },
+          {
+            "args": [
+              "-m",
+              "mlx_lm",
+              "generate",
+              "--model",
+              "mlx-community/gemma-4-e2b-it-bf16",
+              "--prompt",
+              "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nBOA VISTA REPAROS AUTOMOTIVOS CNPJ 21.098.765/0001-32 Rua dos Mecanicos 310 Segurado: Ricardo Alves Monteiro Placa do veiculo: JBR-9021 Data do sinistro: 09/06/2026 Valor das pecas: R$ 1.850,00 Valor da mao de obra: R$ 970,00 Valor total do orcamento: R$ 2.820,00",
+              "--max-tokens",
+              "80",
+              "--adapter-path",
+              "{cwd}/mlx-adapters"
+            ],
+            "stderr": "/opt/homebrew/opt/python@3.15/bin/python3.15: No module named mlx_lm\n",
+            "code": 1,
+            "source": "recorded from Homebrew Python 3.15.2 without mlx-lm installed"
+          },
+          {
+            "args": [
+              "-m",
+              "mlx_lm",
+              "generate",
+              "--model",
+              "mlx-community/gemma-4-e2b-it-bf16",
+              "--prompt",
+              "Extraia segurado, placa e valor do orçamento de oficina abaixo.\n\nBOA VISTA REPAROS AUTOMOTIVOS CNPJ 21.098.765/0001-32 Rua dos Mecanicos 310 Segurado: Ricardo Alves Monteiro Placa do veiculo: JBR-9021 Data do sinistro: 09/06/2026 Valor das pecas: R$ 1.850,00 Valor da mao de obra: R$ 970,00 Valor total do orcamento: R$ 2.820,00",
+              "--max-tokens",
+              "80",
+              "--adapter-path",
+              "{cwd}/mlx-adapters-rank16"
+            ],
+            "stderr": "/opt/homebrew/opt/python@3.15/bin/python3.15: No module named mlx_lm\n",
+            "code": 1,
+            "source": "recorded from Homebrew Python 3.15.2 without mlx-lm installed"
+          },
+          {
+            "passthrough": true
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "pattern": "^== Testes[^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n3/3 testes passaram\\.\\n\\n===== Boa Vista Reparos Automotivos: sem adaptador vs\\. rank 4/8/16 =====\\n\\n--- sem adaptador ---\\n\\[FALHOU\\] mlx_lm generate falhou \\(1\\):\\n/opt/homebrew/opt/python@3\\.15/bin/python3\\.15: No module named mlx_lm\n\\n--- rank 4 ---\\n\\[FALHOU\\] mlx_lm generate falhou \\(1\\):\\n/opt/homebrew/opt/python@3\\.15/bin/python3\\.15: No module named mlx_lm\n\\n--- rank 8 ---\\n\\[FALHOU\\] mlx_lm generate falhou \\(1\\):\\n/opt/homebrew/opt/python@3\\.15/bin/python3\\.15: No module named mlx_lm\n\\n--- rank 16 ---\\n\\[FALHOU\\] mlx_lm generate falhou \\(1\\):\\n/opt/homebrew/opt/python@3\\.15/bin/python3\\.15: No module named mlx_lm\n\\n\\n4/4 configura(?:ção|cao)\\((?:ões|oes)\\) falharam ao rodar mlx_lm generate\\.\\n(?:Erro: Nenhuma configura(?:ção|cao) rodou com sucesso -- verifique o modelo/adaptadores locais\\.\\n)?$"
+        }
+      ]
+    }
+  ]
+}

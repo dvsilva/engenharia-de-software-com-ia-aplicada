@@ -1,0 +1,176 @@
+{
+  "module": "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-09-grafana-mcp/alumnus",
+  "concepts": ["telemetry", "model-context-protocol", "coding-agent-harness"],
+  "recorded": "Every case passed against the original in each of 4 runs, with the app the _alumnus cases describe, run as npm start from this folder, and the whole stack of alumnus/infra/docker-compose-infra.yaml, Grafana 12.1.4 with its plugins and mcp/grafana at the compose file's digest included. An override passed on standard input gives every container a name of its own, publishes PostgreSQL, the collector, Loki, Tempo, Prometheus, Grafana, and the MCP server on ports 48092 to 48098, keeps Blackbox Exporter unpublished, and leaves out the storage bind mounts, so every run starts without telemetry. It needs Docker Compose 2.24.4 or later. NODE_ENV is production, the app's default, so the app requests its own endpoint every two seconds and fails without outside traffic. The case talks to the MCP server over streamable HTTP as an assistant would: it initializes, carries the Mcp-Session-Id header into every later request, and calls query_prometheus, query_loki_logs, and tempo_traceql-search as the lesson's diagnosis prompt asks, repeating each call until its answer shows the app's telemetry, for up to two minutes. Tool calls answer as server-sent events, so their answers are checked by pattern.",
+  "prepare": {
+    "setup": ["cd _alumnus && npm ci --no-audit --no-fund"]
+  },
+  "originals": ["npm start"],
+  "env": {
+    "NODE_ENV": "production",
+    "APPNAME": "stackfy-alumnus-mcp",
+    "DATABASE_URL": "postgresql://alumnus:alumnus_dev_password@127.0.0.1:48092/alumnus_app_mcp",
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://127.0.0.1:48093",
+    "LOG_LEVEL": "info"
+  },
+  "services": {
+    "up": "docker compose -f infra/docker-compose-infra.yaml -f - -p stackfy-exemplo-09-grafana-mcp up -d --wait <<'EOF'\nservices:\n  alumnus-postgres:\n    container_name: stackfy-exemplo-09-grafana-mcp-postgres\n    ports: !override ['48092:5432']\n    volumes: !reset []\n  opentelemetry-collector:\n    container_name: stackfy-exemplo-09-grafana-mcp-collector\n    ports: !override ['48093:4317']\n  loki:\n    container_name: stackfy-exemplo-09-grafana-mcp-loki\n    ports: !override ['48094:3100']\n    volumes: !override ['./loki/loki-config.yaml:/etc/loki/local-config.yaml']\n  tempo:\n    container_name: stackfy-exemplo-09-grafana-mcp-tempo\n    ports: !override ['48095:3200']\n    volumes: !override ['./tempo/tempo-config.yaml:/etc/tempo.yaml']\n  tempo-healthcheck:\n    container_name: stackfy-exemplo-09-grafana-mcp-tempo-healthcheck\n  prometheus:\n    container_name: stackfy-exemplo-09-grafana-mcp-prometheus\n    ports: !override ['48096:9090']\n    volumes: !override ['./prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml', './prometheus/alerts.yaml:/etc/prometheus/alerts.yaml']\n  grafana:\n    container_name: stackfy-exemplo-09-grafana-mcp-grafana\n    ports: !override ['48097:3000']\n    volumes: !override ['./grafana/dashboards:/var/lib/grafana/dashboards', './grafana/provisioning:/etc/grafana/provisioning']\n  blackbox:\n    container_name: stackfy-exemplo-09-grafana-mcp-blackbox\n    ports: !reset []\n  mcp-grafana:\n    container_name: stackfy-exemplo-09-grafana-mcp-server\n    ports: !override ['48098:8000']\nEOF",
+    "down": "docker compose -f infra/docker-compose-infra.yaml -p stackfy-exemplo-09-grafana-mcp down -v",
+    "ready": [
+      { "port": 48092 },
+      { "port": 48093 },
+      { "port": 48094 },
+      { "port": 48095 },
+      { "port": 48096 },
+      { "port": 48097 },
+      { "port": 48098 }
+    ]
+  },
+  "cases": [
+    {
+      "name": "the app's own failing requests in production reach the Grafana MCP server, which finds the endpoint's 500s in Prometheus, its error logs in Loki, and its error traces in Tempo, as the lesson's diagnosis prompt asks",
+      "serve": {
+        "port": 48091,
+        "ready": "/health",
+        "requests": [
+          {
+            "method": "POST",
+            "port": 48098,
+            "path": "/mcp",
+            "headers": { "accept": "application/json, text/event-stream" },
+            "json": {
+              "jsonrpc": "2.0",
+              "id": 1,
+              "method": "initialize",
+              "params": {
+                "protocolVersion": "2025-03-26",
+                "capabilities": {},
+                "clientInfo": { "name": "stackfy", "version": "1.0.0" }
+              }
+            }
+          },
+          {
+            "method": "POST",
+            "port": 48098,
+            "path": "/mcp",
+            "headers": {
+              "accept": "application/json, text/event-stream",
+              "mcp-session-id": "{headers.0.mcp-session-id}"
+            },
+            "json": { "jsonrpc": "2.0", "method": "notifications/initialized" }
+          },
+          {
+            "method": "POST",
+            "port": 48098,
+            "path": "/mcp",
+            "headers": {
+              "accept": "application/json, text/event-stream",
+              "mcp-session-id": "{headers.0.mcp-session-id}"
+            },
+            "json": {
+              "jsonrpc": "2.0",
+              "id": 2,
+              "method": "tools/call",
+              "params": {
+                "name": "query_prometheus",
+                "arguments": {
+                  "datasourceUid": "prometheus",
+                  "queryType": "instant",
+                  "startTime": "now",
+                  "expr": "sum by (http_route) ({__name__=~\"http_server_(request_)?duration_(milliseconds|seconds)_count\", exported_job=\"stackfy-alumnus-mcp\", http_route=\"/students/db-leaky-connections\", http_status_code=\"500\"} or {__name__=~\"http_server_(request_)?duration_(milliseconds|seconds)_count\", exported_job=\"stackfy-alumnus-mcp\", http_route=\"/students/db-leaky-connections\", http_response_status_code=\"500\"})"
+                }
+              }
+            },
+            "until": {
+              "status": 200,
+              "pattern": "http_route\\W*:\\W*/students/db-leaky-connections",
+              "timeout": 120000
+            }
+          },
+          {
+            "method": "POST",
+            "port": 48098,
+            "path": "/mcp",
+            "headers": {
+              "accept": "application/json, text/event-stream",
+              "mcp-session-id": "{headers.0.mcp-session-id}"
+            },
+            "json": {
+              "jsonrpc": "2.0",
+              "id": 3,
+              "method": "tools/call",
+              "params": {
+                "name": "query_loki_logs",
+                "arguments": {
+                  "datasourceUid": "loki",
+                  "logql": "{service_name=\"stackfy-alumnus-mcp\"} |= \"Error processing request\""
+                }
+              }
+            },
+            "until": {
+              "status": 200,
+              "pattern": "line\\W*:\\W*Error processing request",
+              "timeout": 120000
+            }
+          },
+          {
+            "method": "POST",
+            "port": 48098,
+            "path": "/mcp",
+            "headers": {
+              "accept": "application/json, text/event-stream",
+              "mcp-session-id": "{headers.0.mcp-session-id}"
+            },
+            "json": {
+              "jsonrpc": "2.0",
+              "id": 4,
+              "method": "tools/call",
+              "params": {
+                "name": "tempo_traceql-search",
+                "arguments": {
+                  "datasourceUid": "tempo",
+                  "query": "{resource.service.name=\"stackfy-alumnus-mcp\" && span.http.route=\"/students/db-leaky-connections\" && status=error}"
+                }
+              }
+            },
+            "until": {
+              "status": 200,
+              "pattern": "stringValue\\W*:\\W*/students/db-leaky-connections",
+              "timeout": 120000
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": { "serverInfo": { "name": "mcp-grafana" } }
+                }
+              }
+            },
+            { "status": 202 },
+            {
+              "status": 200,
+              "pattern": "http_route\\W*:\\W*/students/db-leaky-connections"
+            },
+            {
+              "status": 200,
+              "pattern": "line\\W*:\\W*Error processing request"
+            },
+            {
+              "status": 200,
+              "pattern": "rootServiceName\\W*:\\W*stackfy-alumnus-mcp[\\s\\S]*stringValue\\W*:\\W*/students/db-leaky-connections"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

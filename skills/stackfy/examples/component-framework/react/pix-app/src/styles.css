@@ -1,0 +1,30 @@
+/* You can add global styles to this file, and also import other style files */
+
+:root {
+  /* Cores - Nomes Semânticos */
+  --color-primary: #0a192f;
+  --color-action: #64ffda;
+  --color-error: #ff6b6b;
+
+  /* Temas Padrão (Modo Claro) */
+  --color-background: #f8f9fa;
+  --color-text: #0a192f;
+
+  /* Tipografia */
+  --font-heading: 'Montserrat', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  /* Escala de Espaçamento (Múltiplos de 4px) */
+  --spacing-small: 8px;
+  --spacing-medium: 16px;
+  --spacing-large: 24px;
+  --spacing-extra-large: 32px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Temas para Modo Escuro */
+    --color-background: #112240;
+    --color-text: #f8f9fa;
+  }
+}

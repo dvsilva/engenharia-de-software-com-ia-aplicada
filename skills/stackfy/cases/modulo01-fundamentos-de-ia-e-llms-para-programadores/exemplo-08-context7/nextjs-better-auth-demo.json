@@ -1,0 +1,341 @@
+{
+  "module": "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-08-context7/nextjs-better-auth-demo",
+  "concepts": [
+    "user-authentication",
+    "component-framework",
+    "sql-database",
+    "browser-app",
+    "coding-agent-harness"
+  ],
+  "recorded": "Every case passed against the original in each of 6 runs, with Node.js 22.23.4, Next.js 16.1.1 on Turbopack, React 19.2.3, Better Auth 1.4.10, and better-sqlite3 12.5.0 after npm ci in a copy, driven in headless Google Chrome 152 and run as npx @better-auth/cli migrate --yes && npm run dev, the README's order, since next dev reads PORT. better-sqlite3 12.5.0 has no binary for Node.js 26 and does not compile against it, so the copy ran on Node.js 22 with its prebuilt binary. Each case starts without better-auth.sqlite, so the migration creates the four tables, and the database the folder ships is restored afterwards. The original always uses https://github.com and https://api.github.com, so the copy's @better-auth/core reads GITHUB_SERVER_URL and GITHUB_API_URL first and falls back to those addresses, a five-line change in its compiled GitHub provider, and only the sign-in case points both to the replay. No GitHub OAuth app was available, so every GitHub response is synthesized from GitHub's documented format, and the authorize page stands for a user who already approved the app, sending the browser back to redirect_uri with a fixed code and the state it received. The cases set BETTER_AUTH_URL to the address they open, as the README sets it to its own, because Next.js's dev server reports 127.0.0.1 to Better Auth as localhost, which would put the redirect_uri on another host than the state cookie. The state, the PKCE challenge, the ids, the tokens, and the dates vary, so the authorize address is checked by its parameters in any order and the session by its user and its lifetime in whole days. The login button arrives as server-rendered HTML before React hydrates it, so the sign-in waits for the page to be idle before clicking.",
+  "prepare": {
+    "path": [".stackfy/bin"],
+    "setup": [
+      "mkdir -p .stackfy && for node in \"$(command -v node)\" \"$(brew --prefix node@22 2>/dev/null)/bin/node\" \"${NVM_DIR:-$HOME/.nvm}\"/versions/node/v22.*/bin/node; do \"$node\" --version 2>/dev/null | grep -q '^v22\\.' && exec ln -s \"$(dirname \"$node\")\" .stackfy/bin; done; echo 'Node.js 22 is not installed' >&2; exit 1",
+      "npm ci --no-audit --no-fund",
+      "npm rebuild better-sqlite3 --ignore-scripts=false"
+    ],
+    "patches": [
+      {
+        "file": "node_modules/@better-auth/core/dist/social-providers/index.mjs",
+        "find": "\"https://github.com/login/oauth/",
+        "replace": "(process.env.GITHUB_SERVER_URL ?? \"https://github.com\") + \"/login/oauth/"
+      },
+      {
+        "file": "node_modules/@better-auth/core/dist/social-providers/index.mjs",
+        "find": "\"https://api.github.com/user",
+        "replace": "(process.env.GITHUB_API_URL ?? \"https://api.github.com\") + \"/user"
+      }
+    ]
+  },
+  "originals": ["npx @better-auth/cli migrate --yes && npm run dev"],
+  "env": {
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "BETTER_AUTH_URL": "http://127.0.0.1:47808",
+    "BETTER_AUTH_SECRET": "stackfy-secret-for-the-better-auth-demo",
+    "GITHUB_CLIENT_ID": "stackfy-client-id",
+    "GITHUB_CLIENT_SECRET": "stackfy-client-secret"
+  },
+  "cases": [
+    {
+      "name": "answers no session without a cookie, starts the GitHub sign-in at github.com, and rejects an unknown or missing provider",
+      "files": { "better-auth.sqlite": null },
+      "serve": {
+        "port": 47808,
+        "ready": "/api/auth/get-session",
+        "requests": [
+          { "method": "GET", "path": "/api/auth/get-session" },
+          {
+            "method": "GET",
+            "path": "/api/auth/get-session",
+            "headers": {
+              "cookie": "better-auth.session_token=forged.signature"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/auth/sign-in/social",
+            "json": { "provider": "github", "callbackURL": "/" }
+          },
+          {
+            "method": "POST",
+            "path": "/api/auth/sign-in/social",
+            "json": { "provider": "google", "callbackURL": "/" }
+          },
+          {
+            "method": "POST",
+            "path": "/api/auth/sign-in/social",
+            "json": { "callbackURL": "/" }
+          },
+          {
+            "method": "POST",
+            "path": "/api/auth/sign-out",
+            "json": {}
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            { "status": 200, "pattern": "^\\s*null\\s*$" },
+            { "status": 200, "pattern": "^\\s*null\\s*$" },
+            {
+              "status": 200,
+              "match": {
+                "redirect": true,
+                "url": {
+                  "$pattern": "^https://github\\.com/login/oauth/authorize\\?(?=(?:.*&)?response_type=code(?:&|$))(?=(?:.*&)?client_id=stackfy-client-id(?:&|$))(?=(?:.*&)?state=[^&]+(?:&|$))(?=(?:.*&)?scope=read%3Auser(?:\\+|%20)user%3Aemail(?:&|$))(?=(?:.*&)?redirect_uri=http%3A%2F%2F127\\.0\\.0\\.1%3A47808%2Fapi%2Fauth%2Fcallback%2Fgithub(?:&|$))"
+                }
+              }
+            },
+            {
+              "status": 404,
+              "match": {
+                "code": "PROVIDER_NOT_FOUND",
+                "message": "Provider not found"
+              }
+            },
+            { "status": 400, "match": { "code": "VALIDATION_ERROR" } },
+            { "status": 200, "match": { "success": true } }
+          ]
+        },
+        {
+          "type": "file",
+          "path": "better-auth.sqlite",
+          "pattern": "^SQLite format 3\\u0000"
+        }
+      ]
+    },
+    {
+      "name": "shows the signed-out home with a link to the login page, whose only action is the GitHub button",
+      "files": { "better-auth.sqlite": null },
+      "serve": {
+        "port": 47808,
+        "ready": "/api/auth/get-session",
+        "page": {
+          "steps": [
+            { "wait": "document.querySelector('a[href=\"/login\"]') !== null" },
+            {
+              "read": "[location.pathname, document.documentElement.lang, document.title]"
+            },
+            {
+              "read": "[...document.querySelectorAll('h1, p, a, button')].map((element) => [element.localName, element.textContent.replace(/\\s+/g, ' ').trim(), element.getAttribute('href')])"
+            },
+            { "click": "a[href=\"/login\"]" },
+            {
+              "wait": "location.pathname === '/login' && document.querySelector('button') !== null"
+            },
+            {
+              "read": "[location.pathname, document.documentElement.lang, document.title]"
+            },
+            {
+              "read": "[...document.querySelectorAll('h1, p, a, button')].map((element) => [element.localName, element.textContent.replace(/\\s+/g, ' ').trim(), element.getAttribute('href')])"
+            },
+            {
+              "read": "document.querySelector('button svg')?.getAttribute('viewBox') ?? null"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            ["/", "en", "Create Next App"],
+            [
+              ["h1", "Hello World", null],
+              ["p", "Você não está logado", null],
+              ["a", "Ir para Login", "/login"]
+            ],
+            ["/login", "en", "Create Next App"],
+            [
+              ["h1", "Bem-vindo", null],
+              ["p", "Faça login para continuar", null],
+              ["button", "Entrar com GitHub", null]
+            ],
+            "0 0 24 24"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "signs in through GitHub as the user's primary email, keeps the session in an HttpOnly cookie, and signs out",
+      "env": {
+        "GITHUB_SERVER_URL": "{replay}",
+        "GITHUB_API_URL": "{replay}"
+      },
+      "files": { "better-auth.sqlite": null },
+      "replay": [
+        {
+          "source": "synthesized: GitHub's authorize page for a signed-in user who already approved the app, which sends the browser back to redirect_uri with a code and the same state",
+          "synthesized": true,
+          "method": "GET",
+          "path": "/login/oauth/authorize",
+          "headers": { "content-type": "text/html; charset=utf-8" },
+          "text": "<!doctype html><title>Authorize application</title><script>const query = new URLSearchParams(location.search); location.replace(`${query.get('redirect_uri')}?code=stackfy-code&state=${encodeURIComponent(query.get('state'))}`);</script>"
+        },
+        {
+          "source": "synthesized from GitHub's documented access token response for a request that accepts JSON",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/login/oauth/access_token",
+          "matchHeaders": { "accept": "json" },
+          "json": {
+            "access_token": "gho_stackfy",
+            "scope": "read:user,user:email",
+            "token_type": "bearer"
+          }
+        },
+        {
+          "source": "synthesized from GitHub's documented default access token response, form encoded",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/login/oauth/access_token",
+          "headers": {
+            "content-type": "application/x-www-form-urlencoded; charset=utf-8"
+          },
+          "text": "access_token=gho_stackfy&scope=read%3Auser%2Cuser%3Aemail&token_type=bearer"
+        },
+        {
+          "source": "synthesized from GitHub's documented response for the authenticated user, whose email is private",
+          "synthesized": true,
+          "method": "GET",
+          "path": "/user",
+          "json": {
+            "login": "octocat",
+            "id": 1,
+            "node_id": "MDQ6VXNlcjE=",
+            "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/octocat",
+            "html_url": "https://github.com/octocat",
+            "type": "User",
+            "site_admin": false,
+            "name": "monalisa octocat",
+            "company": "GitHub",
+            "blog": "https://github.com/blog",
+            "location": "San Francisco",
+            "email": null,
+            "hireable": false,
+            "bio": "There once was...",
+            "public_repos": 2,
+            "public_gists": 1,
+            "followers": 20,
+            "following": 0,
+            "created_at": "2008-01-14T04:33:35Z",
+            "updated_at": "2008-01-14T04:33:35Z"
+          }
+        },
+        {
+          "source": "synthesized from GitHub's documented response listing the authenticated user's email addresses, with the primary one second",
+          "synthesized": true,
+          "method": "GET",
+          "path": "/user/emails",
+          "json": [
+            {
+              "email": "1+octocat@users.noreply.github.com",
+              "primary": false,
+              "verified": true,
+              "visibility": null
+            },
+            {
+              "email": "octocat@github.com",
+              "primary": true,
+              "verified": true,
+              "visibility": "private"
+            }
+          ]
+        },
+        {
+          "source": "synthesized: the browser may ask the authorize page's server for a favicon",
+          "synthesized": true,
+          "method": "GET",
+          "path": "/favicon.ico",
+          "status": 404,
+          "headers": { "content-type": "text/plain" },
+          "text": "",
+          "incidental": true
+        }
+      ],
+      "serve": {
+        "port": 47808,
+        "ready": "/api/auth/get-session",
+        "page": {
+          "path": "/login",
+          "steps": [
+            {
+              "wait": "new Promise((resolve) => requestIdleCallback(() => resolve(true)))"
+            },
+            { "click": "button" },
+            {
+              "wait": "location.origin === 'http://127.0.0.1:47808' && [...document.querySelectorAll('button')].some((button) => button.textContent.trim() === 'Sair')"
+            },
+            { "read": "location.href" },
+            {
+              "read": "[...document.querySelectorAll('h1, p, a, button')].map((element) => [element.localName, element.textContent.replace(/\\s+/g, ' ').trim(), element.getAttribute('href')])"
+            },
+            {
+              "read": "fetch('/api/auth/get-session').then((response) => response.json()).then(({ session, user }) => [user.name, user.email, user.emailVerified, user.image, session.userId === user.id, Math.round((Date.parse(session.expiresAt) - Date.parse(session.createdAt)) / 86400000)])"
+            },
+            { "read": "document.cookie" },
+            { "click": "button" },
+            { "wait": "document.querySelector('a[href=\"/login\"]') !== null" },
+            {
+              "read": "[...document.querySelectorAll('h1, p, a, button')].map((element) => [element.localName, element.textContent.replace(/\\s+/g, ' ').trim(), element.getAttribute('href')])"
+            },
+            {
+              "read": "fetch('/api/auth/get-session').then((response) => response.json())"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            "http://127.0.0.1:47808/",
+            [
+              ["h1", "Hello World", null],
+              ["p", "Logado como octocat@github.com", null],
+              ["button", "Sair", null]
+            ],
+            [
+              "monalisa octocat",
+              "octocat@github.com",
+              true,
+              "https://github.com/images/error/octocat_happy.gif",
+              true,
+              7
+            ],
+            "",
+            [
+              ["h1", "Hello World", null],
+              ["p", "Você não está logado", null],
+              ["a", "Ir para Login", "/login"]
+            ],
+            null
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            { "method": "GET", "path": "/login/oauth/authorize" },
+            {
+              "method": "POST",
+              "path": "/login/oauth/access_token",
+              "body": { "code": "stackfy-code" }
+            },
+            { "method": "GET", "path": "/user" },
+            { "method": "GET", "path": "/user/emails" }
+          ]
+        },
+        {
+          "type": "file",
+          "path": "better-auth.sqlite",
+          "pattern": "^SQLite format 3\\u0000"
+        }
+      ]
+    }
+  ]
+}

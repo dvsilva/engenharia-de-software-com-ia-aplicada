@@ -1,0 +1,2041 @@
+{
+  "module": "modulo07-ferramentas-de-ia-para-gestao-de-projetos/modulo-09-automacao-de-ecossistema",
+  "concepts": ["chat-bot", "llm-http-api"],
+  "recorded": "Every case passed against the original with Node.js 26.12.1, @slack/bolt 5.1.0, @anthropic-ai/sdk 1.3.0, axios 1.21.0, and dotenv 18.0.9, the versions npm installed for the template's npm install line, run as node ecosystem-bot-template.js. The bot runs in Socket Mode: each case answers apps.connections.open, called with the app token, with the replay's own socket, sends Slack's hello and one events_api envelope with a message event, waits for the bot to settle, and stops it. Bolt's auth.test and apps.connections.open calls are incidental. The template's Slack client always calls https://slack.com/api/, so the copy that produced these cases passes clientOptions with slackApiUrl from SLACK_API_URL to the App, a one-line change. The Anthropic SDK reads ANTHROPIC_BASE_URL and the template reads JIRA_BASE_URL, so both reach the replay unchanged. No Slack workspace, Jira site, or Anthropic key was available, so every Slack Web API response and Socket Mode message and every Jira Cloud REST response is synthesized from their documented formats. The Messages API answers are recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for claude-sonnet-4-6, with thinking disabled at the stand-in, because Claude answers with text alone when a request does not enable thinking, and each arrives inside a json code fence that the bot's pattern skips. The answer without JSON is synthesized. Requests are compared in order: the Slack messages by channel and text, the Messages API call by model, max_tokens, and its one user message, given as a string or as one text block, and the Jira issue by its fields and the Basic credentials of JIRA_EMAIL and JIRA_API_TOKEN. The reply that links a card accepts any address before /browse, and the reply after Jira rejects a card accepts any error text, which depends on the HTTP client. Standard error is not compared.",
+  "prepare": {
+    "setup": [
+      "npm install --no-audit --no-fund @slack/bolt@5.1.0 @anthropic-ai/sdk@1.3.0 axios@1.21.0 dotenv@18.0.9"
+    ],
+    "patches": [
+      {
+        "file": "ecosystem-bot-template.js",
+        "find": "socketMode: true,",
+        "replace": "socketMode: true, clientOptions: { slackApiUrl: process.env.SLACK_API_URL },"
+      }
+    ]
+  },
+  "originals": ["node ecosystem-bot-template.js"],
+  "env": {
+    "SLACK_BOT_TOKEN": "xoxb-synthesized",
+    "SLACK_APP_TOKEN": "xapp-synthesized",
+    "SLACK_API_URL": "{replay}/api/",
+    "ANTHROPIC_API_KEY": "sk-ant-synthesized",
+    "ANTHROPIC_BASE_URL": "{replay}",
+    "JIRA_BASE_URL": "{replay}",
+    "JIRA_EMAIL": "pm@routewise.example",
+    "JIRA_API_TOKEN": "jira-token-synthesized"
+  },
+  "cases": [
+    {
+      "name": "a message with the trigger becomes a bug card, confirmed in the channel and flagged as unassigned",
+      "socket": {
+        "timeout": 60000,
+        "settle": 1500,
+        "messages": [
+          {
+            "type": "hello",
+            "num_connections": 1,
+            "debug_info": {
+              "host": "applink-stackfy-7fc4fdbb64-4x5xq",
+              "build_number": 10,
+              "approximate_connection_time": 18060
+            },
+            "connection_info": {
+              "app_id": "A0RW00001"
+            }
+          },
+          {
+            "payload": {
+              "token": "verification-token-synthesized",
+              "team_id": "T0RW00001",
+              "api_app_id": "A0RW00001",
+              "event": {
+                "type": "message",
+                "user": "U0RWPM001",
+                "text": "card: Preciso investigar por que os alertas de velocidade não estão chegando para os motoristas na região de Uberlândia.",
+                "ts": "1767225600.001100",
+                "team": "T0RW00001",
+                "channel": "C0RW00001",
+                "event_ts": "1767225600.001100",
+                "channel_type": "channel"
+              },
+              "type": "event_callback",
+              "event_id": "Ev0RW00001",
+              "event_time": 1767225600,
+              "authorizations": [
+                {
+                  "enterprise_id": null,
+                  "team_id": "T0RW00001",
+                  "user_id": "U0RWBOT01",
+                  "is_bot": true,
+                  "is_enterprise_install": false
+                }
+              ],
+              "is_ext_shared_channel": false
+            },
+            "envelope_id": "5f0c6a2e-0b1d-4c7e-9a3f-000000000001",
+            "type": "events_api",
+            "accepts_response_payload": false,
+            "retry_attempt": 0,
+            "retry_reason": ""
+          }
+        ]
+      },
+      "replay": [
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/auth.test",
+          "incidental": true,
+          "json": {
+            "ok": true,
+            "url": "https://routewise.slack.com/",
+            "team": "RouteWise",
+            "user": "routewise-bot",
+            "team_id": "T0RW00001",
+            "user_id": "U0RWBOT01",
+            "bot_id": "B0RWBOT01",
+            "is_enterprise_install": false
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format, with the replay's own socket as the address",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/apps.connections.open",
+          "matchHeaders": {
+            "authorization": "^Bearer xapp-"
+          },
+          "incidental": true,
+          "json": {
+            "ok": true,
+            "url": "{replaySocket}/link/?ticket=stackfy-ticket&app_id=A0RW00001"
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00100"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for claude-sonnet-4-6, thinking disabled at the stand-in, in the Anthropic Messages API format",
+          "method": "POST",
+          "path": "/v1/messages",
+          "matchHeaders": {
+            "anthropic-version": ".+"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "msg_adaf37d693a8ce2b1d2fb724",
+            "type": "message",
+            "role": "assistant",
+            "model": "gemma4:12b-mlx",
+            "content": [
+              {
+                "type": "text",
+                "text": "```json\n{\n  \"type\": \"bug\",\n  \"title\": \"Falha nos alertas de velocidade na região de Uberlândia\",\n  \"priority\": \"high\",\n  \"component\": \"alertas-velocidade\",\n  \"assignee\": null,\n  \"requestedBy\": null,\n  \"dueDate\": null,\n  \"region\": \"Uberlândia\",\n  \"reason\": \"Os alertas de velocidade não estão sendo entregues aos motoristas em uma localização específica.\",\n  \"description\": \"Investigar por que os alertas de velocidade não estão chegando para os motoristas na região de Uberlândia. \\n\\nPontos de investigação prováveis:\\n1. Verificar se o log de alertas está sendo gerado para essa região específica.\\n2. Validar a conectividade e entrega de notificações para os dispositivos nessa localidade.\\n3. Verificar se há filtros de geofencing que possam estar bloqueando o envio.\",\n  \"actionRequired\": \"O responsável (assignee) não foi definido na mensagem original.\",\n  \"confidence\": \"high\"\n}\n```"
+              }
+            ],
+            "stop_reason": "end_turn",
+            "usage": {
+              "input_tokens": 684,
+              "cache_read_input_tokens": 2,
+              "output_tokens": 234
+            }
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00200"
+          }
+        },
+        {
+          "source": "synthesized from Jira Cloud's documented REST API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/rest/api/3/issue",
+          "matchHeaders": {
+            "authorization": "^Basic cG1Acm91dGV3aXNlLmV4YW1wbGU6amlyYS10b2tlbi1zeW50aGVzaXplZA==$"
+          },
+          "status": 201,
+          "json": {
+            "id": "10042",
+            "key": "ROUTEWISE-42",
+            "self": "{replay}/rest/api/3/issue/10042"
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00300"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "output",
+          "pattern": "(?:^|\\n)⚡ NL to Workflow bot ativo - aguardando mensagens com trigger: card:\nCanal de notificações: #routewise\nProjeto Jira: ROUTEWISE\n$"
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "envelope_id": "5f0c6a2e-0b1d-4c7e-9a3f-000000000001"
+              }
+            }
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": "⏳ Processando: _\"Preciso investigar por que os alertas de velocidade não estão chegando para os motoristas na região de Uberlândia.\"_"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/messages",
+              "body": {
+                "anyOf": [
+                  {
+                    "model": "claude-sonnet-4-6",
+                    "max_tokens": 1024,
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": "\nVocê é um parser de linguagem natural para criação de cards no Jira. Sua função é extrair informações estruturadas de mensagens de texto em linguagem natural - como mensagens de Slack, e-mails ou anotações rápidas - e retornar um objeto JSON pronto para criação de card.\n\n## CONTEXTO DO PROJETO\n- Projeto: ROUTEWISE - Sistema de Gestão de Frota\n- Componentes disponíveis: alertas-velocidade, score-comportamento, manutencao-preditiva, dashboard, integracao-gps, notificacoes\n- Membros do time: Carlos (Diretor de Operações), Priya (TI/Infra), Marcus (Consultor)\n\n## MENSAGEM PARA PROCESSAR\n\nPreciso investigar por que os alertas de velocidade não estão chegando para os motoristas na região de Uberlândia.\n\n## ANÁLISE SOLICITADA\n\nExtraia as seguintes informações da mensagem e retorne um JSON:\n\n{\n  \"type\": \"bug | task | story | spike\",\n  \"title\": \"título claro e específico - máximo 80 caracteres\",\n  \"priority\": \"highest | high | medium | low\",\n  \"component\": \"componente identificado ou null\",\n  \"assignee\": \"nome do responsável mencionado explicitamente ou null se não mencionado\",\n  \"requestedBy\": \"quem solicitou, se diferente do assignee, ou null\",\n  \"dueDate\": \"data extraída ou descrição textual (ex: 'fim do mês corrente') ou null\",\n  \"region\": \"região ou localização mencionada, se relevante, ou null\",\n  \"reason\": \"motivação ou contexto de negócio explicitado na mensagem, ou null\",\n  \"description\": \"descrição expandida para o campo de descrição do card - inclua contexto e pontos de investigação prováveis\",\n  \"actionRequired\": \"mensagem de alerta se houver informação crítica ausente (ex: assignee não definido, prazo ambíguo), ou null\",\n  \"confidence\": \"high | medium | low - seu grau de confiança na extração\"\n}\n\n## RESTRIÇÕES DE COMPORTAMENTO\n\n- Nunca invente assignee - se não foi explicitamente mencionado, retorne null e adicione uma mensagem em actionRequired indicando que o responsável precisa ser definido\n- Se a mensagem menciona múltiplas pessoas, identifique quem faz o quê - não atribua a quem estava falando, mas a quem se comprometeu\n- Datas implícitas (\"urgente\", \"antes da próxima reunião\", \"esta semana\") devem ser descritas em palavras, não convertidas para datas fixas - você não sabe qual é a data atual\n- Para mensagens com solicitação de voluntário (\"alguém pode pegar isso?\"), sinalize em actionRequired que o assignee precisa ser confirmado antes de mover o card para In Progress\n- Se a mensagem não é acionável (ex: \"precisamos pensar sobre isso\"), retorne type: \"spike\" e adicione em actionRequired: \"Mensagem é uma intenção, não uma ação - refine antes de criar o card\"\n- O campo confidence deve refletir sua certeza real - se a mensagem é ambígua, declare low\n"
+                      }
+                    ]
+                  },
+                  {
+                    "model": "claude-sonnet-4-6",
+                    "max_tokens": 1024,
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "\nVocê é um parser de linguagem natural para criação de cards no Jira. Sua função é extrair informações estruturadas de mensagens de texto em linguagem natural - como mensagens de Slack, e-mails ou anotações rápidas - e retornar um objeto JSON pronto para criação de card.\n\n## CONTEXTO DO PROJETO\n- Projeto: ROUTEWISE - Sistema de Gestão de Frota\n- Componentes disponíveis: alertas-velocidade, score-comportamento, manutencao-preditiva, dashboard, integracao-gps, notificacoes\n- Membros do time: Carlos (Diretor de Operações), Priya (TI/Infra), Marcus (Consultor)\n\n## MENSAGEM PARA PROCESSAR\n\nPreciso investigar por que os alertas de velocidade não estão chegando para os motoristas na região de Uberlândia.\n\n## ANÁLISE SOLICITADA\n\nExtraia as seguintes informações da mensagem e retorne um JSON:\n\n{\n  \"type\": \"bug | task | story | spike\",\n  \"title\": \"título claro e específico - máximo 80 caracteres\",\n  \"priority\": \"highest | high | medium | low\",\n  \"component\": \"componente identificado ou null\",\n  \"assignee\": \"nome do responsável mencionado explicitamente ou null se não mencionado\",\n  \"requestedBy\": \"quem solicitou, se diferente do assignee, ou null\",\n  \"dueDate\": \"data extraída ou descrição textual (ex: 'fim do mês corrente') ou null\",\n  \"region\": \"região ou localização mencionada, se relevante, ou null\",\n  \"reason\": \"motivação ou contexto de negócio explicitado na mensagem, ou null\",\n  \"description\": \"descrição expandida para o campo de descrição do card - inclua contexto e pontos de investigação prováveis\",\n  \"actionRequired\": \"mensagem de alerta se houver informação crítica ausente (ex: assignee não definido, prazo ambíguo), ou null\",\n  \"confidence\": \"high | medium | low - seu grau de confiança na extração\"\n}\n\n## RESTRIÇÕES DE COMPORTAMENTO\n\n- Nunca invente assignee - se não foi explicitamente mencionado, retorne null e adicione uma mensagem em actionRequired indicando que o responsável precisa ser definido\n- Se a mensagem menciona múltiplas pessoas, identifique quem faz o quê - não atribua a quem estava falando, mas a quem se comprometeu\n- Datas implícitas (\"urgente\", \"antes da próxima reunião\", \"esta semana\") devem ser descritas em palavras, não convertidas para datas fixas - você não sabe qual é a data atual\n- Para mensagens com solicitação de voluntário (\"alguém pode pegar isso?\"), sinalize em actionRequired que o assignee precisa ser confirmado antes de mover o card para In Progress\n- Se a mensagem não é acionável (ex: \"precisamos pensar sobre isso\"), retorne type: \"spike\" e adicione em actionRequired: \"Mensagem é uma intenção, não uma ação - refine antes de criar o card\"\n- O campo confidence deve refletir sua certeza real - se a mensagem é ambígua, declare low\n"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": "📋 *Card identificado - confirme antes de criar:*\n\n*Tipo:* bug\n*Título:* Falha nos alertas de velocidade na região de Uberlândia\n*Prioridade:* high\n*Responsável:* [A DEFINIR]\n*Prazo:* [A DEFINIR]\n*Componente:* alertas-velocidade\n\n⚠️ *Atenção:* O responsável (assignee) não foi definido na mensagem original.\n\n_Confiança do parser: high_"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/rest/api/3/issue",
+              "body": {
+                "fields": {
+                  "project": {
+                    "key": "ROUTEWISE"
+                  },
+                  "summary": "Falha nos alertas de velocidade na região de Uberlândia",
+                  "description": {
+                    "type": "doc",
+                    "version": 1,
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Investigar por que os alertas de velocidade não estão chegando para os motoristas na região de Uberlândia. \n\nPontos de investigação prováveis:\n1. Verificar se o log de alertas está sendo gerado para essa região específica.\n2. Validar a conectividade e entrega de notificações para os dispositivos nessa localidade.\n3. Verificar se há filtros de geofencing que possam estar bloqueando o envio.\n\n**Motivação:** Os alertas de velocidade não estão sendo entregues aos motoristas em uma localização específica.\n\n⚠️ **Ação necessária:** O responsável (assignee) não foi definido na mensagem original.\n\n---\n_Card criado automaticamente via NL to Workflow a partir de mensagem de U0RWPM001._\n_Mensagem original: \"Preciso investigar por que os alertas de velocidade não estão chegando para os motoristas na região de Uberlândia.\"_"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "issuetype": {
+                    "name": "Bug"
+                  },
+                  "priority": {
+                    "name": "High"
+                  }
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": {
+                  "$pattern": "^✅ Card criado: \\*<http://[^/|>]+/browse/ROUTEWISE-42\\|ROUTEWISE-42>\\*\n\\*Falha nos alertas de velocidade na região de Uberlândia\\*\nPrioridade: high \\| Tipo: bug\n\n⚠️ \\*Assignee não atribuído\\* - defina o responsável no Jira antes de mover para In Progress\\.\n\n💬 \\*Ação necessária:\\* O responsável \\(assignee\\) não foi definido na mensagem original\\.$"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a team member named in the message is assigned by their Jira account, under the project key the environment sets",
+      "env": {
+        "JIRA_PROJECT_KEY": "FROTA"
+      },
+      "socket": {
+        "timeout": 60000,
+        "settle": 1500,
+        "messages": [
+          {
+            "type": "hello",
+            "num_connections": 1,
+            "debug_info": {
+              "host": "applink-stackfy-7fc4fdbb64-4x5xq",
+              "build_number": 10,
+              "approximate_connection_time": 18060
+            },
+            "connection_info": {
+              "app_id": "A0RW00001"
+            }
+          },
+          {
+            "payload": {
+              "token": "verification-token-synthesized",
+              "team_id": "T0RW00001",
+              "api_app_id": "A0RW00001",
+              "event": {
+                "type": "message",
+                "user": "U0RWPM001",
+                "text": "card: Priya, você consegue revisar a integração GPS dos rastreadores Teltonika até sexta? O Carlos pediu porque os dados de posição estão chegando com atraso no dashboard.",
+                "ts": "1767225600.002100",
+                "team": "T0RW00001",
+                "channel": "C0RW00001",
+                "event_ts": "1767225600.002100",
+                "channel_type": "channel"
+              },
+              "type": "event_callback",
+              "event_id": "Ev0RW00002",
+              "event_time": 1767225600,
+              "authorizations": [
+                {
+                  "enterprise_id": null,
+                  "team_id": "T0RW00001",
+                  "user_id": "U0RWBOT01",
+                  "is_bot": true,
+                  "is_enterprise_install": false
+                }
+              ],
+              "is_ext_shared_channel": false
+            },
+            "envelope_id": "5f0c6a2e-0b1d-4c7e-9a3f-000000000002",
+            "type": "events_api",
+            "accepts_response_payload": false,
+            "retry_attempt": 0,
+            "retry_reason": ""
+          }
+        ]
+      },
+      "replay": [
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/auth.test",
+          "incidental": true,
+          "json": {
+            "ok": true,
+            "url": "https://routewise.slack.com/",
+            "team": "RouteWise",
+            "user": "routewise-bot",
+            "team_id": "T0RW00001",
+            "user_id": "U0RWBOT01",
+            "bot_id": "B0RWBOT01",
+            "is_enterprise_install": false
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format, with the replay's own socket as the address",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/apps.connections.open",
+          "matchHeaders": {
+            "authorization": "^Bearer xapp-"
+          },
+          "incidental": true,
+          "json": {
+            "ok": true,
+            "url": "{replaySocket}/link/?ticket=stackfy-ticket&app_id=A0RW00001"
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00100"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for claude-sonnet-4-6, thinking disabled at the stand-in, in the Anthropic Messages API format",
+          "method": "POST",
+          "path": "/v1/messages",
+          "matchHeaders": {
+            "anthropic-version": ".+"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "msg_2310288f94b5cb5df0b03c6a",
+            "type": "message",
+            "role": "assistant",
+            "model": "gemma4:12b-mlx",
+            "content": [
+              {
+                "type": "text",
+                "text": "```json\n{\n  \"type\": \"bug\",\n  \"title\": \"Atraso nos dados de posição da integração GPS (Teltonika)\",\n  \"priority\": \"high\",\n  \"component\": \"integracao-gps\",\n  \"assignee\": \"Priya\",\n  \"requestedBy\": \"Carlos\",\n  \"dueDate\": \"até sexta-feira\",\n  \"region\": null,\n  \"reason\": \"Os dados de posição dos rastreadores Teltonika estão chegando com atraso no dashboard, conforme reportado pelo Diretor de Operações.\",\n  \"description\": \"Realizar revisão na integração dos rastreadores Teltonika para identificar por que os dados de posição estão apresentando atraso ao serem refletidos no dashboard. \\n\\nPontos de investigação sugeridos:\\n1. Verificação da latência na comunicação entre o dispositivo Teltonika e o backend.\\n2. Validação do processamento de dados no fluxo de integração GPS.\\n3. Verificação se o problema ocorre em todos os dispositivos ou apenas em casos específicos.\\n4. Verificação da atualização de estado no Dashboard.\",\n  \"actionRequired\": null,\n  \"confidence\": \"high\"\n}\n```"
+              }
+            ],
+            "stop_reason": "end_turn",
+            "usage": {
+              "input_tokens": 623,
+              "cache_read_input_tokens": 74,
+              "output_tokens": 260
+            }
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00200"
+          }
+        },
+        {
+          "source": "synthesized from Jira Cloud's documented REST API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/rest/api/3/issue",
+          "matchHeaders": {
+            "authorization": "^Basic cG1Acm91dGV3aXNlLmV4YW1wbGU6amlyYS10b2tlbi1zeW50aGVzaXplZA==$"
+          },
+          "status": 201,
+          "json": {
+            "id": "10017",
+            "key": "FROTA-17",
+            "self": "{replay}/rest/api/3/issue/10017"
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00300"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "output",
+          "pattern": "(?:^|\\n)⚡ NL to Workflow bot ativo - aguardando mensagens com trigger: card:\nCanal de notificações: #routewise\nProjeto Jira: FROTA\n$"
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "envelope_id": "5f0c6a2e-0b1d-4c7e-9a3f-000000000002"
+              }
+            }
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": "⏳ Processando: _\"Priya, você consegue revisar a integração GPS dos rastreadores Teltonika até sexta? O Carlos pediu porque os dados de posição estão chegando com atraso no dashboard.\"_"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/messages",
+              "body": {
+                "anyOf": [
+                  {
+                    "model": "claude-sonnet-4-6",
+                    "max_tokens": 1024,
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": "\nVocê é um parser de linguagem natural para criação de cards no Jira. Sua função é extrair informações estruturadas de mensagens de texto em linguagem natural - como mensagens de Slack, e-mails ou anotações rápidas - e retornar um objeto JSON pronto para criação de card.\n\n## CONTEXTO DO PROJETO\n- Projeto: FROTA - Sistema de Gestão de Frota\n- Componentes disponíveis: alertas-velocidade, score-comportamento, manutencao-preditiva, dashboard, integracao-gps, notificacoes\n- Membros do time: Carlos (Diretor de Operações), Priya (TI/Infra), Marcus (Consultor)\n\n## MENSAGEM PARA PROCESSAR\n\nPriya, você consegue revisar a integração GPS dos rastreadores Teltonika até sexta? O Carlos pediu porque os dados de posição estão chegando com atraso no dashboard.\n\n## ANÁLISE SOLICITADA\n\nExtraia as seguintes informações da mensagem e retorne um JSON:\n\n{\n  \"type\": \"bug | task | story | spike\",\n  \"title\": \"título claro e específico - máximo 80 caracteres\",\n  \"priority\": \"highest | high | medium | low\",\n  \"component\": \"componente identificado ou null\",\n  \"assignee\": \"nome do responsável mencionado explicitamente ou null se não mencionado\",\n  \"requestedBy\": \"quem solicitou, se diferente do assignee, ou null\",\n  \"dueDate\": \"data extraída ou descrição textual (ex: 'fim do mês corrente') ou null\",\n  \"region\": \"região ou localização mencionada, se relevante, ou null\",\n  \"reason\": \"motivação ou contexto de negócio explicitado na mensagem, ou null\",\n  \"description\": \"descrição expandida para o campo de descrição do card - inclua contexto e pontos de investigação prováveis\",\n  \"actionRequired\": \"mensagem de alerta se houver informação crítica ausente (ex: assignee não definido, prazo ambíguo), ou null\",\n  \"confidence\": \"high | medium | low - seu grau de confiança na extração\"\n}\n\n## RESTRIÇÕES DE COMPORTAMENTO\n\n- Nunca invente assignee - se não foi explicitamente mencionado, retorne null e adicione uma mensagem em actionRequired indicando que o responsável precisa ser definido\n- Se a mensagem menciona múltiplas pessoas, identifique quem faz o quê - não atribua a quem estava falando, mas a quem se comprometeu\n- Datas implícitas (\"urgente\", \"antes da próxima reunião\", \"esta semana\") devem ser descritas em palavras, não convertidas para datas fixas - você não sabe qual é a data atual\n- Para mensagens com solicitação de voluntário (\"alguém pode pegar isso?\"), sinalize em actionRequired que o assignee precisa ser confirmado antes de mover o card para In Progress\n- Se a mensagem não é acionável (ex: \"precisamos pensar sobre isso\"), retorne type: \"spike\" e adicione em actionRequired: \"Mensagem é uma intenção, não uma ação - refine antes de criar o card\"\n- O campo confidence deve refletir sua certeza real - se a mensagem é ambígua, declare low\n"
+                      }
+                    ]
+                  },
+                  {
+                    "model": "claude-sonnet-4-6",
+                    "max_tokens": 1024,
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "\nVocê é um parser de linguagem natural para criação de cards no Jira. Sua função é extrair informações estruturadas de mensagens de texto em linguagem natural - como mensagens de Slack, e-mails ou anotações rápidas - e retornar um objeto JSON pronto para criação de card.\n\n## CONTEXTO DO PROJETO\n- Projeto: FROTA - Sistema de Gestão de Frota\n- Componentes disponíveis: alertas-velocidade, score-comportamento, manutencao-preditiva, dashboard, integracao-gps, notificacoes\n- Membros do time: Carlos (Diretor de Operações), Priya (TI/Infra), Marcus (Consultor)\n\n## MENSAGEM PARA PROCESSAR\n\nPriya, você consegue revisar a integração GPS dos rastreadores Teltonika até sexta? O Carlos pediu porque os dados de posição estão chegando com atraso no dashboard.\n\n## ANÁLISE SOLICITADA\n\nExtraia as seguintes informações da mensagem e retorne um JSON:\n\n{\n  \"type\": \"bug | task | story | spike\",\n  \"title\": \"título claro e específico - máximo 80 caracteres\",\n  \"priority\": \"highest | high | medium | low\",\n  \"component\": \"componente identificado ou null\",\n  \"assignee\": \"nome do responsável mencionado explicitamente ou null se não mencionado\",\n  \"requestedBy\": \"quem solicitou, se diferente do assignee, ou null\",\n  \"dueDate\": \"data extraída ou descrição textual (ex: 'fim do mês corrente') ou null\",\n  \"region\": \"região ou localização mencionada, se relevante, ou null\",\n  \"reason\": \"motivação ou contexto de negócio explicitado na mensagem, ou null\",\n  \"description\": \"descrição expandida para o campo de descrição do card - inclua contexto e pontos de investigação prováveis\",\n  \"actionRequired\": \"mensagem de alerta se houver informação crítica ausente (ex: assignee não definido, prazo ambíguo), ou null\",\n  \"confidence\": \"high | medium | low - seu grau de confiança na extração\"\n}\n\n## RESTRIÇÕES DE COMPORTAMENTO\n\n- Nunca invente assignee - se não foi explicitamente mencionado, retorne null e adicione uma mensagem em actionRequired indicando que o responsável precisa ser definido\n- Se a mensagem menciona múltiplas pessoas, identifique quem faz o quê - não atribua a quem estava falando, mas a quem se comprometeu\n- Datas implícitas (\"urgente\", \"antes da próxima reunião\", \"esta semana\") devem ser descritas em palavras, não convertidas para datas fixas - você não sabe qual é a data atual\n- Para mensagens com solicitação de voluntário (\"alguém pode pegar isso?\"), sinalize em actionRequired que o assignee precisa ser confirmado antes de mover o card para In Progress\n- Se a mensagem não é acionável (ex: \"precisamos pensar sobre isso\"), retorne type: \"spike\" e adicione em actionRequired: \"Mensagem é uma intenção, não uma ação - refine antes de criar o card\"\n- O campo confidence deve refletir sua certeza real - se a mensagem é ambígua, declare low\n"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": "📋 *Card identificado - confirme antes de criar:*\n\n*Tipo:* bug\n*Título:* Atraso nos dados de posição da integração GPS (Teltonika)\n*Prioridade:* high\n*Responsável:* Priya\n*Prazo:* até sexta-feira\n*Componente:* integracao-gps\n\n_Confiança do parser: high_"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/rest/api/3/issue",
+              "body": {
+                "fields": {
+                  "project": {
+                    "key": "FROTA"
+                  },
+                  "summary": "Atraso nos dados de posição da integração GPS (Teltonika)",
+                  "description": {
+                    "type": "doc",
+                    "version": 1,
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Realizar revisão na integração dos rastreadores Teltonika para identificar por que os dados de posição estão apresentando atraso ao serem refletidos no dashboard. \n\nPontos de investigação sugeridos:\n1. Verificação da latência na comunicação entre o dispositivo Teltonika e o backend.\n2. Validação do processamento de dados no fluxo de integração GPS.\n3. Verificação se o problema ocorre em todos os dispositivos ou apenas em casos específicos.\n4. Verificação da atualização de estado no Dashboard.\n\n**Motivação:** Os dados de posição dos rastreadores Teltonika estão chegando com atraso no dashboard, conforme reportado pelo Diretor de Operações.\n\n---\n_Card criado automaticamente via NL to Workflow a partir de mensagem de U0RWPM001._\n_Mensagem original: \"Priya, você consegue revisar a integração GPS dos rastreadores Teltonika até sexta? O Carlos pediu porque os dados de posição estão chegando com atraso no dashboard.\"_"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "issuetype": {
+                    "name": "Bug"
+                  },
+                  "priority": {
+                    "name": "High"
+                  },
+                  "assignee": {
+                    "accountId": "accountId-priya"
+                  }
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": {
+                  "$pattern": "^✅ Card criado: \\*<http://[^/|>]+/browse/FROTA-17\\|FROTA-17>\\*\n\\*Atraso nos dados de posição da integração GPS \\(Teltonika\\)\\*\nPrioridade: high \\| Tipo: bug$"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "only the first trigger leaves the message, so a trigger quoted in it reaches the parser and the card",
+      "socket": {
+        "timeout": 60000,
+        "settle": 1500,
+        "messages": [
+          {
+            "type": "hello",
+            "num_connections": 1,
+            "debug_info": {
+              "host": "applink-stackfy-7fc4fdbb64-4x5xq",
+              "build_number": 10,
+              "approximate_connection_time": 18060
+            },
+            "connection_info": {
+              "app_id": "A0RW00001"
+            }
+          },
+          {
+            "payload": {
+              "token": "verification-token-synthesized",
+              "team_id": "T0RW00001",
+              "api_app_id": "A0RW00001",
+              "event": {
+                "type": "message",
+                "user": "U0RWPM001",
+                "text": "card: Marcus, documente até sexta o prefixo card: que o bot espera nas mensagens do canal #routewise.",
+                "ts": "1767225600.008100",
+                "team": "T0RW00001",
+                "channel": "C0RW00001",
+                "event_ts": "1767225600.008100",
+                "channel_type": "channel"
+              },
+              "type": "event_callback",
+              "event_id": "Ev0RW00008",
+              "event_time": 1767225600,
+              "authorizations": [
+                {
+                  "enterprise_id": null,
+                  "team_id": "T0RW00001",
+                  "user_id": "U0RWBOT01",
+                  "is_bot": true,
+                  "is_enterprise_install": false
+                }
+              ],
+              "is_ext_shared_channel": false
+            },
+            "envelope_id": "5f0c6a2e-0b1d-4c7e-9a3f-000000000008",
+            "type": "events_api",
+            "accepts_response_payload": false,
+            "retry_attempt": 0,
+            "retry_reason": ""
+          }
+        ]
+      },
+      "replay": [
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/auth.test",
+          "incidental": true,
+          "json": {
+            "ok": true,
+            "url": "https://routewise.slack.com/",
+            "team": "RouteWise",
+            "user": "routewise-bot",
+            "team_id": "T0RW00001",
+            "user_id": "U0RWBOT01",
+            "bot_id": "B0RWBOT01",
+            "is_enterprise_install": false
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format, with the replay's own socket as the address",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/apps.connections.open",
+          "matchHeaders": {
+            "authorization": "^Bearer xapp-"
+          },
+          "incidental": true,
+          "json": {
+            "ok": true,
+            "url": "{replaySocket}/link/?ticket=stackfy-ticket&app_id=A0RW00001"
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00100"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for claude-sonnet-4-6, thinking disabled at the stand-in, in the Anthropic Messages API format",
+          "method": "POST",
+          "path": "/v1/messages",
+          "matchHeaders": {
+            "anthropic-version": ".+"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "msg_114c694782e60866eea2f06d",
+            "type": "message",
+            "role": "assistant",
+            "model": "gemma4:12b-mlx",
+            "content": [
+              {
+                "type": "text",
+                "text": "```json\n{\n  \"type\": \"task\",\n  \"title\": \"Documentação de prefixos para bot no canal #routewise\",\n  \"priority\": \"medium\",\n  \"component\": \"notificacoes\",\n  \"assignee\": \"Marcus\",\n  \"requestedBy\": \"Carlos\",\n  \"dueDate\": \"até sexta\",\n  \"region\": null,\n  \"reason\": \"Necessidade de padronização e documentação técnica para o comportamento do bot no canal de comunicação do projeto.\",\n  \"description\": \"Documentar os prefixos que o bot espera receber nas mensagens do canal #routewise. O objetivo é garantir que as interações do bot sejam reconhecidas corretamente e que a documentação esteja disponível para o time de desenvolvimento e operações.\",\n  \"actionRequired\": \"Nenhuma informação crítica ausente.\",\n  \"confidence\": \"high\"\n}\n```"
+              }
+            ],
+            "stop_reason": "end_turn",
+            "usage": {
+              "input_tokens": 686,
+              "cache_read_input_tokens": 0,
+              "output_tokens": 190
+            }
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00200"
+          }
+        },
+        {
+          "source": "synthesized from Jira Cloud's documented REST API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/rest/api/3/issue",
+          "matchHeaders": {
+            "authorization": "^Basic cG1Acm91dGV3aXNlLmV4YW1wbGU6amlyYS10b2tlbi1zeW50aGVzaXplZA==$"
+          },
+          "status": 201,
+          "json": {
+            "id": "10045",
+            "key": "ROUTEWISE-45",
+            "self": "{replay}/rest/api/3/issue/10045"
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00300"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "output",
+          "pattern": "(?:^|\\n)⚡ NL to Workflow bot ativo - aguardando mensagens com trigger: card:\nCanal de notificações: #routewise\nProjeto Jira: ROUTEWISE\n$"
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "envelope_id": "5f0c6a2e-0b1d-4c7e-9a3f-000000000008"
+              }
+            }
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": "⏳ Processando: _\"Marcus, documente até sexta o prefixo card: que o bot espera nas mensagens do canal #routewise.\"_"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/messages",
+              "body": {
+                "anyOf": [
+                  {
+                    "model": "claude-sonnet-4-6",
+                    "max_tokens": 1024,
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": "\nVocê é um parser de linguagem natural para criação de cards no Jira. Sua função é extrair informações estruturadas de mensagens de texto em linguagem natural - como mensagens de Slack, e-mails ou anotações rápidas - e retornar um objeto JSON pronto para criação de card.\n\n## CONTEXTO DO PROJETO\n- Projeto: ROUTEWISE - Sistema de Gestão de Frota\n- Componentes disponíveis: alertas-velocidade, score-comportamento, manutencao-preditiva, dashboard, integracao-gps, notificacoes\n- Membros do time: Carlos (Diretor de Operações), Priya (TI/Infra), Marcus (Consultor)\n\n## MENSAGEM PARA PROCESSAR\n\nMarcus, documente até sexta o prefixo card: que o bot espera nas mensagens do canal #routewise.\n\n## ANÁLISE SOLICITADA\n\nExtraia as seguintes informações da mensagem e retorne um JSON:\n\n{\n  \"type\": \"bug | task | story | spike\",\n  \"title\": \"título claro e específico - máximo 80 caracteres\",\n  \"priority\": \"highest | high | medium | low\",\n  \"component\": \"componente identificado ou null\",\n  \"assignee\": \"nome do responsável mencionado explicitamente ou null se não mencionado\",\n  \"requestedBy\": \"quem solicitou, se diferente do assignee, ou null\",\n  \"dueDate\": \"data extraída ou descrição textual (ex: 'fim do mês corrente') ou null\",\n  \"region\": \"região ou localização mencionada, se relevante, ou null\",\n  \"reason\": \"motivação ou contexto de negócio explicitado na mensagem, ou null\",\n  \"description\": \"descrição expandida para o campo de descrição do card - inclua contexto e pontos de investigação prováveis\",\n  \"actionRequired\": \"mensagem de alerta se houver informação crítica ausente (ex: assignee não definido, prazo ambíguo), ou null\",\n  \"confidence\": \"high | medium | low - seu grau de confiança na extração\"\n}\n\n## RESTRIÇÕES DE COMPORTAMENTO\n\n- Nunca invente assignee - se não foi explicitamente mencionado, retorne null e adicione uma mensagem em actionRequired indicando que o responsável precisa ser definido\n- Se a mensagem menciona múltiplas pessoas, identifique quem faz o quê - não atribua a quem estava falando, mas a quem se comprometeu\n- Datas implícitas (\"urgente\", \"antes da próxima reunião\", \"esta semana\") devem ser descritas em palavras, não convertidas para datas fixas - você não sabe qual é a data atual\n- Para mensagens com solicitação de voluntário (\"alguém pode pegar isso?\"), sinalize em actionRequired que o assignee precisa ser confirmado antes de mover o card para In Progress\n- Se a mensagem não é acionável (ex: \"precisamos pensar sobre isso\"), retorne type: \"spike\" e adicione em actionRequired: \"Mensagem é uma intenção, não uma ação - refine antes de criar o card\"\n- O campo confidence deve refletir sua certeza real - se a mensagem é ambígua, declare low\n"
+                      }
+                    ]
+                  },
+                  {
+                    "model": "claude-sonnet-4-6",
+                    "max_tokens": 1024,
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "\nVocê é um parser de linguagem natural para criação de cards no Jira. Sua função é extrair informações estruturadas de mensagens de texto em linguagem natural - como mensagens de Slack, e-mails ou anotações rápidas - e retornar um objeto JSON pronto para criação de card.\n\n## CONTEXTO DO PROJETO\n- Projeto: ROUTEWISE - Sistema de Gestão de Frota\n- Componentes disponíveis: alertas-velocidade, score-comportamento, manutencao-preditiva, dashboard, integracao-gps, notificacoes\n- Membros do time: Carlos (Diretor de Operações), Priya (TI/Infra), Marcus (Consultor)\n\n## MENSAGEM PARA PROCESSAR\n\nMarcus, documente até sexta o prefixo card: que o bot espera nas mensagens do canal #routewise.\n\n## ANÁLISE SOLICITADA\n\nExtraia as seguintes informações da mensagem e retorne um JSON:\n\n{\n  \"type\": \"bug | task | story | spike\",\n  \"title\": \"título claro e específico - máximo 80 caracteres\",\n  \"priority\": \"highest | high | medium | low\",\n  \"component\": \"componente identificado ou null\",\n  \"assignee\": \"nome do responsável mencionado explicitamente ou null se não mencionado\",\n  \"requestedBy\": \"quem solicitou, se diferente do assignee, ou null\",\n  \"dueDate\": \"data extraída ou descrição textual (ex: 'fim do mês corrente') ou null\",\n  \"region\": \"região ou localização mencionada, se relevante, ou null\",\n  \"reason\": \"motivação ou contexto de negócio explicitado na mensagem, ou null\",\n  \"description\": \"descrição expandida para o campo de descrição do card - inclua contexto e pontos de investigação prováveis\",\n  \"actionRequired\": \"mensagem de alerta se houver informação crítica ausente (ex: assignee não definido, prazo ambíguo), ou null\",\n  \"confidence\": \"high | medium | low - seu grau de confiança na extração\"\n}\n\n## RESTRIÇÕES DE COMPORTAMENTO\n\n- Nunca invente assignee - se não foi explicitamente mencionado, retorne null e adicione uma mensagem em actionRequired indicando que o responsável precisa ser definido\n- Se a mensagem menciona múltiplas pessoas, identifique quem faz o quê - não atribua a quem estava falando, mas a quem se comprometeu\n- Datas implícitas (\"urgente\", \"antes da próxima reunião\", \"esta semana\") devem ser descritas em palavras, não convertidas para datas fixas - você não sabe qual é a data atual\n- Para mensagens com solicitação de voluntário (\"alguém pode pegar isso?\"), sinalize em actionRequired que o assignee precisa ser confirmado antes de mover o card para In Progress\n- Se a mensagem não é acionável (ex: \"precisamos pensar sobre isso\"), retorne type: \"spike\" e adicione em actionRequired: \"Mensagem é uma intenção, não uma ação - refine antes de criar o card\"\n- O campo confidence deve refletir sua certeza real - se a mensagem é ambígua, declare low\n"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": "📋 *Card identificado - confirme antes de criar:*\n\n*Tipo:* task\n*Título:* Documentação de prefixos para bot no canal #routewise\n*Prioridade:* medium\n*Responsável:* Marcus\n*Prazo:* até sexta\n*Componente:* notificacoes\n\n⚠️ *Atenção:* Nenhuma informação crítica ausente.\n\n_Confiança do parser: high_"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/rest/api/3/issue",
+              "body": {
+                "fields": {
+                  "project": {
+                    "key": "ROUTEWISE"
+                  },
+                  "summary": "Documentação de prefixos para bot no canal #routewise",
+                  "description": {
+                    "type": "doc",
+                    "version": 1,
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Documentar os prefixos que o bot espera receber nas mensagens do canal #routewise. O objetivo é garantir que as interações do bot sejam reconhecidas corretamente e que a documentação esteja disponível para o time de desenvolvimento e operações.\n\n**Motivação:** Necessidade de padronização e documentação técnica para o comportamento do bot no canal de comunicação do projeto.\n\n⚠️ **Ação necessária:** Nenhuma informação crítica ausente.\n\n---\n_Card criado automaticamente via NL to Workflow a partir de mensagem de U0RWPM001._\n_Mensagem original: \"Marcus, documente até sexta o prefixo card: que o bot espera nas mensagens do canal #routewise.\"_"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "issuetype": {
+                    "name": "Story"
+                  },
+                  "priority": {
+                    "name": "Medium"
+                  },
+                  "assignee": {
+                    "accountId": "accountId-marcus"
+                  }
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": {
+                  "$pattern": "^✅ Card criado: \\*<http://[^/|>]+/browse/ROUTEWISE-45\\|ROUTEWISE-45>\\*\n\\*Documentação de prefixos para bot no canal #routewise\\*\nPrioridade: medium \\| Tipo: task\n\n💬 \\*Ação necessária:\\* Nenhuma informação crítica ausente\\.$"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a call for a volunteer stays unassigned, and a task becomes a Story in Jira",
+      "socket": {
+        "timeout": 60000,
+        "settle": 1500,
+        "messages": [
+          {
+            "type": "hello",
+            "num_connections": 1,
+            "debug_info": {
+              "host": "applink-stackfy-7fc4fdbb64-4x5xq",
+              "build_number": 10,
+              "approximate_connection_time": 18060
+            },
+            "connection_info": {
+              "app_id": "A0RW00001"
+            }
+          },
+          {
+            "payload": {
+              "token": "verification-token-synthesized",
+              "team_id": "T0RW00001",
+              "api_app_id": "A0RW00001",
+              "event": {
+                "type": "message",
+                "user": "U0RWPM001",
+                "text": "card: O Carlos pediu ontem que a gente antecipe o módulo de manutenção preditiva para antes do fim do mês porque a frota vai fazer revisão anual em junho. Alguém pode pegar isso?",
+                "ts": "1767225600.003100",
+                "team": "T0RW00001",
+                "channel": "C0RW00001",
+                "event_ts": "1767225600.003100",
+                "channel_type": "channel"
+              },
+              "type": "event_callback",
+              "event_id": "Ev0RW00003",
+              "event_time": 1767225600,
+              "authorizations": [
+                {
+                  "enterprise_id": null,
+                  "team_id": "T0RW00001",
+                  "user_id": "U0RWBOT01",
+                  "is_bot": true,
+                  "is_enterprise_install": false
+                }
+              ],
+              "is_ext_shared_channel": false
+            },
+            "envelope_id": "5f0c6a2e-0b1d-4c7e-9a3f-000000000003",
+            "type": "events_api",
+            "accepts_response_payload": false,
+            "retry_attempt": 0,
+            "retry_reason": ""
+          }
+        ]
+      },
+      "replay": [
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/auth.test",
+          "incidental": true,
+          "json": {
+            "ok": true,
+            "url": "https://routewise.slack.com/",
+            "team": "RouteWise",
+            "user": "routewise-bot",
+            "team_id": "T0RW00001",
+            "user_id": "U0RWBOT01",
+            "bot_id": "B0RWBOT01",
+            "is_enterprise_install": false
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format, with the replay's own socket as the address",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/apps.connections.open",
+          "matchHeaders": {
+            "authorization": "^Bearer xapp-"
+          },
+          "incidental": true,
+          "json": {
+            "ok": true,
+            "url": "{replaySocket}/link/?ticket=stackfy-ticket&app_id=A0RW00001"
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00100"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for claude-sonnet-4-6, thinking disabled at the stand-in, in the Anthropic Messages API format",
+          "method": "POST",
+          "path": "/v1/messages",
+          "matchHeaders": {
+            "anthropic-version": ".+"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "msg_396d224ed3a0604d8b8ea7f2",
+            "type": "message",
+            "role": "assistant",
+            "model": "gemma4:12b-mlx",
+            "content": [
+              {
+                "type": "text",
+                "text": "```json\n{\n  \"type\": \"task\",\n  \"title\": \"Antecipar entrega do módulo de manutenção preditiva\",\n  \"priority\": \"high\",\n  \"component\": \"manutencao-preditiva\",\n  \"assignee\": null,\n  \"requestedBy\": \"Carlos\",\n  \"dueDate\": \"antes do fim do mês\",\n  \"region\": null,\n  \"reason\": \"A frota realizará uma revisão anual em junho e a manutenção preditiva precisa estar pronta para suportar essa operação.\",\n  \"description\": \"Solicitação do Diretor de Operações para antecipar o desenvolvimento/entrega do módulo de manutenção preditiva. O objetivo é garantir que o sistema esteja operacional para a revisão anual da frota agendada para junho. \\n\\nPontos de investigação:\\n- Qual é o estado atual do desenvolvimento deste módulo?\\n- Quais funcionalidades específicas são prioritárias para a revisão de junho?\\n- Quais dependências técnicas ou de dados precisam ser validadas para essa antecipação?\",\n  \"actionRequired\": \"O responsável pelo desenvolvimento não foi definido na mensagem (solicitação de voluntário). É necessário confirmar o assignee antes de mover o card para In Progress.\",\n  \"confidence\": \"high\"\n}\n```"
+              }
+            ],
+            "stop_reason": "end_turn",
+            "usage": {
+              "input_tokens": 700,
+              "cache_read_input_tokens": 2,
+              "output_tokens": 273
+            }
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00200"
+          }
+        },
+        {
+          "source": "synthesized from Jira Cloud's documented REST API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/rest/api/3/issue",
+          "matchHeaders": {
+            "authorization": "^Basic cG1Acm91dGV3aXNlLmV4YW1wbGU6amlyYS10b2tlbi1zeW50aGVzaXplZA==$"
+          },
+          "status": 201,
+          "json": {
+            "id": "10043",
+            "key": "ROUTEWISE-43",
+            "self": "{replay}/rest/api/3/issue/10043"
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00300"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "output",
+          "pattern": "(?:^|\\n)⚡ NL to Workflow bot ativo - aguardando mensagens com trigger: card:\nCanal de notificações: #routewise\nProjeto Jira: ROUTEWISE\n$"
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "envelope_id": "5f0c6a2e-0b1d-4c7e-9a3f-000000000003"
+              }
+            }
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": "⏳ Processando: _\"O Carlos pediu ontem que a gente antecipe o módulo de manutenção preditiva para antes do fim do mês porque a frota vai fazer revisão anual em junho. Alguém pode pegar isso?\"_"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/messages",
+              "body": {
+                "anyOf": [
+                  {
+                    "model": "claude-sonnet-4-6",
+                    "max_tokens": 1024,
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": "\nVocê é um parser de linguagem natural para criação de cards no Jira. Sua função é extrair informações estruturadas de mensagens de texto em linguagem natural - como mensagens de Slack, e-mails ou anotações rápidas - e retornar um objeto JSON pronto para criação de card.\n\n## CONTEXTO DO PROJETO\n- Projeto: ROUTEWISE - Sistema de Gestão de Frota\n- Componentes disponíveis: alertas-velocidade, score-comportamento, manutencao-preditiva, dashboard, integracao-gps, notificacoes\n- Membros do time: Carlos (Diretor de Operações), Priya (TI/Infra), Marcus (Consultor)\n\n## MENSAGEM PARA PROCESSAR\n\nO Carlos pediu ontem que a gente antecipe o módulo de manutenção preditiva para antes do fim do mês porque a frota vai fazer revisão anual em junho. Alguém pode pegar isso?\n\n## ANÁLISE SOLICITADA\n\nExtraia as seguintes informações da mensagem e retorne um JSON:\n\n{\n  \"type\": \"bug | task | story | spike\",\n  \"title\": \"título claro e específico - máximo 80 caracteres\",\n  \"priority\": \"highest | high | medium | low\",\n  \"component\": \"componente identificado ou null\",\n  \"assignee\": \"nome do responsável mencionado explicitamente ou null se não mencionado\",\n  \"requestedBy\": \"quem solicitou, se diferente do assignee, ou null\",\n  \"dueDate\": \"data extraída ou descrição textual (ex: 'fim do mês corrente') ou null\",\n  \"region\": \"região ou localização mencionada, se relevante, ou null\",\n  \"reason\": \"motivação ou contexto de negócio explicitado na mensagem, ou null\",\n  \"description\": \"descrição expandida para o campo de descrição do card - inclua contexto e pontos de investigação prováveis\",\n  \"actionRequired\": \"mensagem de alerta se houver informação crítica ausente (ex: assignee não definido, prazo ambíguo), ou null\",\n  \"confidence\": \"high | medium | low - seu grau de confiança na extração\"\n}\n\n## RESTRIÇÕES DE COMPORTAMENTO\n\n- Nunca invente assignee - se não foi explicitamente mencionado, retorne null e adicione uma mensagem em actionRequired indicando que o responsável precisa ser definido\n- Se a mensagem menciona múltiplas pessoas, identifique quem faz o quê - não atribua a quem estava falando, mas a quem se comprometeu\n- Datas implícitas (\"urgente\", \"antes da próxima reunião\", \"esta semana\") devem ser descritas em palavras, não convertidas para datas fixas - você não sabe qual é a data atual\n- Para mensagens com solicitação de voluntário (\"alguém pode pegar isso?\"), sinalize em actionRequired que o assignee precisa ser confirmado antes de mover o card para In Progress\n- Se a mensagem não é acionável (ex: \"precisamos pensar sobre isso\"), retorne type: \"spike\" e adicione em actionRequired: \"Mensagem é uma intenção, não uma ação - refine antes de criar o card\"\n- O campo confidence deve refletir sua certeza real - se a mensagem é ambígua, declare low\n"
+                      }
+                    ]
+                  },
+                  {
+                    "model": "claude-sonnet-4-6",
+                    "max_tokens": 1024,
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "\nVocê é um parser de linguagem natural para criação de cards no Jira. Sua função é extrair informações estruturadas de mensagens de texto em linguagem natural - como mensagens de Slack, e-mails ou anotações rápidas - e retornar um objeto JSON pronto para criação de card.\n\n## CONTEXTO DO PROJETO\n- Projeto: ROUTEWISE - Sistema de Gestão de Frota\n- Componentes disponíveis: alertas-velocidade, score-comportamento, manutencao-preditiva, dashboard, integracao-gps, notificacoes\n- Membros do time: Carlos (Diretor de Operações), Priya (TI/Infra), Marcus (Consultor)\n\n## MENSAGEM PARA PROCESSAR\n\nO Carlos pediu ontem que a gente antecipe o módulo de manutenção preditiva para antes do fim do mês porque a frota vai fazer revisão anual em junho. Alguém pode pegar isso?\n\n## ANÁLISE SOLICITADA\n\nExtraia as seguintes informações da mensagem e retorne um JSON:\n\n{\n  \"type\": \"bug | task | story | spike\",\n  \"title\": \"título claro e específico - máximo 80 caracteres\",\n  \"priority\": \"highest | high | medium | low\",\n  \"component\": \"componente identificado ou null\",\n  \"assignee\": \"nome do responsável mencionado explicitamente ou null se não mencionado\",\n  \"requestedBy\": \"quem solicitou, se diferente do assignee, ou null\",\n  \"dueDate\": \"data extraída ou descrição textual (ex: 'fim do mês corrente') ou null\",\n  \"region\": \"região ou localização mencionada, se relevante, ou null\",\n  \"reason\": \"motivação ou contexto de negócio explicitado na mensagem, ou null\",\n  \"description\": \"descrição expandida para o campo de descrição do card - inclua contexto e pontos de investigação prováveis\",\n  \"actionRequired\": \"mensagem de alerta se houver informação crítica ausente (ex: assignee não definido, prazo ambíguo), ou null\",\n  \"confidence\": \"high | medium | low - seu grau de confiança na extração\"\n}\n\n## RESTRIÇÕES DE COMPORTAMENTO\n\n- Nunca invente assignee - se não foi explicitamente mencionado, retorne null e adicione uma mensagem em actionRequired indicando que o responsável precisa ser definido\n- Se a mensagem menciona múltiplas pessoas, identifique quem faz o quê - não atribua a quem estava falando, mas a quem se comprometeu\n- Datas implícitas (\"urgente\", \"antes da próxima reunião\", \"esta semana\") devem ser descritas em palavras, não convertidas para datas fixas - você não sabe qual é a data atual\n- Para mensagens com solicitação de voluntário (\"alguém pode pegar isso?\"), sinalize em actionRequired que o assignee precisa ser confirmado antes de mover o card para In Progress\n- Se a mensagem não é acionável (ex: \"precisamos pensar sobre isso\"), retorne type: \"spike\" e adicione em actionRequired: \"Mensagem é uma intenção, não uma ação - refine antes de criar o card\"\n- O campo confidence deve refletir sua certeza real - se a mensagem é ambígua, declare low\n"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": "📋 *Card identificado - confirme antes de criar:*\n\n*Tipo:* task\n*Título:* Antecipar entrega do módulo de manutenção preditiva\n*Prioridade:* high\n*Responsável:* [A DEFINIR]\n*Prazo:* antes do fim do mês\n*Componente:* manutencao-preditiva\n\n⚠️ *Atenção:* O responsável pelo desenvolvimento não foi definido na mensagem (solicitação de voluntário). É necessário confirmar o assignee antes de mover o card para In Progress.\n\n_Confiança do parser: high_"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/rest/api/3/issue",
+              "body": {
+                "fields": {
+                  "project": {
+                    "key": "ROUTEWISE"
+                  },
+                  "summary": "Antecipar entrega do módulo de manutenção preditiva",
+                  "description": {
+                    "type": "doc",
+                    "version": 1,
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Solicitação do Diretor de Operações para antecipar o desenvolvimento/entrega do módulo de manutenção preditiva. O objetivo é garantir que o sistema esteja operacional para a revisão anual da frota agendada para junho. \n\nPontos de investigação:\n- Qual é o estado atual do desenvolvimento deste módulo?\n- Quais funcionalidades específicas são prioritárias para a revisão de junho?\n- Quais dependências técnicas ou de dados precisam ser validadas para essa antecipação?\n\n**Motivação:** A frota realizará uma revisão anual em junho e a manutenção preditiva precisa estar pronta para suportar essa operação.\n\n⚠️ **Ação necessária:** O responsável pelo desenvolvimento não foi definido na mensagem (solicitação de voluntário). É necessário confirmar o assignee antes de mover o card para In Progress.\n\n---\n_Card criado automaticamente via NL to Workflow a partir de mensagem de U0RWPM001._\n_Mensagem original: \"O Carlos pediu ontem que a gente antecipe o módulo de manutenção preditiva para antes do fim do mês porque a frota vai fazer revisão anual em junho. Alguém pode pegar isso?\"_"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "issuetype": {
+                    "name": "Story"
+                  },
+                  "priority": {
+                    "name": "High"
+                  }
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": {
+                  "$pattern": "^✅ Card criado: \\*<http://[^/|>]+/browse/ROUTEWISE-43\\|ROUTEWISE-43>\\*\n\\*Antecipar entrega do módulo de manutenção preditiva\\*\nPrioridade: high \\| Tipo: task\n\n⚠️ \\*Assignee não atribuído\\* - defina o responsável no Jira antes de mover para In Progress\\.\n\n💬 \\*Ação necessária:\\* O responsável pelo desenvolvimento não foi definido na mensagem \\(solicitação de voluntário\\)\\. É necessário confirmar o assignee antes de mover o card para In Progress\\.$"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "an intention without an action becomes a spike, created as a Task in Jira",
+      "socket": {
+        "timeout": 60000,
+        "settle": 1500,
+        "messages": [
+          {
+            "type": "hello",
+            "num_connections": 1,
+            "debug_info": {
+              "host": "applink-stackfy-7fc4fdbb64-4x5xq",
+              "build_number": 10,
+              "approximate_connection_time": 18060
+            },
+            "connection_info": {
+              "app_id": "A0RW00001"
+            }
+          },
+          {
+            "payload": {
+              "token": "verification-token-synthesized",
+              "team_id": "T0RW00001",
+              "api_app_id": "A0RW00001",
+              "event": {
+                "type": "message",
+                "user": "U0RWPM001",
+                "text": "card: precisamos pensar sobre isso",
+                "ts": "1767225600.004100",
+                "team": "T0RW00001",
+                "channel": "C0RW00001",
+                "event_ts": "1767225600.004100",
+                "channel_type": "channel"
+              },
+              "type": "event_callback",
+              "event_id": "Ev0RW00004",
+              "event_time": 1767225600,
+              "authorizations": [
+                {
+                  "enterprise_id": null,
+                  "team_id": "T0RW00001",
+                  "user_id": "U0RWBOT01",
+                  "is_bot": true,
+                  "is_enterprise_install": false
+                }
+              ],
+              "is_ext_shared_channel": false
+            },
+            "envelope_id": "5f0c6a2e-0b1d-4c7e-9a3f-000000000004",
+            "type": "events_api",
+            "accepts_response_payload": false,
+            "retry_attempt": 0,
+            "retry_reason": ""
+          }
+        ]
+      },
+      "replay": [
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/auth.test",
+          "incidental": true,
+          "json": {
+            "ok": true,
+            "url": "https://routewise.slack.com/",
+            "team": "RouteWise",
+            "user": "routewise-bot",
+            "team_id": "T0RW00001",
+            "user_id": "U0RWBOT01",
+            "bot_id": "B0RWBOT01",
+            "is_enterprise_install": false
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format, with the replay's own socket as the address",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/apps.connections.open",
+          "matchHeaders": {
+            "authorization": "^Bearer xapp-"
+          },
+          "incidental": true,
+          "json": {
+            "ok": true,
+            "url": "{replaySocket}/link/?ticket=stackfy-ticket&app_id=A0RW00001"
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00100"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for claude-sonnet-4-6, thinking disabled at the stand-in, in the Anthropic Messages API format",
+          "method": "POST",
+          "path": "/v1/messages",
+          "matchHeaders": {
+            "anthropic-version": ".+"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "msg_af5b2b6a7fe35ba1dadd5657",
+            "type": "message",
+            "role": "assistant",
+            "model": "gemma4:12b-mlx",
+            "content": [
+              {
+                "type": "text",
+                "text": "```json\n{\n  \"type\": \"spike\",\n  \"title\": \"Discussão e análise sobre [Tópico não especificado]\",\n  \"priority\": \"low\",\n  \"component\": null,\n  \"assignee\": null,\n  \"requestedBy\": null,\n  \"dueDate\": null,\n  \"region\": null,\n  \"reason\": \"A mensagem expressa a necessidade de uma reflexão ou planejamento, mas não detalha o objeto de análise.\",\n  \"description\": \"A mensagem 'precisamos pensar sobre isso' indica a necessidade de uma análise conceitual ou técnica sobre um tópico ainda não definido no contexto do projeto ROUTEWISE. É necessário agendar uma reunião ou momento de brainstorming para identificar o escopo, os objetivos e os próximos passos.\",\n  \"actionRequired\": \"Mensagem é uma intenção, não uma ação - refine antes de criar o card. O tópico a ser pensado não foi especificado e nenhum responsável foi atribuído.\",\n  \"confidence\": \"low\"\n}\n```"
+              }
+            ],
+            "stop_reason": "end_turn",
+            "usage": {
+              "input_tokens": 514,
+              "cache_read_input_tokens": 155,
+              "output_tokens": 220
+            }
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00200"
+          }
+        },
+        {
+          "source": "synthesized from Jira Cloud's documented REST API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/rest/api/3/issue",
+          "matchHeaders": {
+            "authorization": "^Basic cG1Acm91dGV3aXNlLmV4YW1wbGU6amlyYS10b2tlbi1zeW50aGVzaXplZA==$"
+          },
+          "status": 201,
+          "json": {
+            "id": "10044",
+            "key": "ROUTEWISE-44",
+            "self": "{replay}/rest/api/3/issue/10044"
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00300"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "output",
+          "pattern": "(?:^|\\n)⚡ NL to Workflow bot ativo - aguardando mensagens com trigger: card:\nCanal de notificações: #routewise\nProjeto Jira: ROUTEWISE\n$"
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "envelope_id": "5f0c6a2e-0b1d-4c7e-9a3f-000000000004"
+              }
+            }
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": "⏳ Processando: _\"precisamos pensar sobre isso\"_"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/messages",
+              "body": {
+                "anyOf": [
+                  {
+                    "model": "claude-sonnet-4-6",
+                    "max_tokens": 1024,
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": "\nVocê é um parser de linguagem natural para criação de cards no Jira. Sua função é extrair informações estruturadas de mensagens de texto em linguagem natural - como mensagens de Slack, e-mails ou anotações rápidas - e retornar um objeto JSON pronto para criação de card.\n\n## CONTEXTO DO PROJETO\n- Projeto: ROUTEWISE - Sistema de Gestão de Frota\n- Componentes disponíveis: alertas-velocidade, score-comportamento, manutencao-preditiva, dashboard, integracao-gps, notificacoes\n- Membros do time: Carlos (Diretor de Operações), Priya (TI/Infra), Marcus (Consultor)\n\n## MENSAGEM PARA PROCESSAR\n\nprecisamos pensar sobre isso\n\n## ANÁLISE SOLICITADA\n\nExtraia as seguintes informações da mensagem e retorne um JSON:\n\n{\n  \"type\": \"bug | task | story | spike\",\n  \"title\": \"título claro e específico - máximo 80 caracteres\",\n  \"priority\": \"highest | high | medium | low\",\n  \"component\": \"componente identificado ou null\",\n  \"assignee\": \"nome do responsável mencionado explicitamente ou null se não mencionado\",\n  \"requestedBy\": \"quem solicitou, se diferente do assignee, ou null\",\n  \"dueDate\": \"data extraída ou descrição textual (ex: 'fim do mês corrente') ou null\",\n  \"region\": \"região ou localização mencionada, se relevante, ou null\",\n  \"reason\": \"motivação ou contexto de negócio explicitado na mensagem, ou null\",\n  \"description\": \"descrição expandida para o campo de descrição do card - inclua contexto e pontos de investigação prováveis\",\n  \"actionRequired\": \"mensagem de alerta se houver informação crítica ausente (ex: assignee não definido, prazo ambíguo), ou null\",\n  \"confidence\": \"high | medium | low - seu grau de confiança na extração\"\n}\n\n## RESTRIÇÕES DE COMPORTAMENTO\n\n- Nunca invente assignee - se não foi explicitamente mencionado, retorne null e adicione uma mensagem em actionRequired indicando que o responsável precisa ser definido\n- Se a mensagem menciona múltiplas pessoas, identifique quem faz o quê - não atribua a quem estava falando, mas a quem se comprometeu\n- Datas implícitas (\"urgente\", \"antes da próxima reunião\", \"esta semana\") devem ser descritas em palavras, não convertidas para datas fixas - você não sabe qual é a data atual\n- Para mensagens com solicitação de voluntário (\"alguém pode pegar isso?\"), sinalize em actionRequired que o assignee precisa ser confirmado antes de mover o card para In Progress\n- Se a mensagem não é acionável (ex: \"precisamos pensar sobre isso\"), retorne type: \"spike\" e adicione em actionRequired: \"Mensagem é uma intenção, não uma ação - refine antes de criar o card\"\n- O campo confidence deve refletir sua certeza real - se a mensagem é ambígua, declare low\n"
+                      }
+                    ]
+                  },
+                  {
+                    "model": "claude-sonnet-4-6",
+                    "max_tokens": 1024,
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "\nVocê é um parser de linguagem natural para criação de cards no Jira. Sua função é extrair informações estruturadas de mensagens de texto em linguagem natural - como mensagens de Slack, e-mails ou anotações rápidas - e retornar um objeto JSON pronto para criação de card.\n\n## CONTEXTO DO PROJETO\n- Projeto: ROUTEWISE - Sistema de Gestão de Frota\n- Componentes disponíveis: alertas-velocidade, score-comportamento, manutencao-preditiva, dashboard, integracao-gps, notificacoes\n- Membros do time: Carlos (Diretor de Operações), Priya (TI/Infra), Marcus (Consultor)\n\n## MENSAGEM PARA PROCESSAR\n\nprecisamos pensar sobre isso\n\n## ANÁLISE SOLICITADA\n\nExtraia as seguintes informações da mensagem e retorne um JSON:\n\n{\n  \"type\": \"bug | task | story | spike\",\n  \"title\": \"título claro e específico - máximo 80 caracteres\",\n  \"priority\": \"highest | high | medium | low\",\n  \"component\": \"componente identificado ou null\",\n  \"assignee\": \"nome do responsável mencionado explicitamente ou null se não mencionado\",\n  \"requestedBy\": \"quem solicitou, se diferente do assignee, ou null\",\n  \"dueDate\": \"data extraída ou descrição textual (ex: 'fim do mês corrente') ou null\",\n  \"region\": \"região ou localização mencionada, se relevante, ou null\",\n  \"reason\": \"motivação ou contexto de negócio explicitado na mensagem, ou null\",\n  \"description\": \"descrição expandida para o campo de descrição do card - inclua contexto e pontos de investigação prováveis\",\n  \"actionRequired\": \"mensagem de alerta se houver informação crítica ausente (ex: assignee não definido, prazo ambíguo), ou null\",\n  \"confidence\": \"high | medium | low - seu grau de confiança na extração\"\n}\n\n## RESTRIÇÕES DE COMPORTAMENTO\n\n- Nunca invente assignee - se não foi explicitamente mencionado, retorne null e adicione uma mensagem em actionRequired indicando que o responsável precisa ser definido\n- Se a mensagem menciona múltiplas pessoas, identifique quem faz o quê - não atribua a quem estava falando, mas a quem se comprometeu\n- Datas implícitas (\"urgente\", \"antes da próxima reunião\", \"esta semana\") devem ser descritas em palavras, não convertidas para datas fixas - você não sabe qual é a data atual\n- Para mensagens com solicitação de voluntário (\"alguém pode pegar isso?\"), sinalize em actionRequired que o assignee precisa ser confirmado antes de mover o card para In Progress\n- Se a mensagem não é acionável (ex: \"precisamos pensar sobre isso\"), retorne type: \"spike\" e adicione em actionRequired: \"Mensagem é uma intenção, não uma ação - refine antes de criar o card\"\n- O campo confidence deve refletir sua certeza real - se a mensagem é ambígua, declare low\n"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": "📋 *Card identificado - confirme antes de criar:*\n\n*Tipo:* spike\n*Título:* Discussão e análise sobre [Tópico não especificado]\n*Prioridade:* low\n*Responsável:* [A DEFINIR]\n*Prazo:* [A DEFINIR]\n*Componente:* não identificado\n\n⚠️ *Atenção:* Mensagem é uma intenção, não uma ação - refine antes de criar o card. O tópico a ser pensado não foi especificado e nenhum responsável foi atribuído.\n\n_Confiança do parser: low_"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/rest/api/3/issue",
+              "body": {
+                "fields": {
+                  "project": {
+                    "key": "ROUTEWISE"
+                  },
+                  "summary": "Discussão e análise sobre [Tópico não especificado]",
+                  "description": {
+                    "type": "doc",
+                    "version": 1,
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "A mensagem 'precisamos pensar sobre isso' indica a necessidade de uma análise conceitual ou técnica sobre um tópico ainda não definido no contexto do projeto ROUTEWISE. É necessário agendar uma reunião ou momento de brainstorming para identificar o escopo, os objetivos e os próximos passos.\n\n**Motivação:** A mensagem expressa a necessidade de uma reflexão ou planejamento, mas não detalha o objeto de análise.\n\n⚠️ **Ação necessária:** Mensagem é uma intenção, não uma ação - refine antes de criar o card. O tópico a ser pensado não foi especificado e nenhum responsável foi atribuído.\n\n---\n_Card criado automaticamente via NL to Workflow a partir de mensagem de U0RWPM001._\n_Mensagem original: \"precisamos pensar sobre isso\"_"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "issuetype": {
+                    "name": "Task"
+                  },
+                  "priority": {
+                    "name": "Low"
+                  }
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": {
+                  "$pattern": "^✅ Card criado: \\*<http://[^/|>]+/browse/ROUTEWISE-44\\|ROUTEWISE-44>\\*\n\\*Discussão e análise sobre \\[Tópico não especificado\\]\\*\nPrioridade: low \\| Tipo: spike\n\n⚠️ \\*Assignee não atribuído\\* - defina o responsável no Jira antes de mover para In Progress\\.\n\n💬 \\*Ação necessária:\\* Mensagem é uma intenção, não uma ação - refine antes de criar o card\\. O tópico a ser pensado não foi especificado e nenhum responsável foi atribuído\\.$"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a message without the trigger is acknowledged and ignored",
+      "socket": {
+        "timeout": 60000,
+        "settle": 1500,
+        "messages": [
+          {
+            "type": "hello",
+            "num_connections": 1,
+            "debug_info": {
+              "host": "applink-stackfy-7fc4fdbb64-4x5xq",
+              "build_number": 10,
+              "approximate_connection_time": 18060
+            },
+            "connection_info": {
+              "app_id": "A0RW00001"
+            }
+          },
+          {
+            "payload": {
+              "token": "verification-token-synthesized",
+              "team_id": "T0RW00001",
+              "api_app_id": "A0RW00001",
+              "event": {
+                "type": "message",
+                "user": "U0RWPM001",
+                "text": "bom dia, time! a daily de hoje começa 10 minutos mais tarde",
+                "ts": "1767225600.005100",
+                "team": "T0RW00001",
+                "channel": "C0RW00001",
+                "event_ts": "1767225600.005100",
+                "channel_type": "channel"
+              },
+              "type": "event_callback",
+              "event_id": "Ev0RW00005",
+              "event_time": 1767225600,
+              "authorizations": [
+                {
+                  "enterprise_id": null,
+                  "team_id": "T0RW00001",
+                  "user_id": "U0RWBOT01",
+                  "is_bot": true,
+                  "is_enterprise_install": false
+                }
+              ],
+              "is_ext_shared_channel": false
+            },
+            "envelope_id": "5f0c6a2e-0b1d-4c7e-9a3f-000000000005",
+            "type": "events_api",
+            "accepts_response_payload": false,
+            "retry_attempt": 0,
+            "retry_reason": ""
+          }
+        ]
+      },
+      "replay": [
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/auth.test",
+          "incidental": true,
+          "json": {
+            "ok": true,
+            "url": "https://routewise.slack.com/",
+            "team": "RouteWise",
+            "user": "routewise-bot",
+            "team_id": "T0RW00001",
+            "user_id": "U0RWBOT01",
+            "bot_id": "B0RWBOT01",
+            "is_enterprise_install": false
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format, with the replay's own socket as the address",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/apps.connections.open",
+          "matchHeaders": {
+            "authorization": "^Bearer xapp-"
+          },
+          "incidental": true,
+          "json": {
+            "ok": true,
+            "url": "{replaySocket}/link/?ticket=stackfy-ticket&app_id=A0RW00001"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "output",
+          "pattern": "(?:^|\\n)⚡ NL to Workflow bot ativo - aguardando mensagens com trigger: card:\nCanal de notificações: #routewise\nProjeto Jira: ROUTEWISE\n$"
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "envelope_id": "5f0c6a2e-0b1d-4c7e-9a3f-000000000005"
+              }
+            }
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "a card Jira rejects ends in an error reply that asks for a manual card",
+      "socket": {
+        "timeout": 60000,
+        "settle": 1500,
+        "messages": [
+          {
+            "type": "hello",
+            "num_connections": 1,
+            "debug_info": {
+              "host": "applink-stackfy-7fc4fdbb64-4x5xq",
+              "build_number": 10,
+              "approximate_connection_time": 18060
+            },
+            "connection_info": {
+              "app_id": "A0RW00001"
+            }
+          },
+          {
+            "payload": {
+              "token": "verification-token-synthesized",
+              "team_id": "T0RW00001",
+              "api_app_id": "A0RW00001",
+              "event": {
+                "type": "message",
+                "user": "U0RWPM001",
+                "text": "card: Preciso investigar por que os alertas de velocidade não estão chegando para os motoristas na região de Uberlândia.",
+                "ts": "1767225600.006100",
+                "team": "T0RW00001",
+                "channel": "C0RW00001",
+                "event_ts": "1767225600.006100",
+                "channel_type": "channel"
+              },
+              "type": "event_callback",
+              "event_id": "Ev0RW00006",
+              "event_time": 1767225600,
+              "authorizations": [
+                {
+                  "enterprise_id": null,
+                  "team_id": "T0RW00001",
+                  "user_id": "U0RWBOT01",
+                  "is_bot": true,
+                  "is_enterprise_install": false
+                }
+              ],
+              "is_ext_shared_channel": false
+            },
+            "envelope_id": "5f0c6a2e-0b1d-4c7e-9a3f-000000000006",
+            "type": "events_api",
+            "accepts_response_payload": false,
+            "retry_attempt": 0,
+            "retry_reason": ""
+          }
+        ]
+      },
+      "replay": [
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/auth.test",
+          "incidental": true,
+          "json": {
+            "ok": true,
+            "url": "https://routewise.slack.com/",
+            "team": "RouteWise",
+            "user": "routewise-bot",
+            "team_id": "T0RW00001",
+            "user_id": "U0RWBOT01",
+            "bot_id": "B0RWBOT01",
+            "is_enterprise_install": false
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format, with the replay's own socket as the address",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/apps.connections.open",
+          "matchHeaders": {
+            "authorization": "^Bearer xapp-"
+          },
+          "incidental": true,
+          "json": {
+            "ok": true,
+            "url": "{replaySocket}/link/?ticket=stackfy-ticket&app_id=A0RW00001"
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00100"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for claude-sonnet-4-6, thinking disabled at the stand-in, in the Anthropic Messages API format",
+          "method": "POST",
+          "path": "/v1/messages",
+          "matchHeaders": {
+            "anthropic-version": ".+"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "msg_adaf37d693a8ce2b1d2fb724",
+            "type": "message",
+            "role": "assistant",
+            "model": "gemma4:12b-mlx",
+            "content": [
+              {
+                "type": "text",
+                "text": "```json\n{\n  \"type\": \"bug\",\n  \"title\": \"Falha nos alertas de velocidade na região de Uberlândia\",\n  \"priority\": \"high\",\n  \"component\": \"alertas-velocidade\",\n  \"assignee\": null,\n  \"requestedBy\": null,\n  \"dueDate\": null,\n  \"region\": \"Uberlândia\",\n  \"reason\": \"Os alertas de velocidade não estão sendo entregues aos motoristas em uma localização específica.\",\n  \"description\": \"Investigar por que os alertas de velocidade não estão chegando para os motoristas na região de Uberlândia. \\n\\nPontos de investigação prováveis:\\n1. Verificar se o log de alertas está sendo gerado para essa região específica.\\n2. Validar a conectividade e entrega de notificações para os dispositivos nessa localidade.\\n3. Verificar se há filtros de geofencing que possam estar bloqueando o envio.\",\n  \"actionRequired\": \"O responsável (assignee) não foi definido na mensagem original.\",\n  \"confidence\": \"high\"\n}\n```"
+              }
+            ],
+            "stop_reason": "end_turn",
+            "usage": {
+              "input_tokens": 684,
+              "cache_read_input_tokens": 2,
+              "output_tokens": 234
+            }
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00200"
+          }
+        },
+        {
+          "source": "synthesized from Jira Cloud's documented REST API format, for a project whose create screen lacks the priority field",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/rest/api/3/issue",
+          "matchHeaders": {
+            "authorization": "^Basic cG1Acm91dGV3aXNlLmV4YW1wbGU6amlyYS10b2tlbi1zeW50aGVzaXplZA==$"
+          },
+          "status": 400,
+          "json": {
+            "errorMessages": [],
+            "errors": {
+              "priority": "Field 'priority' cannot be set. It is not on the appropriate screen, or unknown."
+            }
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00300"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "output",
+          "pattern": "(?:^|\\n)⚡ NL to Workflow bot ativo - aguardando mensagens com trigger: card:\nCanal de notificações: #routewise\nProjeto Jira: ROUTEWISE\n$"
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "envelope_id": "5f0c6a2e-0b1d-4c7e-9a3f-000000000006"
+              }
+            }
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": "⏳ Processando: _\"Preciso investigar por que os alertas de velocidade não estão chegando para os motoristas na região de Uberlândia.\"_"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/messages",
+              "body": {
+                "anyOf": [
+                  {
+                    "model": "claude-sonnet-4-6",
+                    "max_tokens": 1024,
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": "\nVocê é um parser de linguagem natural para criação de cards no Jira. Sua função é extrair informações estruturadas de mensagens de texto em linguagem natural - como mensagens de Slack, e-mails ou anotações rápidas - e retornar um objeto JSON pronto para criação de card.\n\n## CONTEXTO DO PROJETO\n- Projeto: ROUTEWISE - Sistema de Gestão de Frota\n- Componentes disponíveis: alertas-velocidade, score-comportamento, manutencao-preditiva, dashboard, integracao-gps, notificacoes\n- Membros do time: Carlos (Diretor de Operações), Priya (TI/Infra), Marcus (Consultor)\n\n## MENSAGEM PARA PROCESSAR\n\nPreciso investigar por que os alertas de velocidade não estão chegando para os motoristas na região de Uberlândia.\n\n## ANÁLISE SOLICITADA\n\nExtraia as seguintes informações da mensagem e retorne um JSON:\n\n{\n  \"type\": \"bug | task | story | spike\",\n  \"title\": \"título claro e específico - máximo 80 caracteres\",\n  \"priority\": \"highest | high | medium | low\",\n  \"component\": \"componente identificado ou null\",\n  \"assignee\": \"nome do responsável mencionado explicitamente ou null se não mencionado\",\n  \"requestedBy\": \"quem solicitou, se diferente do assignee, ou null\",\n  \"dueDate\": \"data extraída ou descrição textual (ex: 'fim do mês corrente') ou null\",\n  \"region\": \"região ou localização mencionada, se relevante, ou null\",\n  \"reason\": \"motivação ou contexto de negócio explicitado na mensagem, ou null\",\n  \"description\": \"descrição expandida para o campo de descrição do card - inclua contexto e pontos de investigação prováveis\",\n  \"actionRequired\": \"mensagem de alerta se houver informação crítica ausente (ex: assignee não definido, prazo ambíguo), ou null\",\n  \"confidence\": \"high | medium | low - seu grau de confiança na extração\"\n}\n\n## RESTRIÇÕES DE COMPORTAMENTO\n\n- Nunca invente assignee - se não foi explicitamente mencionado, retorne null e adicione uma mensagem em actionRequired indicando que o responsável precisa ser definido\n- Se a mensagem menciona múltiplas pessoas, identifique quem faz o quê - não atribua a quem estava falando, mas a quem se comprometeu\n- Datas implícitas (\"urgente\", \"antes da próxima reunião\", \"esta semana\") devem ser descritas em palavras, não convertidas para datas fixas - você não sabe qual é a data atual\n- Para mensagens com solicitação de voluntário (\"alguém pode pegar isso?\"), sinalize em actionRequired que o assignee precisa ser confirmado antes de mover o card para In Progress\n- Se a mensagem não é acionável (ex: \"precisamos pensar sobre isso\"), retorne type: \"spike\" e adicione em actionRequired: \"Mensagem é uma intenção, não uma ação - refine antes de criar o card\"\n- O campo confidence deve refletir sua certeza real - se a mensagem é ambígua, declare low\n"
+                      }
+                    ]
+                  },
+                  {
+                    "model": "claude-sonnet-4-6",
+                    "max_tokens": 1024,
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "\nVocê é um parser de linguagem natural para criação de cards no Jira. Sua função é extrair informações estruturadas de mensagens de texto em linguagem natural - como mensagens de Slack, e-mails ou anotações rápidas - e retornar um objeto JSON pronto para criação de card.\n\n## CONTEXTO DO PROJETO\n- Projeto: ROUTEWISE - Sistema de Gestão de Frota\n- Componentes disponíveis: alertas-velocidade, score-comportamento, manutencao-preditiva, dashboard, integracao-gps, notificacoes\n- Membros do time: Carlos (Diretor de Operações), Priya (TI/Infra), Marcus (Consultor)\n\n## MENSAGEM PARA PROCESSAR\n\nPreciso investigar por que os alertas de velocidade não estão chegando para os motoristas na região de Uberlândia.\n\n## ANÁLISE SOLICITADA\n\nExtraia as seguintes informações da mensagem e retorne um JSON:\n\n{\n  \"type\": \"bug | task | story | spike\",\n  \"title\": \"título claro e específico - máximo 80 caracteres\",\n  \"priority\": \"highest | high | medium | low\",\n  \"component\": \"componente identificado ou null\",\n  \"assignee\": \"nome do responsável mencionado explicitamente ou null se não mencionado\",\n  \"requestedBy\": \"quem solicitou, se diferente do assignee, ou null\",\n  \"dueDate\": \"data extraída ou descrição textual (ex: 'fim do mês corrente') ou null\",\n  \"region\": \"região ou localização mencionada, se relevante, ou null\",\n  \"reason\": \"motivação ou contexto de negócio explicitado na mensagem, ou null\",\n  \"description\": \"descrição expandida para o campo de descrição do card - inclua contexto e pontos de investigação prováveis\",\n  \"actionRequired\": \"mensagem de alerta se houver informação crítica ausente (ex: assignee não definido, prazo ambíguo), ou null\",\n  \"confidence\": \"high | medium | low - seu grau de confiança na extração\"\n}\n\n## RESTRIÇÕES DE COMPORTAMENTO\n\n- Nunca invente assignee - se não foi explicitamente mencionado, retorne null e adicione uma mensagem em actionRequired indicando que o responsável precisa ser definido\n- Se a mensagem menciona múltiplas pessoas, identifique quem faz o quê - não atribua a quem estava falando, mas a quem se comprometeu\n- Datas implícitas (\"urgente\", \"antes da próxima reunião\", \"esta semana\") devem ser descritas em palavras, não convertidas para datas fixas - você não sabe qual é a data atual\n- Para mensagens com solicitação de voluntário (\"alguém pode pegar isso?\"), sinalize em actionRequired que o assignee precisa ser confirmado antes de mover o card para In Progress\n- Se a mensagem não é acionável (ex: \"precisamos pensar sobre isso\"), retorne type: \"spike\" e adicione em actionRequired: \"Mensagem é uma intenção, não uma ação - refine antes de criar o card\"\n- O campo confidence deve refletir sua certeza real - se a mensagem é ambígua, declare low\n"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": "📋 *Card identificado - confirme antes de criar:*\n\n*Tipo:* bug\n*Título:* Falha nos alertas de velocidade na região de Uberlândia\n*Prioridade:* high\n*Responsável:* [A DEFINIR]\n*Prazo:* [A DEFINIR]\n*Componente:* alertas-velocidade\n\n⚠️ *Atenção:* O responsável (assignee) não foi definido na mensagem original.\n\n_Confiança do parser: high_"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/rest/api/3/issue",
+              "body": {
+                "fields": {
+                  "project": {
+                    "key": "ROUTEWISE"
+                  },
+                  "summary": "Falha nos alertas de velocidade na região de Uberlândia",
+                  "description": {
+                    "type": "doc",
+                    "version": 1,
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "Investigar por que os alertas de velocidade não estão chegando para os motoristas na região de Uberlândia. \n\nPontos de investigação prováveis:\n1. Verificar se o log de alertas está sendo gerado para essa região específica.\n2. Validar a conectividade e entrega de notificações para os dispositivos nessa localidade.\n3. Verificar se há filtros de geofencing que possam estar bloqueando o envio.\n\n**Motivação:** Os alertas de velocidade não estão sendo entregues aos motoristas em uma localização específica.\n\n⚠️ **Ação necessária:** O responsável (assignee) não foi definido na mensagem original.\n\n---\n_Card criado automaticamente via NL to Workflow a partir de mensagem de U0RWPM001._\n_Mensagem original: \"Preciso investigar por que os alertas de velocidade não estão chegando para os motoristas na região de Uberlândia.\"_"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "issuetype": {
+                    "name": "Bug"
+                  },
+                  "priority": {
+                    "name": "High"
+                  }
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": {
+                  "$pattern": "^❌ Não foi possível processar a mensagem\\. Erro: [\\s\\S]+\nCrie o card manualmente ou tente reformular a mensagem\\.$"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "an answer without JSON ends in an error reply before any card",
+      "socket": {
+        "timeout": 60000,
+        "settle": 1500,
+        "messages": [
+          {
+            "type": "hello",
+            "num_connections": 1,
+            "debug_info": {
+              "host": "applink-stackfy-7fc4fdbb64-4x5xq",
+              "build_number": 10,
+              "approximate_connection_time": 18060
+            },
+            "connection_info": {
+              "app_id": "A0RW00001"
+            }
+          },
+          {
+            "payload": {
+              "token": "verification-token-synthesized",
+              "team_id": "T0RW00001",
+              "api_app_id": "A0RW00001",
+              "event": {
+                "type": "message",
+                "user": "U0RWPM001",
+                "text": "card: e aquele assunto de ontem?",
+                "ts": "1767225600.007100",
+                "team": "T0RW00001",
+                "channel": "C0RW00001",
+                "event_ts": "1767225600.007100",
+                "channel_type": "channel"
+              },
+              "type": "event_callback",
+              "event_id": "Ev0RW00007",
+              "event_time": 1767225600,
+              "authorizations": [
+                {
+                  "enterprise_id": null,
+                  "team_id": "T0RW00001",
+                  "user_id": "U0RWBOT01",
+                  "is_bot": true,
+                  "is_enterprise_install": false
+                }
+              ],
+              "is_ext_shared_channel": false
+            },
+            "envelope_id": "5f0c6a2e-0b1d-4c7e-9a3f-000000000007",
+            "type": "events_api",
+            "accepts_response_payload": false,
+            "retry_attempt": 0,
+            "retry_reason": ""
+          }
+        ]
+      },
+      "replay": [
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/auth.test",
+          "incidental": true,
+          "json": {
+            "ok": true,
+            "url": "https://routewise.slack.com/",
+            "team": "RouteWise",
+            "user": "routewise-bot",
+            "team_id": "T0RW00001",
+            "user_id": "U0RWBOT01",
+            "bot_id": "B0RWBOT01",
+            "is_enterprise_install": false
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format, with the replay's own socket as the address",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/apps.connections.open",
+          "matchHeaders": {
+            "authorization": "^Bearer xapp-"
+          },
+          "incidental": true,
+          "json": {
+            "ok": true,
+            "url": "{replaySocket}/link/?ticket=stackfy-ticket&app_id=A0RW00001"
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00100"
+          }
+        },
+        {
+          "source": "synthesized from the Anthropic Messages API format: an answer in prose, without the JSON the prompt asks for",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/messages",
+          "matchHeaders": {
+            "anthropic-version": ".+"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "msg_01StackfySynthesized",
+            "type": "message",
+            "role": "assistant",
+            "model": "claude-sonnet-4-6",
+            "content": [
+              {
+                "type": "text",
+                "text": "Não consigo identificar uma ação nesta mensagem. Pode detalhar o que precisa ser feito, por quem e até quando?"
+              }
+            ],
+            "stop_reason": "end_turn",
+            "stop_sequence": null,
+            "usage": {
+              "input_tokens": 612,
+              "output_tokens": 31
+            }
+          }
+        },
+        {
+          "source": "synthesized from Slack's documented Web API format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/chat.postMessage",
+          "json": {
+            "ok": true,
+            "channel": "C0RW00001",
+            "ts": "1767225601.00200"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "output",
+          "pattern": "(?:^|\\n)⚡ NL to Workflow bot ativo - aguardando mensagens com trigger: card:\nCanal de notificações: #routewise\nProjeto Jira: ROUTEWISE\n$"
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "envelope_id": "5f0c6a2e-0b1d-4c7e-9a3f-000000000007"
+              }
+            }
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": "⏳ Processando: _\"e aquele assunto de ontem?\"_"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/messages",
+              "body": {
+                "anyOf": [
+                  {
+                    "model": "claude-sonnet-4-6",
+                    "max_tokens": 1024,
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": "\nVocê é um parser de linguagem natural para criação de cards no Jira. Sua função é extrair informações estruturadas de mensagens de texto em linguagem natural - como mensagens de Slack, e-mails ou anotações rápidas - e retornar um objeto JSON pronto para criação de card.\n\n## CONTEXTO DO PROJETO\n- Projeto: ROUTEWISE - Sistema de Gestão de Frota\n- Componentes disponíveis: alertas-velocidade, score-comportamento, manutencao-preditiva, dashboard, integracao-gps, notificacoes\n- Membros do time: Carlos (Diretor de Operações), Priya (TI/Infra), Marcus (Consultor)\n\n## MENSAGEM PARA PROCESSAR\n\ne aquele assunto de ontem?\n\n## ANÁLISE SOLICITADA\n\nExtraia as seguintes informações da mensagem e retorne um JSON:\n\n{\n  \"type\": \"bug | task | story | spike\",\n  \"title\": \"título claro e específico - máximo 80 caracteres\",\n  \"priority\": \"highest | high | medium | low\",\n  \"component\": \"componente identificado ou null\",\n  \"assignee\": \"nome do responsável mencionado explicitamente ou null se não mencionado\",\n  \"requestedBy\": \"quem solicitou, se diferente do assignee, ou null\",\n  \"dueDate\": \"data extraída ou descrição textual (ex: 'fim do mês corrente') ou null\",\n  \"region\": \"região ou localização mencionada, se relevante, ou null\",\n  \"reason\": \"motivação ou contexto de negócio explicitado na mensagem, ou null\",\n  \"description\": \"descrição expandida para o campo de descrição do card - inclua contexto e pontos de investigação prováveis\",\n  \"actionRequired\": \"mensagem de alerta se houver informação crítica ausente (ex: assignee não definido, prazo ambíguo), ou null\",\n  \"confidence\": \"high | medium | low - seu grau de confiança na extração\"\n}\n\n## RESTRIÇÕES DE COMPORTAMENTO\n\n- Nunca invente assignee - se não foi explicitamente mencionado, retorne null e adicione uma mensagem em actionRequired indicando que o responsável precisa ser definido\n- Se a mensagem menciona múltiplas pessoas, identifique quem faz o quê - não atribua a quem estava falando, mas a quem se comprometeu\n- Datas implícitas (\"urgente\", \"antes da próxima reunião\", \"esta semana\") devem ser descritas em palavras, não convertidas para datas fixas - você não sabe qual é a data atual\n- Para mensagens com solicitação de voluntário (\"alguém pode pegar isso?\"), sinalize em actionRequired que o assignee precisa ser confirmado antes de mover o card para In Progress\n- Se a mensagem não é acionável (ex: \"precisamos pensar sobre isso\"), retorne type: \"spike\" e adicione em actionRequired: \"Mensagem é uma intenção, não uma ação - refine antes de criar o card\"\n- O campo confidence deve refletir sua certeza real - se a mensagem é ambígua, declare low\n"
+                      }
+                    ]
+                  },
+                  {
+                    "model": "claude-sonnet-4-6",
+                    "max_tokens": 1024,
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "\nVocê é um parser de linguagem natural para criação de cards no Jira. Sua função é extrair informações estruturadas de mensagens de texto em linguagem natural - como mensagens de Slack, e-mails ou anotações rápidas - e retornar um objeto JSON pronto para criação de card.\n\n## CONTEXTO DO PROJETO\n- Projeto: ROUTEWISE - Sistema de Gestão de Frota\n- Componentes disponíveis: alertas-velocidade, score-comportamento, manutencao-preditiva, dashboard, integracao-gps, notificacoes\n- Membros do time: Carlos (Diretor de Operações), Priya (TI/Infra), Marcus (Consultor)\n\n## MENSAGEM PARA PROCESSAR\n\ne aquele assunto de ontem?\n\n## ANÁLISE SOLICITADA\n\nExtraia as seguintes informações da mensagem e retorne um JSON:\n\n{\n  \"type\": \"bug | task | story | spike\",\n  \"title\": \"título claro e específico - máximo 80 caracteres\",\n  \"priority\": \"highest | high | medium | low\",\n  \"component\": \"componente identificado ou null\",\n  \"assignee\": \"nome do responsável mencionado explicitamente ou null se não mencionado\",\n  \"requestedBy\": \"quem solicitou, se diferente do assignee, ou null\",\n  \"dueDate\": \"data extraída ou descrição textual (ex: 'fim do mês corrente') ou null\",\n  \"region\": \"região ou localização mencionada, se relevante, ou null\",\n  \"reason\": \"motivação ou contexto de negócio explicitado na mensagem, ou null\",\n  \"description\": \"descrição expandida para o campo de descrição do card - inclua contexto e pontos de investigação prováveis\",\n  \"actionRequired\": \"mensagem de alerta se houver informação crítica ausente (ex: assignee não definido, prazo ambíguo), ou null\",\n  \"confidence\": \"high | medium | low - seu grau de confiança na extração\"\n}\n\n## RESTRIÇÕES DE COMPORTAMENTO\n\n- Nunca invente assignee - se não foi explicitamente mencionado, retorne null e adicione uma mensagem em actionRequired indicando que o responsável precisa ser definido\n- Se a mensagem menciona múltiplas pessoas, identifique quem faz o quê - não atribua a quem estava falando, mas a quem se comprometeu\n- Datas implícitas (\"urgente\", \"antes da próxima reunião\", \"esta semana\") devem ser descritas em palavras, não convertidas para datas fixas - você não sabe qual é a data atual\n- Para mensagens com solicitação de voluntário (\"alguém pode pegar isso?\"), sinalize em actionRequired que o assignee precisa ser confirmado antes de mover o card para In Progress\n- Se a mensagem não é acionável (ex: \"precisamos pensar sobre isso\"), retorne type: \"spike\" e adicione em actionRequired: \"Mensagem é uma intenção, não uma ação - refine antes de criar o card\"\n- O campo confidence deve refletir sua certeza real - se a mensagem é ambígua, declare low\n"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/chat.postMessage",
+              "body": {
+                "channel": "C0RW00001",
+                "text": "❌ Não foi possível processar a mensagem. Erro: Parser não retornou JSON válido\nCrie o card manualmente ou tente reformular a mensagem."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2462 @@
+{
+  "module": "modulo03-mcp-na-pratica/02-google-trends-agent",
+  "concepts": [
+    "tool-calling",
+    "model-context-protocol",
+    "state-graph",
+    "chat-model",
+    "rest-api",
+    "schema-validation"
+  ],
+  "recorded": "Every case passed against the original with Node.js 26.12.1, @langchain/core 1.1.19, @langchain/langgraph 1.2.0, @langchain/mcp-adapters 1.1.3, @langchain/openai 1.2.5, langchain 1.2.18, fastify 5.7.4, serpapi 2.2.1, zod 3.25.76, and @modelcontextprotocol/server-filesystem 2.0.1, installed from the lesson's lockfile and run as \"node src/index.ts\" without a .env file, so LangSmith tracing stays off. The original always listens on port 3000, calls OpenRouter's address, and reaches SerpApi through the serpapi package, which always calls https://serpapi.com. The copy that produced these cases listens on PORT and prints it, falling back to 3000, a two-line change in src/index.ts, reads OPENAI_BASE_URL first in the OpenRouter service, a one-line change, and, when SERPAPI_BASE_URL is set, points the serpapi package's host, port, and HTTP agent to it, a few lines at the top of the SerpApi service that leave its requests and errors unchanged. No OpenRouter key was available, so the model answers were recorded from Ollama 0.40.11 through its OpenAI-compatible API, with gemma4:12b-mlx standing in for arcee-ai/trinity-large-preview:free and without the stand-in's reasoning field, while the requests keep the model the program asked for. No SerpApi key was available either, so every Google Trends answer is synthesized from SerpApi's documented interest over time format, with one point a day for the past week instead of Google's hourly points, and the failing lookup answers SerpApi's documented 401 for an invalid key. A TIMESERIES search never carries related queries or related topics, so relatedQueries and risingTopics stay empty in every tool result. The researcher's answer without a tool call and the responder's answer that follows it are synthesized in the recorded format. The entry point asks its sample question through the route as soon as it listens and keeps serving, so every case waits for the answer it prints before sending its own requests. The tool result's timestamp is checked by its ISO 8601 shape, tool call arguments are never compared, and max_tokens is not compared, because clients send it as max_tokens or max_completion_tokens. The filesystem MCP server starts through npx at its latest version, so the cases check its tools by name only. Fastify's error bodies are checked by status code, statusCode, and error, with any non-empty message, because the validation messages come from Ajv, except the unknown method, whose message is short and checked exactly. The route's 500 answer is never checked, because both nodes turn every failure into an answer. The LangGraph CLI's development server, which factory.ts and langgraph.json register the graph for, belongs to the CLI and has no cases.",
+  "prepare": {
+    "setup": ["npm ci"],
+    "patches": [
+      {
+        "file": "src/index.ts",
+        "find": "port: 3000",
+        "replace": "port: Number(process.env.PORT ?? 3000)"
+      },
+      {
+        "file": "src/index.ts",
+        "find": "http://0.0.0.0:3000",
+        "replace": "http://0.0.0.0:${process.env.PORT ?? 3000}"
+      },
+      {
+        "file": "src/services/openRouterService.ts",
+        "find": "baseURL: 'https://openrouter.ai/api/v1'",
+        "replace": "baseURL: process.env.OPENAI_BASE_URL ?? 'https://openrouter.ai/api/v1'"
+      },
+      {
+        "file": "src/services/serpApiService.ts",
+        "find": "import { getJson } from 'serpapi';",
+        "replace": "import { config as serpApiConfig, getJson } from 'serpapi';\nimport http from 'node:http';\nimport net from 'node:net';\n\nif (process.env.SERPAPI_BASE_URL) {\n  const { hostname, port } = new URL(process.env.SERPAPI_BASE_URL);\n  const agent = new http.Agent();\n  agent.createConnection = (_options, callback) => net.createConnection({ host: hostname, port: Number(port) }, callback);\n  serpApiConfig.requestOptions = { protocol: 'http:', agent };\n}"
+      }
+    ]
+  },
+  "originals": ["node src/index.ts"],
+  "env": {
+    "OPENROUTER_API_KEY": "replay",
+    "SERPAPI_API_KEY": "replay",
+    "SERPAPI_BASE_URL": "{replay}"
+  },
+  "cases": [
+    {
+      "name": "the startup question and an outside question each go through the researcher, which looks up two keywords on Google Trends one at a time, and the responder, and the route answers the responder text",
+      "timeout": 180000,
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for arcee-ai/trinity-large-preview:free",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-945",
+            "object": "chat.completion",
+            "created": 1793096022,
+            "model": "gemma4:12b-mlx",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "finish_reason": "tool_calls",
+                "message": {
+                  "role": "assistant",
+                  "content": "",
+                  "tool_calls": [
+                    {
+                      "id": "call_8qdtshv7",
+                      "index": 0,
+                      "type": "function",
+                      "function": {
+                        "name": "google_trends",
+                        "arguments": "{\"keywords\":[\"Web AI\",\"AI Browser\"]}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1807,
+              "prompt_tokens_details": {
+                "cached_tokens": 6
+              },
+              "completion_tokens": 194,
+              "total_tokens": 2001
+            }
+          }
+        },
+        {
+          "source": "synthesized from SerpApi's documented Google Trends interest over time format, with one point a day",
+          "synthesized": true,
+          "method": "GET",
+          "path": "/search",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "search_metadata": {
+              "id": "6a1f0c00e4b0d2a7c3f19e58",
+              "status": "Success",
+              "json_endpoint": "https://serpapi.com/searches/7c3f19e58d2a1b04/6a1f0c00e4b0d2a7c3f19e58.json",
+              "created_at": "2026-10-27 12:00:00 UTC",
+              "processed_at": "2026-10-27 12:00:00 UTC",
+              "google_trends_url": "https://trends.google.com/trends/api/explore?tz=420&req=%7B%22comparisonItem%22%3A%5B%7B%22keyword%22%3A%22Web%2520AI%22%2C%22geo%22%3A%22%22%2C%22time%22%3A%22now+7-d%22%7D%5D%2C%22category%22%3A0%2C%22property%22%3A%22%22%7D",
+              "raw_html_file": "https://serpapi.com/searches/7c3f19e58d2a1b04/6a1f0c00e4b0d2a7c3f19e58.html",
+              "total_time_taken": 2.41
+            },
+            "search_parameters": {
+              "engine": "google_trends",
+              "q": "Web AI",
+              "date": "now 7-d",
+              "tz": "420",
+              "data_type": "TIMESERIES"
+            },
+            "interest_over_time": {
+              "timeline_data": [
+                {
+                  "date": "Oct 20, 2026",
+                  "timestamp": "1792454400",
+                  "values": [
+                    {
+                      "query": "Web AI",
+                      "value": "20",
+                      "extracted_value": 20
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 21, 2026",
+                  "timestamp": "1792540800",
+                  "values": [
+                    {
+                      "query": "Web AI",
+                      "value": "24",
+                      "extracted_value": 24
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 22, 2026",
+                  "timestamp": "1792627200",
+                  "values": [
+                    {
+                      "query": "Web AI",
+                      "value": "22",
+                      "extracted_value": 22
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 23, 2026",
+                  "timestamp": "1792713600",
+                  "values": [
+                    {
+                      "query": "Web AI",
+                      "value": "35",
+                      "extracted_value": 35
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 24, 2026",
+                  "timestamp": "1792800000",
+                  "values": [
+                    {
+                      "query": "Web AI",
+                      "value": "48",
+                      "extracted_value": 48
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 25, 2026",
+                  "timestamp": "1792886400",
+                  "values": [
+                    {
+                      "query": "Web AI",
+                      "value": "61",
+                      "extracted_value": 61
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 26, 2026",
+                  "timestamp": "1792972800",
+                  "values": [
+                    {
+                      "query": "Web AI",
+                      "value": "77",
+                      "extracted_value": 77
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 27, 2026",
+                  "timestamp": "1793059200",
+                  "values": [
+                    {
+                      "query": "Web AI",
+                      "value": "100",
+                      "extracted_value": 100
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "source": "synthesized from SerpApi's documented Google Trends interest over time format, with one point a day",
+          "synthesized": true,
+          "method": "GET",
+          "path": "/search",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "search_metadata": {
+              "id": "6a1f0c01e4b0d2a7c3f19e58",
+              "status": "Success",
+              "json_endpoint": "https://serpapi.com/searches/7c3f19e58d2a1b04/6a1f0c01e4b0d2a7c3f19e58.json",
+              "created_at": "2026-10-27 12:00:00 UTC",
+              "processed_at": "2026-10-27 12:00:00 UTC",
+              "google_trends_url": "https://trends.google.com/trends/api/explore?tz=420&req=%7B%22comparisonItem%22%3A%5B%7B%22keyword%22%3A%22AI%2520Browser%22%2C%22geo%22%3A%22%22%2C%22time%22%3A%22now+7-d%22%7D%5D%2C%22category%22%3A0%2C%22property%22%3A%22%22%7D",
+              "raw_html_file": "https://serpapi.com/searches/7c3f19e58d2a1b04/6a1f0c01e4b0d2a7c3f19e58.html",
+              "total_time_taken": 2.41
+            },
+            "search_parameters": {
+              "engine": "google_trends",
+              "q": "AI Browser",
+              "date": "now 7-d",
+              "tz": "420",
+              "data_type": "TIMESERIES"
+            },
+            "interest_over_time": {
+              "timeline_data": [
+                {
+                  "date": "Oct 20, 2026",
+                  "timestamp": "1792454400",
+                  "values": [
+                    {
+                      "query": "AI Browser",
+                      "value": "100",
+                      "extracted_value": 100
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 21, 2026",
+                  "timestamp": "1792540800",
+                  "values": [
+                    {
+                      "query": "AI Browser",
+                      "value": "91",
+                      "extracted_value": 91
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 22, 2026",
+                  "timestamp": "1792627200",
+                  "values": [
+                    {
+                      "query": "AI Browser",
+                      "value": "84",
+                      "extracted_value": 84
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 23, 2026",
+                  "timestamp": "1792713600",
+                  "values": [
+                    {
+                      "query": "AI Browser",
+                      "value": "70",
+                      "extracted_value": 70
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 24, 2026",
+                  "timestamp": "1792800000",
+                  "values": [
+                    {
+                      "query": "AI Browser",
+                      "value": "58",
+                      "extracted_value": 58
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 25, 2026",
+                  "timestamp": "1792886400",
+                  "values": [
+                    {
+                      "query": "AI Browser",
+                      "value": "47",
+                      "extracted_value": 47
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 26, 2026",
+                  "timestamp": "1792972800",
+                  "values": [
+                    {
+                      "query": "AI Browser",
+                      "value": "41",
+                      "extracted_value": 41
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 27, 2026",
+                  "timestamp": "1793059200",
+                  "values": [
+                    {
+                      "query": "AI Browser",
+                      "value": "36",
+                      "extracted_value": 36
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for arcee-ai/trinity-large-preview:free",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-322",
+            "object": "chat.completion",
+            "created": 1793096037,
+            "model": "gemma4:12b-mlx",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "finish_reason": "stop",
+                "message": {
+                  "role": "assistant",
+                  "content": "Com base nas tendências atuais, o termo **\"Web AI\"** está em ascensão, o que indica um grande interesse em como rodar inteligência artificial diretamente no navegador sem depender exclusivamente de servidores externos.\n\nAqui estão algumas sugestões de títulos divididas por estilo de conteúdo para o seu vídeo:\n\n### 🚀 Estilo \"Clickbait\" / Alto Engajamento (Para atrair cliques)\n*   \"Esqueça as nuvens: Como rodar IA direto no seu navegador!\"\n*   \"A revolução da Web AI: Por que você não precisa mais baixar nada.\"\n*   \"O fim das APIs de IA? Como a Web AI está mudando tudo.\"\n*   \"Como rodar LLMs no seu PC usando apenas o Chrome (ou Edge).\"\n\n### 🎓 Estilo Educativo / Tutorial (Para quem quer aprender)\n*   \"O que é Web AI? Um guia completo para iniciantes.\"\n*   \"Como funciona a Inteligência Artificial no Navegador (WebGPU e WebNN).\"\n*   \"Web AI vs. Cloud AI: Qual é a melhor para o seu projeto?\"\n*   \"Tutorial: Como integrar modelos de IA em sites usando Web AI.\"\n\n### 💻 Estilo Técnico / Desenvolvedor (Para programadores)\n*   \"Explorando a API WebGPU para Machine Learning no navegador.\"\n*   \"Como rodar modelos Transformers localmente via Web AI.\"\n*   \"Privacidade e Performance: Por que a Web AI é o futuro do desenvolvimento.\"\n*   \"Comparativo de Performance: Web AI vs. Frameworks tradicionais.\"\n\n**Dica de Especialista:**\nComo a busca por **\"Web AI\"** está subindo rapidamente, tente usar palavras-chave como **\"Privacidade\"**, **\"Local\"** e **\"Sem download\"** na sua thumbnail e descrição. O grande diferencial da Web AI hoje é a capacidade de rodar modelos potentes sem enviar dados para servidores de terceiros."
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1929,
+              "prompt_tokens_details": {
+                "cached_tokens": 1803
+              },
+              "completion_tokens": 636,
+              "total_tokens": 2565
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for arcee-ai/trinity-large-preview:free",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-435",
+            "object": "chat.completion",
+            "created": 1793096071,
+            "model": "gemma4:12b-mlx",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "finish_reason": "stop",
+                "message": {
+                  "role": "assistant",
+                  "content": "Excelente escolha de tema! Os dados do Google Trends mostram que o interesse por **Web AI** está em uma curva de crescimento muito interessante. Isso acontece porque as pessoas estão buscando formas de rodar modelos potentes sem depender de servidores externos, o que traz dois grandes benefícios: **privacidade** e **performance**.\n\nPara escolher o melhor título, você precisa primeiro definir qual é o seu objetivo principal com esse vídeo. Aqui estão minhas recomendações baseadas nos dados:\n\n### 🎯 Escolha baseada no seu Objetivo:\n\n**1. Se o seu objetivo é Viralização e Alcance (Mais Cliques):**\nUse um título que prometa uma \"quebra de padrão\". O público geral adora saber que pode fazer algo sem precisar de configurações complexas.\n*   **Sugestão:** *\"Esqueça as nuvens: Como rodar IA direto no seu navegador!\"*\n*   **Por que funciona:** Cria curiosidade imediata e foca no benefício de não precisar de infraestrutura externa.\n\n**2. Se o seu objetivo é Autoridade e Educação (Retenção e Valor):**\nSe você quer construir uma audiência que confia no seu conhecimento técnico, vá pelo caminho comparativo.\n*   **Sugestão:** *\"Web AI vs. Cloud AI: Qual é a melhor para o seu projeto?\"*\n*   **Por que funciona:** Ajuda o espectador a tomar uma decisão e posiciona você como um especialista que entende as nuances da tecnologia.\n\n**3. Se o seu público é de Desenvolvedores (Nicho Técnico):**\nSe você quer falar para quem já programa, seja direto sobre a tecnologia.\n*   **Sugestão:** *\"Explorando a API WebGPU para Machine Learning no navegador.\"*\n*   **Por que funciona:** Atrai o público certo que já está procurando por ferramentas específicas como WebGPU.\n\n---\n\n### 💡 Dica de Ouro baseada nos dados:\nIndependentemente do título que você escolher, a \"alma\" do seu conteúdo deve focar em **Privacidade** e **Execução Local**. \n\nPara garantir que o vídeo performe bem, certifique-se de incluir estas palavras-chave na sua **Thumbnail** e na **Descrição**:\n*   **\"Privacidade\"** (porque os dados não saem do PC do usuário)\n*   **\"Sem Download\"** (porque roda direto no browser)\n*   **\"Local\"** (para enfatizar a independência de nuvem)\n\n**Minha recomendação final:** Comece com o título **\"Esqueça as nuvens: Como rodar IA direto no seu navegador!\"** para atrair um público maior e, logo nos primeiros segundos do vídeo, explique a diferença técnica para manter a autoridade.\n\nBoa sorte com o canal! Esse é um nicho com muito potencial de crescimento."
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 2271,
+              "prompt_tokens_details": {
+                "cached_tokens": 6
+              },
+              "completion_tokens": 1346,
+              "total_tokens": 3617
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for arcee-ai/trinity-large-preview:free",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-164",
+            "object": "chat.completion",
+            "created": 1793096080,
+            "model": "gemma4:12b-mlx",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "finish_reason": "tool_calls",
+                "message": {
+                  "role": "assistant",
+                  "content": "",
+                  "tool_calls": [
+                    {
+                      "id": "call_ey3klxeo",
+                      "index": 0,
+                      "type": "function",
+                      "function": {
+                        "name": "google_trends",
+                        "arguments": "{\"keywords\":[\"Rust programming\",\"Rust tutorial\"]}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1805,
+              "prompt_tokens_details": {
+                "cached_tokens": 9
+              },
+              "completion_tokens": 201,
+              "total_tokens": 2006
+            }
+          }
+        },
+        {
+          "source": "synthesized from SerpApi's documented Google Trends interest over time format, with one point a day",
+          "synthesized": true,
+          "method": "GET",
+          "path": "/search",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "search_metadata": {
+              "id": "6a1f0c02e4b0d2a7c3f19e58",
+              "status": "Success",
+              "json_endpoint": "https://serpapi.com/searches/7c3f19e58d2a1b04/6a1f0c02e4b0d2a7c3f19e58.json",
+              "created_at": "2026-10-27 12:00:00 UTC",
+              "processed_at": "2026-10-27 12:00:00 UTC",
+              "google_trends_url": "https://trends.google.com/trends/api/explore?tz=420&req=%7B%22comparisonItem%22%3A%5B%7B%22keyword%22%3A%22Rust%2520programming%22%2C%22geo%22%3A%22%22%2C%22time%22%3A%22now+7-d%22%7D%5D%2C%22category%22%3A0%2C%22property%22%3A%22%22%7D",
+              "raw_html_file": "https://serpapi.com/searches/7c3f19e58d2a1b04/6a1f0c02e4b0d2a7c3f19e58.html",
+              "total_time_taken": 2.41
+            },
+            "search_parameters": {
+              "engine": "google_trends",
+              "q": "Rust programming",
+              "date": "now 7-d",
+              "tz": "420",
+              "data_type": "TIMESERIES"
+            },
+            "interest_over_time": {
+              "timeline_data": [
+                {
+                  "date": "Oct 20, 2026",
+                  "timestamp": "1792454400",
+                  "values": [
+                    {
+                      "query": "Rust programming",
+                      "value": "55",
+                      "extracted_value": 55
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 21, 2026",
+                  "timestamp": "1792540800",
+                  "values": [
+                    {
+                      "query": "Rust programming",
+                      "value": "60",
+                      "extracted_value": 60
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 22, 2026",
+                  "timestamp": "1792627200",
+                  "values": [
+                    {
+                      "query": "Rust programming",
+                      "value": "58",
+                      "extracted_value": 58
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 23, 2026",
+                  "timestamp": "1792713600",
+                  "values": [
+                    {
+                      "query": "Rust programming",
+                      "value": "57",
+                      "extracted_value": 57
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 24, 2026",
+                  "timestamp": "1792800000",
+                  "values": [
+                    {
+                      "query": "Rust programming",
+                      "value": "61",
+                      "extracted_value": 61
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 25, 2026",
+                  "timestamp": "1792886400",
+                  "values": [
+                    {
+                      "query": "Rust programming",
+                      "value": "59",
+                      "extracted_value": 59
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 26, 2026",
+                  "timestamp": "1792972800",
+                  "values": [
+                    {
+                      "query": "Rust programming",
+                      "value": "56",
+                      "extracted_value": 56
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 27, 2026",
+                  "timestamp": "1793059200",
+                  "values": [
+                    {
+                      "query": "Rust programming",
+                      "value": "60",
+                      "extracted_value": 60
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "source": "synthesized from SerpApi's documented Google Trends interest over time format, with one point a day",
+          "synthesized": true,
+          "method": "GET",
+          "path": "/search",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "search_metadata": {
+              "id": "6a1f0c03e4b0d2a7c3f19e58",
+              "status": "Success",
+              "json_endpoint": "https://serpapi.com/searches/7c3f19e58d2a1b04/6a1f0c03e4b0d2a7c3f19e58.json",
+              "created_at": "2026-10-27 12:00:00 UTC",
+              "processed_at": "2026-10-27 12:00:00 UTC",
+              "google_trends_url": "https://trends.google.com/trends/api/explore?tz=420&req=%7B%22comparisonItem%22%3A%5B%7B%22keyword%22%3A%22Rust%2520tutorial%22%2C%22geo%22%3A%22%22%2C%22time%22%3A%22now+7-d%22%7D%5D%2C%22category%22%3A0%2C%22property%22%3A%22%22%7D",
+              "raw_html_file": "https://serpapi.com/searches/7c3f19e58d2a1b04/6a1f0c03e4b0d2a7c3f19e58.html",
+              "total_time_taken": 2.41
+            },
+            "search_parameters": {
+              "engine": "google_trends",
+              "q": "Rust tutorial",
+              "date": "now 7-d",
+              "tz": "420",
+              "data_type": "TIMESERIES"
+            },
+            "interest_over_time": {
+              "timeline_data": [
+                {
+                  "date": "Oct 20, 2026",
+                  "timestamp": "1792454400",
+                  "values": [
+                    {
+                      "query": "Rust tutorial",
+                      "value": "12",
+                      "extracted_value": 12
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 21, 2026",
+                  "timestamp": "1792540800",
+                  "values": [
+                    {
+                      "query": "Rust tutorial",
+                      "value": "15",
+                      "extracted_value": 15
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 22, 2026",
+                  "timestamp": "1792627200",
+                  "values": [
+                    {
+                      "query": "Rust tutorial",
+                      "value": "13",
+                      "extracted_value": 13
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 23, 2026",
+                  "timestamp": "1792713600",
+                  "values": [
+                    {
+                      "query": "Rust tutorial",
+                      "value": "22",
+                      "extracted_value": 22
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 24, 2026",
+                  "timestamp": "1792800000",
+                  "values": [
+                    {
+                      "query": "Rust tutorial",
+                      "value": "31",
+                      "extracted_value": 31
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 25, 2026",
+                  "timestamp": "1792886400",
+                  "values": [
+                    {
+                      "query": "Rust tutorial",
+                      "value": "44",
+                      "extracted_value": 44
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 26, 2026",
+                  "timestamp": "1792972800",
+                  "values": [
+                    {
+                      "query": "Rust tutorial",
+                      "value": "52",
+                      "extracted_value": 52
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 27, 2026",
+                  "timestamp": "1793059200",
+                  "values": [
+                    {
+                      "query": "Rust tutorial",
+                      "value": "63",
+                      "extracted_value": 63
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for arcee-ai/trinity-large-preview:free",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-32",
+            "object": "chat.completion",
+            "created": 1793096084,
+            "model": "gemma4:12b-mlx",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "finish_reason": "stop",
+                "message": {
+                  "role": "assistant",
+                  "content": "Sim, o tema de Rust para iniciantes ainda está em alta e é uma excelente escolha para um vídeo.\n\nAqui está a análise baseada nos dados de tendências:\n\n*   **Rust Tutorial (Crescente):** O termo \"Rust tutorial\" está com uma tendência **rising** (em ascensão), o que indica que há uma demanda crescente por conteúdos educativos e guias passo a passo para quem está começando agora.\n*   **Rust Programming (Estável):** O interesse geral pela linguagem Rust permanece estável e sólido, mostrando que existe uma comunidade ativa e um interesse contínuo no ecossistema da linguagem.\n\n**Dica para o seu conteúdo:**\nComo a busca por \"tutoriais\" está subindo, focar em uma abordagem prática (como \"Criando seu primeiro projeto em Rust\" ou \"Rust para quem já conhece Python/JavaScript\") pode ajudar seu vídeo a se destacar e atrair mais cliques."
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1924,
+              "prompt_tokens_details": {
+                "cached_tokens": 1801
+              },
+              "completion_tokens": 195,
+              "total_tokens": 2119
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for arcee-ai/trinity-large-preview:free",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-962",
+            "object": "chat.completion",
+            "created": 1793096106,
+            "model": "gemma4:12b-mlx",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "finish_reason": "stop",
+                "message": {
+                  "role": "assistant",
+                  "content": "Com certeza! Os dados mostram que você está no caminho certo. O tema de **Rust para iniciantes** não só continua relevante, como está ganhando um impulso importante em buscas por conteúdo educativo.\n\nAqui está a análise estratégica baseada nos dados para o seu vídeo:\n\n### 📊 Por que este tema é uma ótima escolha?\n*   **Demanda Crescente por Tutoriais:** O termo **\"Rust tutorial\"** está em tendência de alta (**rising**). Isso significa que as pessoas não querem apenas saber *o que é* a linguagem, elas querem saber *como aprender* a usá-la.\n*   **Comunidade Sólida:** O interesse geral em **\"Rust Programming\"** está estável, o que garante que você terá um público fiel e interessado no ecossistema da linguagem a longo prazo.\n\n### 💡 Minha recomendação estratégica:\nPara se destacar em um nicho que está crescendo, você precisa de um **ângulo prático**. Evite títulos muito genéricos como \"Aprenda Rust\". Em vez disso, foque em **resolução de problemas** ou **transição de carreira**.\n\n**Sugestões de títulos baseadas nos dados:**\n1.  **Foco em Projeto (Alta Conversão):** *\"Rust para Iniciantes: Criando seu primeiro projeto do zero\"*\n2.  **Foco em Comparação (Atrai quem já programa):** *\"Rust vs Python: Por que você deveria aprender Rust em 2024?\"*\n3.  **Foco em Curadoria:** *\"Guia Prático de Rust: O que realmente importa para quem está começando\"*\n\n### 🚀 Dica de Ouro:\nComo a busca por \"tutoriais\" está subindo, tente estruturar seu vídeo com um **passo a passo bem claro**. Se possível, mostre o código sendo escrito e executado logo nos primeiros minutos. Isso retém muito mais a audiência que busca por aprendizado prático.\n\nPode começar a produção sem medo, o momento para esse conteúdo é excelente! 🚀"
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 2030,
+              "prompt_tokens_details": {
+                "cached_tokens": 9
+              },
+              "completion_tokens": 796,
+              "total_tokens": 2826
+            }
+          }
+        }
+      ],
+      "serve": {
+        "port": 47931,
+        "after": "Response from /chat: 200\\nExcelente escolha de tema! Os dados do Google Trends mostram que o interesse por \\*\\*Web AI\\*\\* está em uma curva de crescimento muito interessante\\. Isso acontece porque as pessoas estão buscando formas de rodar modelos potentes sem depender de servidores externos, o que traz dois grandes benefícios: \\*\\*privacidade\\*\\* e \\*\\*performance\\*\\*\\.\n\nPara escolher o melhor título, você precisa primeiro definir qual é o seu objetivo principal com esse vídeo\\. Aqui estão minhas recomendações baseadas nos dados:\n\n### 🎯 Escolha baseada no seu Objetivo:\n\n\\*\\*1\\. Se o seu objetivo é Viralização e Alcance \\(Mais Cliques\\):\\*\\*\nUse um título que prometa uma \"quebra de padrão\"\\. O público geral adora saber que pode fazer algo sem precisar de configurações complexas\\.\n\\*   \\*\\*Sugestão:\\*\\* \\*\"Esqueça as nuvens: Como rodar IA direto no seu navegador!\"\\*\n\\*   \\*\\*Por que funciona:\\*\\* Cria curiosidade imediata e foca no benefício de não precisar de infraestrutura externa\\.\n\n\\*\\*2\\. Se o seu objetivo é Autoridade e Educação \\(Retenção e Valor\\):\\*\\*\nSe você quer construir uma audiência que confia no seu conhecimento técnico, vá pelo caminho comparativo\\.\n\\*   \\*\\*Sugestão:\\*\\* \\*\"Web AI vs\\. Cloud AI: Qual é a melhor para o seu projeto\\?\"\\*\n\\*   \\*\\*Por que funciona:\\*\\* Ajuda o espectador a tomar uma decisão e posiciona você como um especialista que entende as nuances da tecnologia\\.\n\n\\*\\*3\\. Se o seu público é de Desenvolvedores \\(Nicho Técnico\\):\\*\\*\nSe você quer falar para quem já programa, seja direto sobre a tecnologia\\.\n\\*   \\*\\*Sugestão:\\*\\* \\*\"Explorando a API WebGPU para Machine Learning no navegador\\.\"\\*\n\\*   \\*\\*Por que funciona:\\*\\* Atrai o público certo que já está procurando por ferramentas específicas como WebGPU\\.\n\n---\n\n### 💡 Dica de Ouro baseada nos dados:\nIndependentemente do título que você escolher, a \"alma\" do seu conteúdo deve focar em \\*\\*Privacidade\\*\\* e \\*\\*Execução Local\\*\\*\\. \n\nPara garantir que o vídeo performe bem, certifique-se de incluir estas palavras-chave na sua \\*\\*Thumbnail\\*\\* e na \\*\\*Descrição\\*\\*:\n\\*   \\*\\*\"Privacidade\"\\*\\* \\(porque os dados não saem do PC do usuário\\)\n\\*   \\*\\*\"Sem Download\"\\*\\* \\(porque roda direto no browser\\)\n\\*   \\*\\*\"Local\"\\*\\* \\(para enfatizar a independência de nuvem\\)\n\n\\*\\*Minha recomendação final:\\*\\* Comece com o título \\*\\*\"Esqueça as nuvens: Como rodar IA direto no seu navegador!\"\\*\\* para atrair um público maior e, logo nos primeiros segundos do vídeo, explique a diferença técnica para manter a autoridade\\.\n\nBoa sorte com o canal! Esse é um nicho com muito potencial de crescimento\\.\\n",
+        "timeout": 120000,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": {
+              "question": "Quero gravar um video sobre Rust para iniciantes, esse tema ainda esta em alta?"
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "pattern": "^Com certeza! Os dados mostram que você está no caminho certo\\. O tema de \\*\\*Rust para iniciantes\\*\\* não só continua relevante, como está ganhando um impulso importante em buscas por conteúdo educativo\\.\n\nAqui está a análise estratégica baseada nos dados para o seu vídeo:\n\n### 📊 Por que este tema é uma ótima escolha\\?\n\\*   \\*\\*Demanda Crescente por Tutoriais:\\*\\* O termo \\*\\*\"Rust tutorial\"\\*\\* está em tendência de alta \\(\\*\\*rising\\*\\*\\)\\. Isso significa que as pessoas não querem apenas saber \\*o que é\\* a linguagem, elas querem saber \\*como aprender\\* a usá-la\\.\n\\*   \\*\\*Comunidade Sólida:\\*\\* O interesse geral em \\*\\*\"Rust Programming\"\\*\\* está estável, o que garante que você terá um público fiel e interessado no ecossistema da linguagem a longo prazo\\.\n\n### 💡 Minha recomendação estratégica:\nPara se destacar em um nicho que está crescendo, você precisa de um \\*\\*ângulo prático\\*\\*\\. Evite títulos muito genéricos como \"Aprenda Rust\"\\. Em vez disso, foque em \\*\\*resolução de problemas\\*\\* ou \\*\\*transição de carreira\\*\\*\\.\n\n\\*\\*Sugestões de títulos baseadas nos dados:\\*\\*\n1\\.  \\*\\*Foco em Projeto \\(Alta Conversão\\):\\*\\* \\*\"Rust para Iniciantes: Criando seu primeiro projeto do zero\"\\*\n2\\.  \\*\\*Foco em Comparação \\(Atrai quem já programa\\):\\*\\* \\*\"Rust vs Python: Por que você deveria aprender Rust em 2024\\?\"\\*\n3\\.  \\*\\*Foco em Curadoria:\\*\\* \\*\"Guia Prático de Rust: O que realmente importa para quem está começando\"\\*\n\n### 🚀 Dica de Ouro:\nComo a busca por \"tutoriais\" está subindo, tente estruturar seu vídeo com um \\*\\*passo a passo bem claro\\*\\*\\. Se possível, mostre o código sendo escrito e executado logo nos primeiros minutos\\. Isso retém muito mais a audiência que busca por aprendizado prático\\.\n\nPode começar a produção sem medo, o momento para esse conteúdo é excelente! 🚀$"
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^Server is running on http://0\\.0\\.0\\.0:47931\\n🔍 Researcher processing\\.\\.\\.\\n[\\s\\S]*🔍 Fetching Google Trends data for keywords: .*Web AI.*AI Browser.*\\n🔍 Fetching data for \"Web AI\"\\.\\.\\.\\n🔍 Fetched trends for \"Web AI\":[\\s\\S]*\\n🔍 Fetching data for \"AI Browser\"\\.\\.\\.\\n🔍 Fetched trends for \"AI Browser\":[\\s\\S]*\\n[\\s\\S]*📊 Trends data fetched via tool call\\n💬 Responder processing\\.\\.\\.\\n[\\s\\S]*\\nResponse from /chat: 200\\nExcelente escolha de tema! Os dados do Google Trends mostram que o interesse por \\*\\*Web AI\\*\\* está em uma curva de crescimento muito interessante\\. Isso acontece porque as pessoas estão buscando formas de rodar modelos potentes sem depender de servidores externos, o que traz dois grandes benefícios: \\*\\*privacidade\\*\\* e \\*\\*performance\\*\\*\\.\n\nPara escolher o melhor título, você precisa primeiro definir qual é o seu objetivo principal com esse vídeo\\. Aqui estão minhas recomendações baseadas nos dados:\n\n### 🎯 Escolha baseada no seu Objetivo:\n\n\\*\\*1\\. Se o seu objetivo é Viralização e Alcance \\(Mais Cliques\\):\\*\\*\nUse um título que prometa uma \"quebra de padrão\"\\. O público geral adora saber que pode fazer algo sem precisar de configurações complexas\\.\n\\*   \\*\\*Sugestão:\\*\\* \\*\"Esqueça as nuvens: Como rodar IA direto no seu navegador!\"\\*\n\\*   \\*\\*Por que funciona:\\*\\* Cria curiosidade imediata e foca no benefício de não precisar de infraestrutura externa\\.\n\n\\*\\*2\\. Se o seu objetivo é Autoridade e Educação \\(Retenção e Valor\\):\\*\\*\nSe você quer construir uma audiência que confia no seu conhecimento técnico, vá pelo caminho comparativo\\.\n\\*   \\*\\*Sugestão:\\*\\* \\*\"Web AI vs\\. Cloud AI: Qual é a melhor para o seu projeto\\?\"\\*\n\\*   \\*\\*Por que funciona:\\*\\* Ajuda o espectador a tomar uma decisão e posiciona você como um especialista que entende as nuances da tecnologia\\.\n\n\\*\\*3\\. Se o seu público é de Desenvolvedores \\(Nicho Técnico\\):\\*\\*\nSe você quer falar para quem já programa, seja direto sobre a tecnologia\\.\n\\*   \\*\\*Sugestão:\\*\\* \\*\"Explorando a API WebGPU para Machine Learning no navegador\\.\"\\*\n\\*   \\*\\*Por que funciona:\\*\\* Atrai o público certo que já está procurando por ferramentas específicas como WebGPU\\.\n\n---\n\n### 💡 Dica de Ouro baseada nos dados:\nIndependentemente do título que você escolher, a \"alma\" do seu conteúdo deve focar em \\*\\*Privacidade\\*\\* e \\*\\*Execução Local\\*\\*\\. \n\nPara garantir que o vídeo performe bem, certifique-se de incluir estas palavras-chave na sua \\*\\*Thumbnail\\*\\* e na \\*\\*Descrição\\*\\*:\n\\*   \\*\\*\"Privacidade\"\\*\\* \\(porque os dados não saem do PC do usuário\\)\n\\*   \\*\\*\"Sem Download\"\\*\\* \\(porque roda direto no browser\\)\n\\*   \\*\\*\"Local\"\\*\\* \\(para enfatizar a independência de nuvem\\)\n\n\\*\\*Minha recomendação final:\\*\\* Comece com o título \\*\\*\"Esqueça as nuvens: Como rodar IA direto no seu navegador!\"\\*\\* para atrair um público maior e, logo nos primeiros segundos do vídeo, explique a diferença técnica para manter a autoridade\\.\n\nBoa sorte com o canal! Esse é um nicho com muito potencial de crescimento\\.\\n🔍 Researcher processing\\.\\.\\.\\n[\\s\\S]*🔍 Fetching Google Trends data for keywords: .*Rust programming.*Rust tutorial.*\\n🔍 Fetching data for \"Rust programming\"\\.\\.\\.\\n🔍 Fetched trends for \"Rust programming\":[\\s\\S]*\\n🔍 Fetching data for \"Rust tutorial\"\\.\\.\\.\\n🔍 Fetched trends for \"Rust tutorial\":[\\s\\S]*\\n[\\s\\S]*📊 Trends data fetched via tool call\\n💬 Responder processing\\.\\.\\.\\n[\\s\\S]*$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^(?![\\s\\S]*Failed to fetch trends)"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "google_trends",
+                        "description": "Get Google Trends data for a list of keywords. Use this to analyze if a video title or topic is trending, rising, or declining in popularity. Always call this when the user shares a video title idea.",
+                        "parameters": {
+                          "type": "object",
+                          "properties": {
+                            "keywords": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "Keywords extracted from the video title to analyze"
+                            }
+                          },
+                          "required": ["keywords"]
+                        }
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a research assistant for video content creators.\nGiven a user question about video topics, extract exactly 2 keywords and call google_trends ONCE with both keywords in a single array. Do not call the tool more than once.\nDo not answer without calling the tool first."
+                    },
+                    {
+                      "role": "user",
+                      "content": "Estou pensando em criar um video sobre Web AI, quais titulos você me recomendaria sobre?"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/search",
+              "query": {
+                "engine": "google_trends",
+                "q": "Web AI",
+                "api_key": "replay",
+                "date": "now 7-d",
+                "data_type": "TIMESERIES"
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/search",
+              "query": {
+                "engine": "google_trends",
+                "q": "AI Browser",
+                "api_key": "replay",
+                "date": "now 7-d",
+                "data_type": "TIMESERIES"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "google_trends",
+                        "description": "Get Google Trends data for a list of keywords. Use this to analyze if a video title or topic is trending, rising, or declining in popularity. Always call this when the user shares a video title idea.",
+                        "parameters": {
+                          "type": "object",
+                          "properties": {
+                            "keywords": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "Keywords extracted from the video title to analyze"
+                            }
+                          },
+                          "required": ["keywords"]
+                        }
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a research assistant for video content creators.\nGiven a user question about video topics, extract exactly 2 keywords and call google_trends ONCE with both keywords in a single array. Do not call the tool more than once.\nDo not answer without calling the tool first."
+                    },
+                    {
+                      "role": "user",
+                      "content": "Estou pensando em criar um video sobre Web AI, quais titulos você me recomendaria sobre?"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_8qdtshv7",
+                          "function": {
+                            "name": "google_trends"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_8qdtshv7",
+                      "content": {
+                        "$pattern": "^\\{\"keywords\":\\[\\{\"keyword\":\"AI Browser\",\"searchVolume\":100,\"interestOverTime\":66,\"trend\":\"declining\"\\},\\{\"keyword\":\"Web AI\",\"searchVolume\":100,\"interestOverTime\":48,\"trend\":\"rising\"\\}\\],\"relatedQueries\":\\[\\],\"risingTopics\":\\[\\],\"timestamp\":\"\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z\"\\}$"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "google_trends",
+                        "description": "Get Google Trends data for a list of keywords. Use this to analyze if a video title or topic is trending, rising, or declining in popularity. Always call this when the user shares a video title idea.",
+                        "parameters": {
+                          "type": "object",
+                          "properties": {
+                            "keywords": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "Keywords extracted from the video title to analyze"
+                            }
+                          },
+                          "required": ["keywords"]
+                        }
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful content strategy assistant for video creators.\nYou will receive a user question and real Google Trends data.\nUse the data to give a concrete, data-driven recommendation: confirm the title, suggest improvements, or propose rising alternatives.\nBe specific and encouraging. Always respond in the same language the user wrote in, preferably in Brazilian Portuguese."
+                    },
+                    {
+                      "role": "user",
+                      "content": "User question: Estou pensando em criar um video sobre Web AI, quais titulos você me recomendaria sobre?\n\nGoogle Trends data:\n\"Com base nas tendências atuais, o termo **\\\"Web AI\\\"** está em ascensão, o que indica um grande interesse em como rodar inteligência artificial diretamente no navegador sem depender exclusivamente de servidores externos.\\n\\nAqui estão algumas sugestões de títulos divididas por estilo de conteúdo para o seu vídeo:\\n\\n### 🚀 Estilo \\\"Clickbait\\\" / Alto Engajamento (Para atrair cliques)\\n*   \\\"Esqueça as nuvens: Como rodar IA direto no seu navegador!\\\"\\n*   \\\"A revolução da Web AI: Por que você não precisa mais baixar nada.\\\"\\n*   \\\"O fim das APIs de IA? Como a Web AI está mudando tudo.\\\"\\n*   \\\"Como rodar LLMs no seu PC usando apenas o Chrome (ou Edge).\\\"\\n\\n### 🎓 Estilo Educativo / Tutorial (Para quem quer aprender)\\n*   \\\"O que é Web AI? Um guia completo para iniciantes.\\\"\\n*   \\\"Como funciona a Inteligência Artificial no Navegador (WebGPU e WebNN).\\\"\\n*   \\\"Web AI vs. Cloud AI: Qual é a melhor para o seu projeto?\\\"\\n*   \\\"Tutorial: Como integrar modelos de IA em sites usando Web AI.\\\"\\n\\n### 💻 Estilo Técnico / Desenvolvedor (Para programadores)\\n*   \\\"Explorando a API WebGPU para Machine Learning no navegador.\\\"\\n*   \\\"Como rodar modelos Transformers localmente via Web AI.\\\"\\n*   \\\"Privacidade e Performance: Por que a Web AI é o futuro do desenvolvimento.\\\"\\n*   \\\"Comparativo de Performance: Web AI vs. Frameworks tradicionais.\\\"\\n\\n**Dica de Especialista:**\\nComo a busca por **\\\"Web AI\\\"** está subindo rapidamente, tente usar palavras-chave como **\\\"Privacidade\\\"**, **\\\"Local\\\"** e **\\\"Sem download\\\"** na sua thumbnail e descrição. O grande diferencial da Web AI hoje é a capacidade de rodar modelos potentes sem enviar dados para servidores de terceiros.\""
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "google_trends",
+                        "description": "Get Google Trends data for a list of keywords. Use this to analyze if a video title or topic is trending, rising, or declining in popularity. Always call this when the user shares a video title idea.",
+                        "parameters": {
+                          "type": "object",
+                          "properties": {
+                            "keywords": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "Keywords extracted from the video title to analyze"
+                            }
+                          },
+                          "required": ["keywords"]
+                        }
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a research assistant for video content creators.\nGiven a user question about video topics, extract exactly 2 keywords and call google_trends ONCE with both keywords in a single array. Do not call the tool more than once.\nDo not answer without calling the tool first."
+                    },
+                    {
+                      "role": "user",
+                      "content": "Quero gravar um video sobre Rust para iniciantes, esse tema ainda esta em alta?"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/search",
+              "query": {
+                "engine": "google_trends",
+                "q": "Rust programming",
+                "api_key": "replay",
+                "date": "now 7-d",
+                "data_type": "TIMESERIES"
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/search",
+              "query": {
+                "engine": "google_trends",
+                "q": "Rust tutorial",
+                "api_key": "replay",
+                "date": "now 7-d",
+                "data_type": "TIMESERIES"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "google_trends",
+                        "description": "Get Google Trends data for a list of keywords. Use this to analyze if a video title or topic is trending, rising, or declining in popularity. Always call this when the user shares a video title idea.",
+                        "parameters": {
+                          "type": "object",
+                          "properties": {
+                            "keywords": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "Keywords extracted from the video title to analyze"
+                            }
+                          },
+                          "required": ["keywords"]
+                        }
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a research assistant for video content creators.\nGiven a user question about video topics, extract exactly 2 keywords and call google_trends ONCE with both keywords in a single array. Do not call the tool more than once.\nDo not answer without calling the tool first."
+                    },
+                    {
+                      "role": "user",
+                      "content": "Quero gravar um video sobre Rust para iniciantes, esse tema ainda esta em alta?"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_ey3klxeo",
+                          "function": {
+                            "name": "google_trends"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_ey3klxeo",
+                      "content": {
+                        "$pattern": "^\\{\"keywords\":\\[\\{\"keyword\":\"Rust programming\",\"searchVolume\":61,\"interestOverTime\":58,\"trend\":\"stable\"\\},\\{\"keyword\":\"Rust tutorial\",\"searchVolume\":63,\"interestOverTime\":32,\"trend\":\"rising\"\\}\\],\"relatedQueries\":\\[\\],\"risingTopics\":\\[\\],\"timestamp\":\"\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z\"\\}$"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "google_trends",
+                        "description": "Get Google Trends data for a list of keywords. Use this to analyze if a video title or topic is trending, rising, or declining in popularity. Always call this when the user shares a video title idea.",
+                        "parameters": {
+                          "type": "object",
+                          "properties": {
+                            "keywords": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "Keywords extracted from the video title to analyze"
+                            }
+                          },
+                          "required": ["keywords"]
+                        }
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful content strategy assistant for video creators.\nYou will receive a user question and real Google Trends data.\nUse the data to give a concrete, data-driven recommendation: confirm the title, suggest improvements, or propose rising alternatives.\nBe specific and encouraging. Always respond in the same language the user wrote in, preferably in Brazilian Portuguese."
+                    },
+                    {
+                      "role": "user",
+                      "content": "User question: Quero gravar um video sobre Rust para iniciantes, esse tema ainda esta em alta?\n\nGoogle Trends data:\n\"Sim, o tema de Rust para iniciantes ainda está em alta e é uma excelente escolha para um vídeo.\\n\\nAqui está a análise baseada nos dados de tendências:\\n\\n*   **Rust Tutorial (Crescente):** O termo \\\"Rust tutorial\\\" está com uma tendência **rising** (em ascensão), o que indica que há uma demanda crescente por conteúdos educativos e guias passo a passo para quem está começando agora.\\n*   **Rust Programming (Estável):** O interesse geral pela linguagem Rust permanece estável e sólido, mostrando que existe uma comunidade ativa e um interesse contínuo no ecossistema da linguagem.\\n\\n**Dica para o seu conteúdo:**\\nComo a busca por \\\"tutoriais\\\" está subindo, focar em uma abordagem prática (como \\\"Criando seu primeiro projeto em Rust\\\" ou \\\"Rust para quem já conhece Python/JavaScript\\\") pode ajudar seu vídeo a se destacar e atrair mais cliques.\""
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a researcher answer without a tool call reaches the responder as it is, and the route rejects a missing or short question and other methods before calling the model",
+      "timeout": 120000,
+      "replay": [
+        {
+          "source": "synthesized from the recorded answers' format, with the researcher answering in text without calling google_trends",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-synthesized-1",
+            "object": "chat.completion",
+            "created": 1793096037,
+            "model": "gemma4:12b-mlx",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "finish_reason": "stop",
+                "message": {
+                  "role": "assistant",
+                  "content": "Web AI é um tema em alta entre desenvolvedores: rodar modelos direto no navegador com WebGPU e Transformers.js atrai quem busca privacidade e nenhum custo de servidor."
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1929,
+              "prompt_tokens_details": {
+                "cached_tokens": 1803
+              },
+              "completion_tokens": 636,
+              "total_tokens": 2565
+            }
+          }
+        },
+        {
+          "source": "synthesized from the recorded answers' format, with the researcher answering in text without calling google_trends",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-synthesized-2",
+            "object": "chat.completion",
+            "created": 1793096071,
+            "model": "gemma4:12b-mlx",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "finish_reason": "stop",
+                "message": {
+                  "role": "assistant",
+                  "content": "Sugestões de títulos:\n1. **Web AI na prática: IA rodando direto no seu navegador**\n2. **WebGPU e Transformers.js: IA sem servidor e com privacidade**"
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 2271,
+              "prompt_tokens_details": {
+                "cached_tokens": 6
+              },
+              "completion_tokens": 1346,
+              "total_tokens": 3617
+            }
+          }
+        }
+      ],
+      "serve": {
+        "port": 47932,
+        "after": "Response from /chat: 200\\nSugestões de títulos:\n1\\. \\*\\*Web AI na prática: IA rodando direto no seu navegador\\*\\*\n2\\. \\*\\*WebGPU e Transformers\\.js: IA sem servidor e com privacidade\\*\\*\\n",
+        "timeout": 120000,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": {}
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": {
+              "question": "Web AI?"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": {
+              "question": "123456789"
+            }
+          },
+          {
+            "method": "GET",
+            "path": "/chat"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 404,
+              "match": {
+                "statusCode": 404,
+                "error": "Not Found",
+                "message": "Route GET:/chat not found"
+              }
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^(?![\\s\\S]*Fetching)Server is running on http://0\\.0\\.0\\.0:47932\\n🔍 Researcher processing\\.\\.\\.\\n[\\s\\S]*📊 Trends data fetched via tool call\\n💬 Responder processing\\.\\.\\.\\n[\\s\\S]*\\nResponse from /chat: 200\\nSugestões de títulos:\n1\\. \\*\\*Web AI na prática: IA rodando direto no seu navegador\\*\\*\n2\\. \\*\\*WebGPU e Transformers\\.js: IA sem servidor e com privacidade\\*\\*\\n$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "google_trends",
+                        "description": "Get Google Trends data for a list of keywords. Use this to analyze if a video title or topic is trending, rising, or declining in popularity. Always call this when the user shares a video title idea.",
+                        "parameters": {
+                          "type": "object",
+                          "properties": {
+                            "keywords": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "Keywords extracted from the video title to analyze"
+                            }
+                          },
+                          "required": ["keywords"]
+                        }
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a research assistant for video content creators.\nGiven a user question about video topics, extract exactly 2 keywords and call google_trends ONCE with both keywords in a single array. Do not call the tool more than once.\nDo not answer without calling the tool first."
+                    },
+                    {
+                      "role": "user",
+                      "content": "Estou pensando em criar um video sobre Web AI, quais titulos você me recomendaria sobre?"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "google_trends",
+                        "description": "Get Google Trends data for a list of keywords. Use this to analyze if a video title or topic is trending, rising, or declining in popularity. Always call this when the user shares a video title idea.",
+                        "parameters": {
+                          "type": "object",
+                          "properties": {
+                            "keywords": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "Keywords extracted from the video title to analyze"
+                            }
+                          },
+                          "required": ["keywords"]
+                        }
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful content strategy assistant for video creators.\nYou will receive a user question and real Google Trends data.\nUse the data to give a concrete, data-driven recommendation: confirm the title, suggest improvements, or propose rising alternatives.\nBe specific and encouraging. Always respond in the same language the user wrote in, preferably in Brazilian Portuguese."
+                    },
+                    {
+                      "role": "user",
+                      "content": "User question: Estou pensando em criar um video sobre Web AI, quais titulos você me recomendaria sobre?\n\nGoogle Trends data:\n\"Web AI é um tema em alta entre desenvolvedores: rodar modelos direto no navegador com WebGPU e Transformers.js atrai quem busca privacidade e nenhum custo de servidor.\""
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a keyword whose Google Trends lookup fails is left out of the tool result while the other keyword is kept",
+      "timeout": 120000,
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for arcee-ai/trinity-large-preview:free",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-333",
+            "object": "chat.completion",
+            "created": 1793096139,
+            "model": "gemma4:12b-mlx",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "finish_reason": "tool_calls",
+                "message": {
+                  "role": "assistant",
+                  "content": "",
+                  "tool_calls": [
+                    {
+                      "id": "call_dxlzy3ei",
+                      "index": 0,
+                      "type": "function",
+                      "function": {
+                        "name": "google_trends",
+                        "arguments": "{\"keywords\":[\"Web AI\",\"Artificial Intelligence\"]}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1807,
+              "prompt_tokens_details": {
+                "cached_tokens": 1803
+              },
+              "completion_tokens": 131,
+              "total_tokens": 1938
+            }
+          }
+        },
+        {
+          "source": "synthesized from SerpApi's documented answer for an invalid API key",
+          "synthesized": true,
+          "method": "GET",
+          "path": "/search",
+          "status": 401,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "error": "Invalid API key. Your API key should be here: https://serpapi.com/manage-api-key"
+          }
+        },
+        {
+          "source": "synthesized from SerpApi's documented Google Trends interest over time format, with one point a day",
+          "synthesized": true,
+          "method": "GET",
+          "path": "/search",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "search_metadata": {
+              "id": "6a1f0c01e4b0d2a7c3f19e58",
+              "status": "Success",
+              "json_endpoint": "https://serpapi.com/searches/7c3f19e58d2a1b04/6a1f0c01e4b0d2a7c3f19e58.json",
+              "created_at": "2026-10-27 12:00:00 UTC",
+              "processed_at": "2026-10-27 12:00:00 UTC",
+              "google_trends_url": "https://trends.google.com/trends/api/explore?tz=420&req=%7B%22comparisonItem%22%3A%5B%7B%22keyword%22%3A%22Artificial%2520Intelligence%22%2C%22geo%22%3A%22%22%2C%22time%22%3A%22now+7-d%22%7D%5D%2C%22category%22%3A0%2C%22property%22%3A%22%22%7D",
+              "raw_html_file": "https://serpapi.com/searches/7c3f19e58d2a1b04/6a1f0c01e4b0d2a7c3f19e58.html",
+              "total_time_taken": 2.41
+            },
+            "search_parameters": {
+              "engine": "google_trends",
+              "q": "Artificial Intelligence",
+              "date": "now 7-d",
+              "tz": "420",
+              "data_type": "TIMESERIES"
+            },
+            "interest_over_time": {
+              "timeline_data": [
+                {
+                  "date": "Oct 20, 2026",
+                  "timestamp": "1792454400",
+                  "values": [
+                    {
+                      "query": "Artificial Intelligence",
+                      "value": "100",
+                      "extracted_value": 100
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 21, 2026",
+                  "timestamp": "1792540800",
+                  "values": [
+                    {
+                      "query": "Artificial Intelligence",
+                      "value": "91",
+                      "extracted_value": 91
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 22, 2026",
+                  "timestamp": "1792627200",
+                  "values": [
+                    {
+                      "query": "Artificial Intelligence",
+                      "value": "84",
+                      "extracted_value": 84
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 23, 2026",
+                  "timestamp": "1792713600",
+                  "values": [
+                    {
+                      "query": "Artificial Intelligence",
+                      "value": "70",
+                      "extracted_value": 70
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 24, 2026",
+                  "timestamp": "1792800000",
+                  "values": [
+                    {
+                      "query": "Artificial Intelligence",
+                      "value": "58",
+                      "extracted_value": 58
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 25, 2026",
+                  "timestamp": "1792886400",
+                  "values": [
+                    {
+                      "query": "Artificial Intelligence",
+                      "value": "47",
+                      "extracted_value": 47
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 26, 2026",
+                  "timestamp": "1792972800",
+                  "values": [
+                    {
+                      "query": "Artificial Intelligence",
+                      "value": "41",
+                      "extracted_value": 41
+                    }
+                  ]
+                },
+                {
+                  "date": "Oct 27, 2026",
+                  "timestamp": "1793059200",
+                  "values": [
+                    {
+                      "query": "Artificial Intelligence",
+                      "value": "36",
+                      "extracted_value": 36
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for arcee-ai/trinity-large-preview:free",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-845",
+            "object": "chat.completion",
+            "created": 1793096156,
+            "model": "gemma4:12b-mlx",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "finish_reason": "stop",
+                "message": {
+                  "role": "assistant",
+                  "content": "Com base nas tendências atuais de IA, o tema **Web AI** (execução de modelos de inteligência artificial diretamente no navegador ou no dispositivo do usuário) é uma excelente oportunidade. Embora o interesse geral em \"Artificial Intelligence\" esteja em uma fase de maturidade (estabilização), o nicho de **Web AI** oferece um ângulo de \"privacidade\" e \"performance\" que atrai muito os desenvolvedores e entusiastas de tecnologia.\n\nAqui estão algumas sugestões de títulos divididas por diferentes abordagens de público:\n\n### 1. Para iniciantes e curiosos (Foco em \"O que é?\")\n*   **\"O que é Web AI? Como a IA está saindo da nuvem e indo para o seu navegador.\"**\n*   **\"Por que a Web AI é o futuro da privacidade na Internet.\"**\n*   **\"Web AI: A revolução de rodar inteligência artificial sem internet (e sem custos de servidor).\"**\n\n### 2. Para desenvolvedores e técnicos (Foco em \"Como fazer?\")\n*   **\"Como construir aplicações de IA que rodam 100% no navegador.\"**\n*   **\"Web AI vs. Cloud API: Qual a melhor escolha para o seu projeto?\"**\n*   **\"Explorando o futuro da Web: Como rodar LLMs e modelos de visão computacional localmente.\"**\n\n### 3. Estilo \"Clickbait\" Educativo (Foco em curiosidade/impacto)\n*   **\"Pare de enviar seus dados para a nuvem: Conheça a Web AI.\"**\n*   **\"A tecnologia que vai tornar as IAs gratuitas e privadas para todo mundo.\"**\n*   **\"Como a Web AI está mudando tudo o que sabemos sobre processamento de dados.\"**\n\n### Dicas extras para o seu vídeo:\n*   **Destaque a Privacidade:** Esse é o maior diferencial da Web AI. Explique que, como o processamento ocorre no dispositivo do usuário, os dados não precisam viajar pela rede.\n*   **Destaque a Custo-Benefício:** Para empresas, rodar modelos no navegador significa não pagar por cada requisição de API (como as da OpenAI ou Google).\n*   **Demonstração Prática:** Se puder, mostre uma ferramenta rodando (como o *WebLLM* ou modelos de *MediaPipe*) diretamente no navegador. Isso dá muita autoridade ao conteúdo."
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1906,
+              "prompt_tokens_details": {
+                "cached_tokens": 1807
+              },
+              "completion_tokens": 807,
+              "total_tokens": 2713
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for arcee-ai/trinity-large-preview:free",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-263",
+            "object": "chat.completion",
+            "created": 1793096184,
+            "model": "gemma4:12b-mlx",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "finish_reason": "stop",
+                "message": {
+                  "role": "assistant",
+                  "content": "Olá! Que excelente escolha de tema. A **Web AI** é uma fronteira muito promissora porque resolve duas das maiores \"dores\" atuais do mercado de IA: o **alto custo de processamento em nuvem** e a **preocupação com a privacidade dos dados**.\n\nCom base nos dados de tendências, aqui estão as minhas recomendações divididas por objetivo de canal. Escolha a que melhor se adapta ao seu estilo de criação:\n\n### 1. Se o seu objetivo é atrair um público amplo (Viral/Curiosidade)\nEstes títulos focam no benefício direto para o usuário final (privacidade e gratuidade).\n*   **\"Pare de enviar seus dados para a nuvem: Conheça a Web AI.\"** (Fortíssimo para cliques, pois toca em um ponto sensível: segurança).\n*   **\"A tecnologia que vai tornar as IAs gratuitas e privadas para todo mundo.\"**\n*   **\"Web AI: Como rodar inteligência artificial sem depender de internet ou servidores.\"**\n\n### 2. Se o seu público é técnico (Desenvolvedores/Engenheiros)\nAqui o foco deve ser na arquitetura e na escolha de ferramentas.\n*   **\"Web AI vs. Cloud API: Qual a melhor escolha para o seu projeto?\"** (Excelente para comparação e decisão de projeto).\n*   **\"Como construir aplicações de IA que rodam 100% no navegador.\"**\n*   **\"Explorando o futuro da Web: Rodando LLMs e Visão Computacional localmente.\"**\n\n### 3. Se você quer se posicionar como autoridade/educador\nEstes títulos são ótimos para construir uma audiência fiel que busca aprender o conceito.\n*   **\"O que é Web AI? Como a IA está saindo da nuvem e indo para o seu navegador.\"**\n*   **\"Por que a Web AI é o futuro da privacidade na Internet.\"**\n\n---\n\n### 💡 Minha Recomendação Estratégica (O \"Pulo do Gato\"):\n\nPara ter o melhor desempenho possível, eu recomendo uma **abordagem híbrida**:\n\n1.  **Título Sugerido:** *\"Pare de enviar seus dados para a nuvem: Como a Web AI está mudando tudo.\"*\n2.  **Por que funciona?** Ele usa um \"gancho\" de impacto (parar de enviar dados) e entrega uma solução tecnológica (Web AI).\n3.  **Dica de Ouro (Baseada nos dados):** Não apenas fale sobre a teoria. **Mostre na prática.** Se você puder mostrar um modelo rodando dentro do navegador (como o *WebLLM*), você ganhará muito mais autoridade e retenção, pois o público quer ver a \"mágica\" acontecendo em tempo real.\n\n**Destaque sempre estes dois pontos no seu vídeo:**\n*   **Privacidade:** Os dados não saem do computador do usuário.\n*   **Custo:** Para empresas, isso significa economizar milhares de dólares em chamadas de API.\n\nBoa sorte com o vídeo! Esse conteúdo tem tudo para performar muito bem no nicho de tecnologia."
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 2376,
+              "prompt_tokens_details": {
+                "cached_tokens": 1799
+              },
+              "completion_tokens": 1218,
+              "total_tokens": 3594
+            }
+          }
+        }
+      ],
+      "serve": {
+        "port": 47933,
+        "after": "Response from /chat: 200\\nOlá! Que excelente escolha de tema\\. A \\*\\*Web AI\\*\\* é uma fronteira muito promissora porque resolve duas das maiores \"dores\" atuais do mercado de IA: o \\*\\*alto custo de processamento em nuvem\\*\\* e a \\*\\*preocupação com a privacidade dos dados\\*\\*\\.\n\nCom base nos dados de tendências, aqui estão as minhas recomendações divididas por objetivo de canal\\. Escolha a que melhor se adapta ao seu estilo de criação:\n\n### 1\\. Se o seu objetivo é atrair um público amplo \\(Viral/Curiosidade\\)\nEstes títulos focam no benefício direto para o usuário final \\(privacidade e gratuidade\\)\\.\n\\*   \\*\\*\"Pare de enviar seus dados para a nuvem: Conheça a Web AI\\.\"\\*\\* \\(Fortíssimo para cliques, pois toca em um ponto sensível: segurança\\)\\.\n\\*   \\*\\*\"A tecnologia que vai tornar as IAs gratuitas e privadas para todo mundo\\.\"\\*\\*\n\\*   \\*\\*\"Web AI: Como rodar inteligência artificial sem depender de internet ou servidores\\.\"\\*\\*\n\n### 2\\. Se o seu público é técnico \\(Desenvolvedores/Engenheiros\\)\nAqui o foco deve ser na arquitetura e na escolha de ferramentas\\.\n\\*   \\*\\*\"Web AI vs\\. Cloud API: Qual a melhor escolha para o seu projeto\\?\"\\*\\* \\(Excelente para comparação e decisão de projeto\\)\\.\n\\*   \\*\\*\"Como construir aplicações de IA que rodam 100% no navegador\\.\"\\*\\*\n\\*   \\*\\*\"Explorando o futuro da Web: Rodando LLMs e Visão Computacional localmente\\.\"\\*\\*\n\n### 3\\. Se você quer se posicionar como autoridade/educador\nEstes títulos são ótimos para construir uma audiência fiel que busca aprender o conceito\\.\n\\*   \\*\\*\"O que é Web AI\\? Como a IA está saindo da nuvem e indo para o seu navegador\\.\"\\*\\*\n\\*   \\*\\*\"Por que a Web AI é o futuro da privacidade na Internet\\.\"\\*\\*\n\n---\n\n### 💡 Minha Recomendação Estratégica \\(O \"Pulo do Gato\"\\):\n\nPara ter o melhor desempenho possível, eu recomendo uma \\*\\*abordagem híbrida\\*\\*:\n\n1\\.  \\*\\*Título Sugerido:\\*\\* \\*\"Pare de enviar seus dados para a nuvem: Como a Web AI está mudando tudo\\.\"\\*\n2\\.  \\*\\*Por que funciona\\?\\*\\* Ele usa um \"gancho\" de impacto \\(parar de enviar dados\\) e entrega uma solução tecnológica \\(Web AI\\)\\.\n3\\.  \\*\\*Dica de Ouro \\(Baseada nos dados\\):\\*\\* Não apenas fale sobre a teoria\\. \\*\\*Mostre na prática\\.\\*\\* Se você puder mostrar um modelo rodando dentro do navegador \\(como o \\*WebLLM\\*\\), você ganhará muito mais autoridade e retenção, pois o público quer ver a \"mágica\" acontecendo em tempo real\\.\n\n\\*\\*Destaque sempre estes dois pontos no seu vídeo:\\*\\*\n\\*   \\*\\*Privacidade:\\*\\* Os dados não saem do computador do usuário\\.\n\\*   \\*\\*Custo:\\*\\* Para empresas, isso significa economizar milhares de dólares em chamadas de API\\.\n\nBoa sorte com o vídeo! Esse conteúdo tem tudo para performar muito bem no nicho de tecnologia\\.\\n",
+        "timeout": 120000
+      },
+      "expect": [
+        {
+          "type": "output",
+          "pattern": "^Server is running on http://0\\.0\\.0\\.0:47933\\n(?![\\s\\S]*Fetched trends for \"Web AI\")🔍 Researcher processing\\.\\.\\.\\n[\\s\\S]*🔍 Fetching Google Trends data for keywords: .*Web AI.*Artificial Intelligence.*\\n🔍 Fetching data for \"Web AI\"\\.\\.\\.\\n🔍 Fetching data for \"Artificial Intelligence\"\\.\\.\\.\\n🔍 Fetched trends for \"Artificial Intelligence\":[\\s\\S]*\\n[\\s\\S]*📊 Trends data fetched via tool call\\n💬 Responder processing\\.\\.\\.\\n[\\s\\S]*\\nResponse from /chat: 200\\nOlá! Que excelente escolha de tema\\. A \\*\\*Web AI\\*\\* é uma fronteira muito promissora porque resolve duas das maiores \"dores\" atuais do mercado de IA: o \\*\\*alto custo de processamento em nuvem\\*\\* e a \\*\\*preocupação com a privacidade dos dados\\*\\*\\.\n\nCom base nos dados de tendências, aqui estão as minhas recomendações divididas por objetivo de canal\\. Escolha a que melhor se adapta ao seu estilo de criação:\n\n### 1\\. Se o seu objetivo é atrair um público amplo \\(Viral/Curiosidade\\)\nEstes títulos focam no benefício direto para o usuário final \\(privacidade e gratuidade\\)\\.\n\\*   \\*\\*\"Pare de enviar seus dados para a nuvem: Conheça a Web AI\\.\"\\*\\* \\(Fortíssimo para cliques, pois toca em um ponto sensível: segurança\\)\\.\n\\*   \\*\\*\"A tecnologia que vai tornar as IAs gratuitas e privadas para todo mundo\\.\"\\*\\*\n\\*   \\*\\*\"Web AI: Como rodar inteligência artificial sem depender de internet ou servidores\\.\"\\*\\*\n\n### 2\\. Se o seu público é técnico \\(Desenvolvedores/Engenheiros\\)\nAqui o foco deve ser na arquitetura e na escolha de ferramentas\\.\n\\*   \\*\\*\"Web AI vs\\. Cloud API: Qual a melhor escolha para o seu projeto\\?\"\\*\\* \\(Excelente para comparação e decisão de projeto\\)\\.\n\\*   \\*\\*\"Como construir aplicações de IA que rodam 100% no navegador\\.\"\\*\\*\n\\*   \\*\\*\"Explorando o futuro da Web: Rodando LLMs e Visão Computacional localmente\\.\"\\*\\*\n\n### 3\\. Se você quer se posicionar como autoridade/educador\nEstes títulos são ótimos para construir uma audiência fiel que busca aprender o conceito\\.\n\\*   \\*\\*\"O que é Web AI\\? Como a IA está saindo da nuvem e indo para o seu navegador\\.\"\\*\\*\n\\*   \\*\\*\"Por que a Web AI é o futuro da privacidade na Internet\\.\"\\*\\*\n\n---\n\n### 💡 Minha Recomendação Estratégica \\(O \"Pulo do Gato\"\\):\n\nPara ter o melhor desempenho possível, eu recomendo uma \\*\\*abordagem híbrida\\*\\*:\n\n1\\.  \\*\\*Título Sugerido:\\*\\* \\*\"Pare de enviar seus dados para a nuvem: Como a Web AI está mudando tudo\\.\"\\*\n2\\.  \\*\\*Por que funciona\\?\\*\\* Ele usa um \"gancho\" de impacto \\(parar de enviar dados\\) e entrega uma solução tecnológica \\(Web AI\\)\\.\n3\\.  \\*\\*Dica de Ouro \\(Baseada nos dados\\):\\*\\* Não apenas fale sobre a teoria\\. \\*\\*Mostre na prática\\.\\*\\* Se você puder mostrar um modelo rodando dentro do navegador \\(como o \\*WebLLM\\*\\), você ganhará muito mais autoridade e retenção, pois o público quer ver a \"mágica\" acontecendo em tempo real\\.\n\n\\*\\*Destaque sempre estes dois pontos no seu vídeo:\\*\\*\n\\*   \\*\\*Privacidade:\\*\\* Os dados não saem do computador do usuário\\.\n\\*   \\*\\*Custo:\\*\\* Para empresas, isso significa economizar milhares de dólares em chamadas de API\\.\n\nBoa sorte com o vídeo! Esse conteúdo tem tudo para performar muito bem no nicho de tecnologia\\.\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Failed to fetch trends for \"Web AI\""
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^(?![\\s\\S]*Failed to fetch trends for \"Artificial Intelligence\")"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "google_trends",
+                        "description": "Get Google Trends data for a list of keywords. Use this to analyze if a video title or topic is trending, rising, or declining in popularity. Always call this when the user shares a video title idea.",
+                        "parameters": {
+                          "type": "object",
+                          "properties": {
+                            "keywords": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "Keywords extracted from the video title to analyze"
+                            }
+                          },
+                          "required": ["keywords"]
+                        }
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a research assistant for video content creators.\nGiven a user question about video topics, extract exactly 2 keywords and call google_trends ONCE with both keywords in a single array. Do not call the tool more than once.\nDo not answer without calling the tool first."
+                    },
+                    {
+                      "role": "user",
+                      "content": "Estou pensando em criar um video sobre Web AI, quais titulos você me recomendaria sobre?"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/search",
+              "query": {
+                "engine": "google_trends",
+                "q": "Web AI",
+                "api_key": "replay",
+                "date": "now 7-d",
+                "data_type": "TIMESERIES"
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/search",
+              "query": {
+                "engine": "google_trends",
+                "q": "Artificial Intelligence",
+                "api_key": "replay",
+                "date": "now 7-d",
+                "data_type": "TIMESERIES"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "google_trends",
+                        "description": "Get Google Trends data for a list of keywords. Use this to analyze if a video title or topic is trending, rising, or declining in popularity. Always call this when the user shares a video title idea.",
+                        "parameters": {
+                          "type": "object",
+                          "properties": {
+                            "keywords": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "Keywords extracted from the video title to analyze"
+                            }
+                          },
+                          "required": ["keywords"]
+                        }
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a research assistant for video content creators.\nGiven a user question about video topics, extract exactly 2 keywords and call google_trends ONCE with both keywords in a single array. Do not call the tool more than once.\nDo not answer without calling the tool first."
+                    },
+                    {
+                      "role": "user",
+                      "content": "Estou pensando em criar um video sobre Web AI, quais titulos você me recomendaria sobre?"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_dxlzy3ei",
+                          "function": {
+                            "name": "google_trends"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_dxlzy3ei",
+                      "content": {
+                        "$pattern": "^\\{\"keywords\":\\[\\{\"keyword\":\"Artificial Intelligence\",\"searchVolume\":100,\"interestOverTime\":66,\"trend\":\"declining\"\\}\\],\"relatedQueries\":\\[\\],\"risingTopics\":\\[\\],\"timestamp\":\"\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z\"\\}$"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "google_trends",
+                        "description": "Get Google Trends data for a list of keywords. Use this to analyze if a video title or topic is trending, rising, or declining in popularity. Always call this when the user shares a video title idea.",
+                        "parameters": {
+                          "type": "object",
+                          "properties": {
+                            "keywords": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "Keywords extracted from the video title to analyze"
+                            }
+                          },
+                          "required": ["keywords"]
+                        }
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful content strategy assistant for video creators.\nYou will receive a user question and real Google Trends data.\nUse the data to give a concrete, data-driven recommendation: confirm the title, suggest improvements, or propose rising alternatives.\nBe specific and encouraging. Always respond in the same language the user wrote in, preferably in Brazilian Portuguese."
+                    },
+                    {
+                      "role": "user",
+                      "content": "User question: Estou pensando em criar um video sobre Web AI, quais titulos você me recomendaria sobre?\n\nGoogle Trends data:\n\"Com base nas tendências atuais de IA, o tema **Web AI** (execução de modelos de inteligência artificial diretamente no navegador ou no dispositivo do usuário) é uma excelente oportunidade. Embora o interesse geral em \\\"Artificial Intelligence\\\" esteja em uma fase de maturidade (estabilização), o nicho de **Web AI** oferece um ângulo de \\\"privacidade\\\" e \\\"performance\\\" que atrai muito os desenvolvedores e entusiastas de tecnologia.\\n\\nAqui estão algumas sugestões de títulos divididas por diferentes abordagens de público:\\n\\n### 1. Para iniciantes e curiosos (Foco em \\\"O que é?\\\")\\n*   **\\\"O que é Web AI? Como a IA está saindo da nuvem e indo para o seu navegador.\\\"**\\n*   **\\\"Por que a Web AI é o futuro da privacidade na Internet.\\\"**\\n*   **\\\"Web AI: A revolução de rodar inteligência artificial sem internet (e sem custos de servidor).\\\"**\\n\\n### 2. Para desenvolvedores e técnicos (Foco em \\\"Como fazer?\\\")\\n*   **\\\"Como construir aplicações de IA que rodam 100% no navegador.\\\"**\\n*   **\\\"Web AI vs. Cloud API: Qual a melhor escolha para o seu projeto?\\\"**\\n*   **\\\"Explorando o futuro da Web: Como rodar LLMs e modelos de visão computacional localmente.\\\"**\\n\\n### 3. Estilo \\\"Clickbait\\\" Educativo (Foco em curiosidade/impacto)\\n*   **\\\"Pare de enviar seus dados para a nuvem: Conheça a Web AI.\\\"**\\n*   **\\\"A tecnologia que vai tornar as IAs gratuitas e privadas para todo mundo.\\\"**\\n*   **\\\"Como a Web AI está mudando tudo o que sabemos sobre processamento de dados.\\\"**\\n\\n### Dicas extras para o seu vídeo:\\n*   **Destaque a Privacidade:** Esse é o maior diferencial da Web AI. Explique que, como o processamento ocorre no dispositivo do usuário, os dados não precisam viajar pela rede.\\n*   **Destaque a Custo-Benefício:** Para empresas, rodar modelos no navegador significa não pagar por cada requisição de API (como as da OpenAI ou Google).\\n*   **Demonstração Prática:** Se puder, mostre uma ferramenta rodando (como o *WebLLM* ou modelos de *MediaPipe*) diretamente no navegador. Isso dá muita autoridade ao conteúdo.\""
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "empty OpenRouter and SerpApi keys print two assertions, and every Google Trends lookup fails before any request, so the tool result carries no keyword",
+      "timeout": 120000,
+      "env": {
+        "OPENROUTER_API_KEY": "",
+        "SERPAPI_API_KEY": ""
+      },
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for arcee-ai/trinity-large-preview:free",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-317",
+            "object": "chat.completion",
+            "created": 1793096190,
+            "model": "gemma4:12b-mlx",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "finish_reason": "tool_calls",
+                "message": {
+                  "role": "assistant",
+                  "content": "",
+                  "tool_calls": [
+                    {
+                      "id": "call_lfcjlhvw",
+                      "index": 0,
+                      "type": "function",
+                      "function": {
+                        "name": "google_trends",
+                        "arguments": "{\"keywords\":[\"Web AI\",\"Artificial Intelligence\"]}"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1807,
+              "prompt_tokens_details": {
+                "cached_tokens": 1806
+              },
+              "completion_tokens": 118,
+              "total_tokens": 1925
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for arcee-ai/trinity-large-preview:free",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-996",
+            "object": "chat.completion",
+            "created": 1793096209,
+            "model": "gemma4:12b-mlx",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "finish_reason": "stop",
+                "message": {
+                  "role": "assistant",
+                  "content": "Para criar um conteúdo de sucesso sobre **Web AI** (que envolve rodar modelos de Machine Learning diretamente no navegador usando tecnologias como WebGPU, WebAssembly e bibliotecas como TensorFlow.js ou Transformers.js), é importante focar no que torna essa tecnologia especial: **privacidade, baixo custo de servidor e velocidade.**\n\nAqui estão algumas sugestões de títulos divididas por \"estilo\" de vídeo:\n\n### 1. Estilo \"Uau/Showcase\" (Para atrair cliques rápidos)\n*Esses títulos funcionam bem para mostrar o que é possível fazer sem explicar a teoria primeiro.*\n* \"Como rodar IA no navegador sem gastar nada com servidores\"\n* \"Eu criei uma IA que funciona 100% offline no seu navegador\"\n* \"O fim das APIs de IA? Como rodar modelos gigantes no navegador\"\n* \"Como é processar IA localmente usando apenas WebGPU\"\n\n### 2. Estilo Educativo/Tutorial (Para quem quer aprender a técnica)\n*Ideal para atrair desenvolvedores que querem implementar essas soluções.*\n* \"Guia Completo: Como rodar modelos de IA no navegador (Web AI)\"\n* \"Aprenda a usar Transformers.js para criar aplicações inteligentes\"\n* \"WebGPU vs WebGL: Qual a melhor forma de acelerar IA na Web?\"\n* \"Como integrar modelos de IA em sites usando apenas JavaScript\"\n\n### 3. Estilo Comparativo/Análise (Para quem já conhece o básico)\n*Bom para quem está decidindo se vale a pena usar Web AI ou uma API (como a da OpenAI).*\n* \"Web AI vs API de IA: Qual a melhor escolha para o seu projeto?\"\n* \"Por que você deveria rodar IA no navegador (Privacidade e Latência)\"\n* \"O estado atual da IA no navegador em 2024/2025\"\n\n### 4. Estilo \"Notícia/Tendência\" (Para capturar o hype)\n* \"A revolução da IA Local: Por que todo desenvolvedor deve conhecer a Web AI\"\n* \"Como o navegador se tornou o novo motor de Inteligência Artificial\"\n* \"O que está acontecendo com o processamento de IA na Web?\"\n\n---\n\n### 💡 Dicas extras para o seu vídeo:\n*   **Destaque a Privacidade:** Esse é o maior argumento de venda da Web AI. Diga claramente que os dados do usuário não saem do computador dele.\n*   **Mostre a Prática:** Se puder, mostre uma demonstração rápida (ex: reconhecimento de imagem ou tradução em tempo real) rodando em uma página simples.\n*   **Palavras-chave importantes:** Use termos como **WebGPU**, **TensorFlow.js**, **Transformers.js** e **Edge Computing** nas tags e na descrição para ajudar o algoritmo a encontrar o público certo."
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1882,
+              "prompt_tokens_details": {
+                "cached_tokens": 1822
+              },
+              "completion_tokens": 861,
+              "total_tokens": 2743
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for arcee-ai/trinity-large-preview:free",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-639",
+            "object": "chat.completion",
+            "created": 1793096233,
+            "model": "gemma4:12b-mlx",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "finish_reason": "stop",
+                "message": {
+                  "role": "assistant",
+                  "content": "Com base nos dados de tendências e no cenário atual da tecnologia, o tema **Web AI** é excelente porque toca em três pontos de dor muito fortes para desenvolvedores e entusiastas: **custo de servidor, privacidade e latência.**\n\nPara te ajudar a escolher o melhor caminho, separei as recomendações em três \"estratégias\" diferentes, dependendo do seu objetivo com o canal:\n\n### 1. Estratégia de \"Clique Rápido\" (High Engagement)\n*Ideal se você quer atrair um público amplo e curioso, focando no impacto da tecnologia.*\n\n*   **\"Como rodar IA no navegador sem gastar nada com servidores\"** (Este é fortíssimo porque ataca diretamente a dor do custo de APIs como a da OpenAI).\n*   **\"O fim das APIs de IA? Como rodar modelos gigantes no navegador\"** (Um título provocativo que gera muita curiosidade).\n*   **\"Eu criei uma IA que funciona 100% offline no seu navegador\"** (O termo \"offline\" e \"100%\" costuma performar muito bem em vídeos de tecnologia).\n\n### 2. Estratégia \"Autoridade/Tutorial\" (SEO e Retenção)\n*Ideal se o seu público é composto por desenvolvedores que querem aprender a implementar a solução.*\n\n*   **\"Guia Completo: Como rodar modelos de IA no navegador (Web AI)\"** (Excelente para busca orgânica no YouTube).\n*   **\"Aprenda a usar Transformers.js para criar aplicações inteligentes\"** (Foca em uma biblioteca específica que está em alta).\n*   **\"WebGPU vs WebGL: Qual a melhor forma de acelerar IA na Web?\"** (Atrai quem já tem um nível técnico intermediário e quer saber a diferença de performance).\n\n### 3. Estratégia \"Comparativa\" (Decisão de Projeto)\n*Ideal para quem quer ajudar o desenvolvedor a decidir qual tecnologia usar no próximo projeto.*\n\n*   **\"Web AI vs API de IA: Qual a melhor escolha para o seu projeto?\"** (Um comparativo direto é ótimo para quem está na fase de planejamento).\n*   **\"Por que você deveria rodar IA no navegador (Privacidade e Latência)\"** (Foca nos benefícios técnicos claros).\n\n---\n\n### 💡 Minha recomendação estratégica para você:\n\nSe você está começando agora ou quer crescer rápido, eu recomendaria o título:\n> **\"Como rodar IA no navegador sem gastar nada com servidores\"**\n\n**Por que?** Porque ele promete uma solução para um problema real (custo). No vídeo, você pode mostrar a demonstração prática (Showcase) e depois explicar a parte técnica (Tutorial).\n\n**Dicas de Ouro para o vídeo:**\n*   **Destaque a Privacidade:** Deixe claro que os dados não saem do computador do usuário. Isso é um diferencial enorme da Web AI.\n*   **Palavras-Chave:** Certifique-se de incluir **WebGPU**, **TensorFlow.js** e **Transformers.js** na descrição e nas tags.\n*   **Demonstração Visual:** Tente mostrar algo rodando em tempo real (como reconhecimento de imagem ou tradução) logo nos primeiros 30 segundos para prender a atenção.\n\nQual desses estilos você acha que combina mais com o seu estilo de edição e público atual?"
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 2467,
+              "prompt_tokens_details": {
+                "cached_tokens": 1799
+              },
+              "completion_tokens": 1063,
+              "total_tokens": 3530
+            }
+          }
+        }
+      ],
+      "serve": {
+        "port": 47934,
+        "after": "Response from /chat: 200\\nCom base nos dados de tendências e no cenário atual da tecnologia, o tema \\*\\*Web AI\\*\\* é excelente porque toca em três pontos de dor muito fortes para desenvolvedores e entusiastas: \\*\\*custo de servidor, privacidade e latência\\.\\*\\*\n\nPara te ajudar a escolher o melhor caminho, separei as recomendações em três \"estratégias\" diferentes, dependendo do seu objetivo com o canal:\n\n### 1\\. Estratégia de \"Clique Rápido\" \\(High Engagement\\)\n\\*Ideal se você quer atrair um público amplo e curioso, focando no impacto da tecnologia\\.\\*\n\n\\*   \\*\\*\"Como rodar IA no navegador sem gastar nada com servidores\"\\*\\* \\(Este é fortíssimo porque ataca diretamente a dor do custo de APIs como a da OpenAI\\)\\.\n\\*   \\*\\*\"O fim das APIs de IA\\? Como rodar modelos gigantes no navegador\"\\*\\* \\(Um título provocativo que gera muita curiosidade\\)\\.\n\\*   \\*\\*\"Eu criei uma IA que funciona 100% offline no seu navegador\"\\*\\* \\(O termo \"offline\" e \"100%\" costuma performar muito bem em vídeos de tecnologia\\)\\.\n\n### 2\\. Estratégia \"Autoridade/Tutorial\" \\(SEO e Retenção\\)\n\\*Ideal se o seu público é composto por desenvolvedores que querem aprender a implementar a solução\\.\\*\n\n\\*   \\*\\*\"Guia Completo: Como rodar modelos de IA no navegador \\(Web AI\\)\"\\*\\* \\(Excelente para busca orgânica no YouTube\\)\\.\n\\*   \\*\\*\"Aprenda a usar Transformers\\.js para criar aplicações inteligentes\"\\*\\* \\(Foca em uma biblioteca específica que está em alta\\)\\.\n\\*   \\*\\*\"WebGPU vs WebGL: Qual a melhor forma de acelerar IA na Web\\?\"\\*\\* \\(Atrai quem já tem um nível técnico intermediário e quer saber a diferença de performance\\)\\.\n\n### 3\\. Estratégia \"Comparativa\" \\(Decisão de Projeto\\)\n\\*Ideal para quem quer ajudar o desenvolvedor a decidir qual tecnologia usar no próximo projeto\\.\\*\n\n\\*   \\*\\*\"Web AI vs API de IA: Qual a melhor escolha para o seu projeto\\?\"\\*\\* \\(Um comparativo direto é ótimo para quem está na fase de planejamento\\)\\.\n\\*   \\*\\*\"Por que você deveria rodar IA no navegador \\(Privacidade e Latência\\)\"\\*\\* \\(Foca nos benefícios técnicos claros\\)\\.\n\n---\n\n### 💡 Minha recomendação estratégica para você:\n\nSe você está começando agora ou quer crescer rápido, eu recomendaria o título:\n> \\*\\*\"Como rodar IA no navegador sem gastar nada com servidores\"\\*\\*\n\n\\*\\*Por que\\?\\*\\* Porque ele promete uma solução para um problema real \\(custo\\)\\. No vídeo, você pode mostrar a demonstração prática \\(Showcase\\) e depois explicar a parte técnica \\(Tutorial\\)\\.\n\n\\*\\*Dicas de Ouro para o vídeo:\\*\\*\n\\*   \\*\\*Destaque a Privacidade:\\*\\* Deixe claro que os dados não saem do computador do usuário\\. Isso é um diferencial enorme da Web AI\\.\n\\*   \\*\\*Palavras-Chave:\\*\\* Certifique-se de incluir \\*\\*WebGPU\\*\\*, \\*\\*TensorFlow\\.js\\*\\* e \\*\\*Transformers\\.js\\*\\* na descrição e nas tags\\.\n\\*   \\*\\*Demonstração Visual:\\*\\* Tente mostrar algo rodando em tempo real \\(como reconhecimento de imagem ou tradução\\) logo nos primeiros 30 segundos para prender a atenção\\.\n\nQual desses estilos você acha que combina mais com o seu estilo de edição e público atual\\?\\n",
+        "timeout": 120000
+      },
+      "expect": [
+        {
+          "type": "output",
+          "pattern": "^Server is running on http://0\\.0\\.0\\.0:47934\\n🔍 Researcher processing\\.\\.\\.\\n[\\s\\S]*🔍 Fetching Google Trends data for keywords: .*Web AI.*Artificial Intelligence.*\\n🔍 Fetching data for \"Web AI\"\\.\\.\\.\\n🔍 Fetching data for \"Artificial Intelligence\"\\.\\.\\.\\n[\\s\\S]*📊 Trends data fetched via tool call\\n💬 Responder processing\\.\\.\\.\\n[\\s\\S]*\\nResponse from /chat: 200\\nCom base nos dados de tendências e no cenário atual da tecnologia, o tema \\*\\*Web AI\\*\\* é excelente porque toca em três pontos de dor muito fortes para desenvolvedores e entusiastas: \\*\\*custo de servidor, privacidade e latência\\.\\*\\*\n\nPara te ajudar a escolher o melhor caminho, separei as recomendações em três \"estratégias\" diferentes, dependendo do seu objetivo com o canal:\n\n### 1\\. Estratégia de \"Clique Rápido\" \\(High Engagement\\)\n\\*Ideal se você quer atrair um público amplo e curioso, focando no impacto da tecnologia\\.\\*\n\n\\*   \\*\\*\"Como rodar IA no navegador sem gastar nada com servidores\"\\*\\* \\(Este é fortíssimo porque ataca diretamente a dor do custo de APIs como a da OpenAI\\)\\.\n\\*   \\*\\*\"O fim das APIs de IA\\? Como rodar modelos gigantes no navegador\"\\*\\* \\(Um título provocativo que gera muita curiosidade\\)\\.\n\\*   \\*\\*\"Eu criei uma IA que funciona 100% offline no seu navegador\"\\*\\* \\(O termo \"offline\" e \"100%\" costuma performar muito bem em vídeos de tecnologia\\)\\.\n\n### 2\\. Estratégia \"Autoridade/Tutorial\" \\(SEO e Retenção\\)\n\\*Ideal se o seu público é composto por desenvolvedores que querem aprender a implementar a solução\\.\\*\n\n\\*   \\*\\*\"Guia Completo: Como rodar modelos de IA no navegador \\(Web AI\\)\"\\*\\* \\(Excelente para busca orgânica no YouTube\\)\\.\n\\*   \\*\\*\"Aprenda a usar Transformers\\.js para criar aplicações inteligentes\"\\*\\* \\(Foca em uma biblioteca específica que está em alta\\)\\.\n\\*   \\*\\*\"WebGPU vs WebGL: Qual a melhor forma de acelerar IA na Web\\?\"\\*\\* \\(Atrai quem já tem um nível técnico intermediário e quer saber a diferença de performance\\)\\.\n\n### 3\\. Estratégia \"Comparativa\" \\(Decisão de Projeto\\)\n\\*Ideal para quem quer ajudar o desenvolvedor a decidir qual tecnologia usar no próximo projeto\\.\\*\n\n\\*   \\*\\*\"Web AI vs API de IA: Qual a melhor escolha para o seu projeto\\?\"\\*\\* \\(Um comparativo direto é ótimo para quem está na fase de planejamento\\)\\.\n\\*   \\*\\*\"Por que você deveria rodar IA no navegador \\(Privacidade e Latência\\)\"\\*\\* \\(Foca nos benefícios técnicos claros\\)\\.\n\n---\n\n### 💡 Minha recomendação estratégica para você:\n\nSe você está começando agora ou quer crescer rápido, eu recomendaria o título:\n> \\*\\*\"Como rodar IA no navegador sem gastar nada com servidores\"\\*\\*\n\n\\*\\*Por que\\?\\*\\* Porque ele promete uma solução para um problema real \\(custo\\)\\. No vídeo, você pode mostrar a demonstração prática \\(Showcase\\) e depois explicar a parte técnica \\(Tutorial\\)\\.\n\n\\*\\*Dicas de Ouro para o vídeo:\\*\\*\n\\*   \\*\\*Destaque a Privacidade:\\*\\* Deixe claro que os dados não saem do computador do usuário\\. Isso é um diferencial enorme da Web AI\\.\n\\*   \\*\\*Palavras-Chave:\\*\\* Certifique-se de incluir \\*\\*WebGPU\\*\\*, \\*\\*TensorFlow\\.js\\*\\* e \\*\\*Transformers\\.js\\*\\* na descrição e nas tags\\.\n\\*   \\*\\*Demonstração Visual:\\*\\* Tente mostrar algo rodando em tempo real \\(como reconhecimento de imagem ou tradução\\) logo nos primeiros 30 segundos para prender a atenção\\.\n\nQual desses estilos você acha que combina mais com o seu estilo de edição e público atual\\?\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Assertion failed: OPENROUTER_API_KEY is not set in environment variables\\nAssertion failed: SERPAPI_API_KEY is not set in environment variables\\n[\\s\\S]*Failed to fetch trends for \"Web AI\"[\\s\\S]*Failed to fetch trends for \"Artificial Intelligence\""
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "google_trends",
+                        "description": "Get Google Trends data for a list of keywords. Use this to analyze if a video title or topic is trending, rising, or declining in popularity. Always call this when the user shares a video title idea.",
+                        "parameters": {
+                          "type": "object",
+                          "properties": {
+                            "keywords": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "Keywords extracted from the video title to analyze"
+                            }
+                          },
+                          "required": ["keywords"]
+                        }
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a research assistant for video content creators.\nGiven a user question about video topics, extract exactly 2 keywords and call google_trends ONCE with both keywords in a single array. Do not call the tool more than once.\nDo not answer without calling the tool first."
+                    },
+                    {
+                      "role": "user",
+                      "content": "Estou pensando em criar um video sobre Web AI, quais titulos você me recomendaria sobre?"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "google_trends",
+                        "description": "Get Google Trends data for a list of keywords. Use this to analyze if a video title or topic is trending, rising, or declining in popularity. Always call this when the user shares a video title idea.",
+                        "parameters": {
+                          "type": "object",
+                          "properties": {
+                            "keywords": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "Keywords extracted from the video title to analyze"
+                            }
+                          },
+                          "required": ["keywords"]
+                        }
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a research assistant for video content creators.\nGiven a user question about video topics, extract exactly 2 keywords and call google_trends ONCE with both keywords in a single array. Do not call the tool more than once.\nDo not answer without calling the tool first."
+                    },
+                    {
+                      "role": "user",
+                      "content": "Estou pensando em criar um video sobre Web AI, quais titulos você me recomendaria sobre?"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_lfcjlhvw",
+                          "function": {
+                            "name": "google_trends"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_lfcjlhvw",
+                      "content": {
+                        "$pattern": "^\\{\"keywords\":\\[\\],\"relatedQueries\":\\[\\],\"risingTopics\":\\[\\],\"timestamp\":\"\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z\"\\}$"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "google_trends",
+                        "description": "Get Google Trends data for a list of keywords. Use this to analyze if a video title or topic is trending, rising, or declining in popularity. Always call this when the user shares a video title idea.",
+                        "parameters": {
+                          "type": "object",
+                          "properties": {
+                            "keywords": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "Keywords extracted from the video title to analyze"
+                            }
+                          },
+                          "required": ["keywords"]
+                        }
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful content strategy assistant for video creators.\nYou will receive a user question and real Google Trends data.\nUse the data to give a concrete, data-driven recommendation: confirm the title, suggest improvements, or propose rising alternatives.\nBe specific and encouraging. Always respond in the same language the user wrote in, preferably in Brazilian Portuguese."
+                    },
+                    {
+                      "role": "user",
+                      "content": "User question: Estou pensando em criar um video sobre Web AI, quais titulos você me recomendaria sobre?\n\nGoogle Trends data:\n\"Para criar um conteúdo de sucesso sobre **Web AI** (que envolve rodar modelos de Machine Learning diretamente no navegador usando tecnologias como WebGPU, WebAssembly e bibliotecas como TensorFlow.js ou Transformers.js), é importante focar no que torna essa tecnologia especial: **privacidade, baixo custo de servidor e velocidade.**\\n\\nAqui estão algumas sugestões de títulos divididas por \\\"estilo\\\" de vídeo:\\n\\n### 1. Estilo \\\"Uau/Showcase\\\" (Para atrair cliques rápidos)\\n*Esses títulos funcionam bem para mostrar o que é possível fazer sem explicar a teoria primeiro.*\\n* \\\"Como rodar IA no navegador sem gastar nada com servidores\\\"\\n* \\\"Eu criei uma IA que funciona 100% offline no seu navegador\\\"\\n* \\\"O fim das APIs de IA? Como rodar modelos gigantes no navegador\\\"\\n* \\\"Como é processar IA localmente usando apenas WebGPU\\\"\\n\\n### 2. Estilo Educativo/Tutorial (Para quem quer aprender a técnica)\\n*Ideal para atrair desenvolvedores que querem implementar essas soluções.*\\n* \\\"Guia Completo: Como rodar modelos de IA no navegador (Web AI)\\\"\\n* \\\"Aprenda a usar Transformers.js para criar aplicações inteligentes\\\"\\n* \\\"WebGPU vs WebGL: Qual a melhor forma de acelerar IA na Web?\\\"\\n* \\\"Como integrar modelos de IA em sites usando apenas JavaScript\\\"\\n\\n### 3. Estilo Comparativo/Análise (Para quem já conhece o básico)\\n*Bom para quem está decidindo se vale a pena usar Web AI ou uma API (como a da OpenAI).*\\n* \\\"Web AI vs API de IA: Qual a melhor escolha para o seu projeto?\\\"\\n* \\\"Por que você deveria rodar IA no navegador (Privacidade e Latência)\\\"\\n* \\\"O estado atual da IA no navegador em 2024/2025\\\"\\n\\n### 4. Estilo \\\"Notícia/Tendência\\\" (Para capturar o hype)\\n* \\\"A revolução da IA Local: Por que todo desenvolvedor deve conhecer a Web AI\\\"\\n* \\\"Como o navegador se tornou o novo motor de Inteligência Artificial\\\"\\n* \\\"O que está acontecendo com o processamento de IA na Web?\\\"\\n\\n---\\n\\n### 💡 Dicas extras para o seu vídeo:\\n*   **Destaque a Privacidade:** Esse é o maior argumento de venda da Web AI. Diga claramente que os dados do usuário não saem do computador dele.\\n*   **Mostre a Prática:** Se puder, mostre uma demonstração rápida (ex: reconhecimento de imagem ou tradução em tempo real) rodando em uma página simples.\\n*   **Palavras-chave importantes:** Use termos como **WebGPU**, **TensorFlow.js**, **Transformers.js** e **Edge Computing** nas tags e na descrição para ajudar o algoritmo a encontrar o público certo.\""
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

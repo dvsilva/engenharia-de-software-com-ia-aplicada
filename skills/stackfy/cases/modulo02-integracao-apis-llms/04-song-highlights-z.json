@@ -1,0 +1,2584 @@
+{
+  "module": "modulo02-integracao-apis-llms/04-song-highlights-z",
+  "concepts": [
+    "state-graph",
+    "command-line-interface",
+    "conversation-memory",
+    "chat-model",
+    "schema-validation",
+    "model-routing",
+    "sql-database",
+    "text-embeddings"
+  ],
+  "recorded": "Every case passed against the original with Node.js 22.23.4, @langchain/core 1.1.22, @langchain/langgraph 1.1.4, @langchain/langgraph-checkpoint-postgres 1.0.0, @langchain/openai 1.2.7, langchain 1.2.21, zod 3.25.76, knex 3.1.0, better-sqlite3 11.10.0, and pg 8.18.0, installed from the module's lockfile and run as \"node {program}.ts\" without a .env file, so LangSmith tracing stays off, where the programs are the chat, src/index, and the module's end-to-end tests, tests/chat.e2e.test. better-sqlite3 11.10 has no prebuilt binary for Node.js 26 and does not compile against it, so the original runs on Node.js 22, which strips the types by itself. PostgreSQL comes from the lesson's compose file under a container name of its own and without its dbdata volume, so the course folder stays untouched, and port 5432, which the configuration hardcodes, must be free. The original always calls OpenRouter's address, so the copy that produced these cases passes OPENAI_BASE_URL to ChatOpenAI as its base URL, falling back to OpenRouter's, a one-line change in src/services/openrouterService.ts. No OpenRouter key was available, so the answers were recorded from Ollama 0.40.11 through its OpenAI-compatible API, with gpt-oss:20b standing in for arcee-ai/trinity-large-preview:free, the only model the configuration offers, and wrapped in OpenRouter's documented response format without the stand-in's reasoning, while the requests keep the model and the routing the program sends. Every call asks for a json_schema response format, which the cases check by its type and its schema's properties and required fields. The rejected calls are synthesized from OpenRouter's documented error format, and so is the greeting with null preferences. The chat reads with readline/promises, so the cases type each line only after the prompt Você: appears and always end with exit. The chat never exits after saying goodbye, because the knex pool of its preferences service keeps a timer and nothing closes it, so the cases stop it 15 seconds after the last line and check no exit code. The thread id is the user, or anonymous, followed by the current time in milliseconds, which the cases check as 13 digits. Each case starts without preferences.db, or with the course's own preferences.db, which holds only Ana's preferences, rewritten with 512-byte pages, and the runner restores the folder afterwards. The first case also requires preferences.db to hold the last summary's text. Every run starts a new thread, so no case resumes a conversation from an earlier run, and the PostgreSQL store is set up but never read or written. The tests program is checked by its requests and its exit code, never by its report, and removes its own test-preferences.db. The LangGraph CLI's development server, which factory.ts and langgraph.json register the graph for, belongs to the CLI and has no cases.",
+  "prepare": {
+    "path": [".stackfy/bin"],
+    "setup": [
+      "mkdir -p .stackfy && for node in \"$(command -v node)\" \"$(brew --prefix node@22 2>/dev/null)/bin/node\" \"${NVM_DIR:-$HOME/.nvm}\"/versions/node/v22.*/bin/node; do \"$node\" --version 2>/dev/null | grep -q '^v22\\.' && exec ln -s \"$(dirname \"$node\")\" .stackfy/bin; done; echo 'Node.js 22 is not installed' >&2; exit 1",
+      "npm ci --no-audit --no-fund",
+      "npm rebuild better-sqlite3 --ignore-scripts=false"
+    ],
+    "patches": [
+      {
+        "file": "src/services/openrouterService.ts",
+        "find": "'https://openrouter.ai/api/v1'",
+        "replace": "process.env.OPENAI_BASE_URL ?? 'https://openrouter.ai/api/v1'"
+      }
+    ]
+  },
+  "originals": ["node {program}.ts"],
+  "env": {
+    "OPENROUTER_API_KEY": "replay"
+  },
+  "services": {
+    "up": "printf 'services:\\n  postgres:\\n    container_name: stackfy-04-song-highlights-z-postgres\\n    volumes: !reset []\\n' | docker compose -f docker-compose.yml -f - -p stackfy-04-song-highlights-z up -d --wait postgres",
+    "down": "docker compose -f docker-compose.yml -p stackfy-04-song-highlights-z down -v",
+    "ready": [
+      {
+        "port": 5432
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "a new user's preferences are saved when the model extracts them, every turn after the greeting is summarized into the store, and the thread keeps only the last exchange",
+      "program": "src/index",
+      "args": ["--user", "alex"],
+      "files": {
+        "preferences.db": null
+      },
+      "stdin": {
+        "prompt": "Você: ",
+        "lines": [
+          "Oi! Meu nome é Alex e eu amo rock e metal",
+          "Pode recomendar algo animado? 🎸",
+          "exit"
+        ]
+      },
+      "timeout": 15000,
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for OpenRouter, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793097802-FKYMxb4KQ62IDWR0b5ls",
+            "model": "arcee-ai/trinity-large-preview:free",
+            "object": "chat.completion",
+            "created": 1793097802,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\"message\":\"Oi! 🎶 Sou seu assistente musical, sempre pronto para explorar novos sons com você! Qual é o seu nome e que tipo de música você curte? Se quiser, posso já sugerir algumas faixas que combinam com o seu estilo!\",\"shouldSavePreferences\":false,\"preferences\":{} }",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 904,
+              "completion_tokens": 135,
+              "total_tokens": 1039,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for OpenRouter, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793097810-RMRNzctVbri5QiEsTQfl",
+            "model": "arcee-ai/trinity-large-preview:free",
+            "object": "chat.completion",
+            "created": 1793097810,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\"message\":\"E aí, Alex! 🎸💥 O rock e o metal são poderosos—tô empolgado pra descobrir mais do seu gosto! Já deixei as recomendações fresquinhas pra você: \\n• \\\"Enter Sandman\\\" – Metallica\\n• \\\"Master of Puppets\\\" – Metallica\\n• \\\"The Trooper\\\" – Iron Maiden\\n• \\\"Painkiller\\\" – Judas Priest\\nCurtiu? Me conta quais bandas ou artistas de rock/metal mais fazem seu coração bater mais forte!\",\"shouldSavePreferences\":true,\"preferences\":{\"name\":\"Alex\",\"favoriteGenres\":[\"rock\",\"metal\"]}}",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 968,
+              "completion_tokens": 409,
+              "total_tokens": 1377,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for OpenRouter, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793097816-eYaY2o5MyD8GEtFWglD4",
+            "model": "arcee-ai/trinity-large-preview:free",
+            "object": "chat.completion",
+            "created": 1793097816,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\"keyPreferences\":\"Alex adora música com energia intensa, especialmente rock e metal. Ele costuma ouvir essas faixas quando quer sentir a adrenalina, como durante treinos ou momentos de alta motivação. O tom conversacional sugerido pelo assistente indica que ele aprecia recomendações de bandas icônicas do gênero.\",\"name\":\"Alex\",\"favoriteBands\":[\"Metallica\",\"Iron Maiden\",\"Judas Priest\"],\"importantContext\":\"Não há informações adicionais sobre idade, humor específico ou contexto de escuta além da preferência por rock e metal. Alex expressou interesse em conhecer mais bandas que intensifiquem sua experiência musical. \"}",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 488,
+              "completion_tokens": 376,
+              "total_tokens": 864,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for OpenRouter, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793097826-8au9skhGyzmJntopKfhM",
+            "model": "arcee-ai/trinity-large-preview:free",
+            "object": "chat.completion",
+            "created": 1793097826,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\n  \"message\": \"Claro, Alex! Se você quer algo com energia pura, aqui vão três faixas que vão disparar a adrenalina:\\n\\n• \\\"Thunderstruck\\\" – AC/DC\\n• \\\"Electric Eye\\\" – Judas Priest\\n• \\\"The Pretender\\\" – Foo Fighters\\n\\nQual delas você já ouviu ou qual tipo de energia você prefere (treino, festa, etc.)? 🎸\",\n  \"shouldSavePreferences\": false,\n  \"preferences\": {\n    \"favoriteBands\": [\"Metallica\", \"Iron Maiden\", \"Judas Priest\"]\n  }\n}",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1084,
+              "completion_tokens": 616,
+              "total_tokens": 1700,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for OpenRouter, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793097837-9jVzHMbggkzi0gOWybub",
+            "model": "arcee-ai/trinity-large-preview:free",
+            "object": "chat.completion",
+            "created": 1793097837,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\n  \"keyPreferences\": \"Alex adora rock e metal com energia intensa, buscando músicas que o façam sentir a adrenalina durante treinos, festas ou momentos de alta motivação. Ele prefere faixas animadas e poderosas de bandas icônicas e está sempre aberto a novas recomendações que mantenham esse clima energético.\",\n  \"name\": \"Alex\",\n  \"favoriteBands\": [\n    \"Metallica\",\n    \"Iron Maiden\",\n    \"Judas Priest\",\n    \"AC/DC\",\n    \"Foo Fighters\"\n  ],\n  \"importantContext\": \"Não há informação sobre a idade de Alex. Ele expressou interesse em continuar recebendo sugestões de músicas com alta energia para usar em treinos ou festas. Não foram mencionados padrões de humor específicos além do desejo por músicas vibrantes e motivadoras. Alex não trouxe outros detalhes relevantes sobre sua rotina ou preferências de escuta além do foco em rock/metal animado.  \"\n}",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 624,
+              "completion_tokens": 718,
+              "total_tokens": 1342,
+              "cost": 0
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "output",
+          "pattern": "^═{60}\n  🎵 Recomendador de Músicas com Memória \\(LangGraph\\)\n═{60}\n\nDigite suas mensagens abaixo\\. Digite \"exit\" para sair\\.\n\n✅ Memória configurada: PostgreSQL\n👤 Usuário: alex\n💬 Thread da Conversa: alex-\\d{13}\n\nAI: Oi! 🎶 Sou seu assistente musical, sempre pronto para explorar novos sons com você! Qual é o seu nome e que tipo de música você curte\\? Se quiser, posso já sugerir algumas faixas que combinam com o seu estilo!\n\nVocê: \nAI: E aí, Alex! 🎸💥 O rock e o metal são poderosos—tô empolgado pra descobrir mais do seu gosto! Já deixei as recomendações fresquinhas pra você: \n• \"Enter Sandman\" – Metallica\n• \"Master of Puppets\" – Metallica\n• \"The Trooper\" – Iron Maiden\n• \"Painkiller\" – Judas Priest\nCurtiu\\? Me conta quais bandas ou artistas de rock\\/metal mais fazem seu coração bater mais forte!\n\nVocê: \nAI: Claro, Alex! Se você quer algo com energia pura, aqui vão três faixas que vão disparar a adrenalina:\n\n• \"Thunderstruck\" – AC\\/DC\n• \"Electric Eye\" – Judas Priest\n• \"The Pretender\" – Foo Fighters\n\nQual delas você já ouviu ou qual tipo de energia você prefere \\(treino, festa, etc\\.\\)\\? 🎸\n\nVocê: \n👋 Até mais!\n\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string",
+                            "description": "A resposta conversacional para o usuário"
+                          },
+                          "preferences": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "Nome do usuário"
+                              },
+                              "age": {
+                                "type": "number",
+                                "description": "Idade do usuário"
+                              },
+                              "favoriteGenres": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Gêneros musicais favoritos"
+                              },
+                              "favoriteBands": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Bandas ou artistas favoritos"
+                              },
+                              "mood": {
+                                "type": "string",
+                                "description": "Humor ou sentimento atual"
+                              },
+                              "listeningContext": {
+                                "type": "string",
+                                "description": "Quando/onde ouve música"
+                              },
+                              "additionalInfo": {
+                                "type": "string",
+                                "description": "Outras preferências relevantes mencionadas"
+                              }
+                            },
+                            "description": "Preferências extraídas desta mensagem"
+                          },
+                          "shouldSavePreferences": {
+                            "type": "boolean",
+                            "description": "Se as preferências extraídas devem ser salvas"
+                          }
+                        },
+                        "required": ["message", "shouldSavePreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Assistente musical entusiasta e amigável - caloroso, animado, conversacional (2-4 frases)\",\"tarefas\":[\"Conversar sobre preferências musicais e fazer recomendações personalizadas\",\"Extrair informações do usuário (nome, idade, gêneros, bandas, humor, contexto)\",\"Fazer perguntas de acompanhamento para entender melhor o gosto musical\",\"SEMPRE recomendar músicas específicas (título e artista) baseado no que sabe do usuário\",\"Se você tem preferencias_previamente_armazenadas, reconheça-as e construa sobre esse conhecimento\"],\"preferencias_previamente_armazenadas\":\"Nenhuma\",\"regras_de_extracao\":{\"shouldSavePreferences\":\"Defina como true APENAS quando o USUÁRIO compartilhar NOVAS informações pessoais na mensagem_atual_do_usuario\",\"extrair_somente\":\"Informações que o USUÁRIO declarou explicitamente (nome, idade, gêneros favoritos, bandas/artistas que ELE gosta)\",\"nunca_extrair\":\"Músicas, bandas ou artistas que VOCÊ (IA) recomendou - apenas extraia o que o USUÁRIO disse gostar\",\"nao_extrair\":\"Saudações simples, perguntas sem novas informações, reações genéricas sem conteúdo novo\"},\"exemplos\":[{\"usuario\":\"Oi! Meu nome é Alex e eu amo música rock\",\"resposta\":{\"message\":\"E aí, Alex! Rock é demais! Que bandas você curte? Recomendo \\\"Everlong\\\" do Foo Fighters se você não conhece!\",\"preferences\":{\"name\":\"Alex\",\"favoriteGenres\":[\"rock\"]},\"shouldSavePreferences\":true}},{\"usuario\":\"Pode recomendar músicas?\",\"resposta\":{\"message\":\"Claro! Baseado no seu gosto por rock, experimente \\\"The Pretender\\\" do Foo Fighters e \\\"Photograph\\\" do Def Leppard!\",\"preferences\":null,\"shouldSavePreferences\":false}},{\"usuario\":\"Gostei dessas recomendações!\",\"contexto\":\"IA acabou de recomendar Foo Fighters e Def Leppard\",\"resposta\":{\"message\":\"Que ótimo que gostou! Quer mais recomendações de rock ou quer explorar outro gênero?\",\"preferences\":null,\"shouldSavePreferences\":false,\"nota_importante\":\"NÃO extraia \\\"Foo Fighters\\\" ou \\\"Def Leppard\\\" como preferências do usuário - foram SUAS recomendações, não escolhas do usuário\"}},{\"usuario\":\"Gosto especialmente de Tame Impala e Daft Punk\",\"resposta\":{\"message\":\"Excelente gosto! Tame Impala tem aquele som psicodélico único e Daft Punk é lendário! Tente \\\"Let It Happen\\\" e \\\"Digital Love\\\"!\",\"preferences\":{\"favoriteBands\":[\"Tame Impala\",\"Daft Punk\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"EXTRAIR - o usuário declarou explicitamente que GOSTA dessas bandas (não foram suas recomendações)\"}},{\"usuario\":\"Eu adoro Metallica e Iron Maiden!\",\"resposta\":{\"message\":\"Metal clássico! Perfeito! Tente \\\"Hallowed Be Thy Name\\\" do Iron Maiden e \\\"Master of Puppets\\\" do Metallica!\",\"preferences\":{\"favoriteBands\":[\"Metallica\",\"Iron Maiden\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"AQUI SIM - o usuário declarou explicitamente suas bandas favoritas\"}},{\"usuario\":\"Olá!\",\"resposta\":{\"message\":\"Olá! Sou seu assistente musical! Que tipo de música você gosta de ouvir? Me conta seu nome também! 🎵\",\"preferences\":null,\"shouldSavePreferences\":false}}]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"contexto_da_conversa\":\"User: Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais.\",\"mensagem_atual_do_usuario\":\"Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais.\",\"instrucoes\":[\"Gere uma resposta calorosa e envolvente em Português\",\"SEMPRE inclua recomendações de músicas específicas quando relevante\",\"Extraia quaisquer preferências compartilhadas\",\"Defina o flag shouldSavePreferences apropriadamente\"]}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string",
+                            "description": "A resposta conversacional para o usuário"
+                          },
+                          "preferences": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "Nome do usuário"
+                              },
+                              "age": {
+                                "type": "number",
+                                "description": "Idade do usuário"
+                              },
+                              "favoriteGenres": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Gêneros musicais favoritos"
+                              },
+                              "favoriteBands": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Bandas ou artistas favoritos"
+                              },
+                              "mood": {
+                                "type": "string",
+                                "description": "Humor ou sentimento atual"
+                              },
+                              "listeningContext": {
+                                "type": "string",
+                                "description": "Quando/onde ouve música"
+                              },
+                              "additionalInfo": {
+                                "type": "string",
+                                "description": "Outras preferências relevantes mencionadas"
+                              }
+                            },
+                            "description": "Preferências extraídas desta mensagem"
+                          },
+                          "shouldSavePreferences": {
+                            "type": "boolean",
+                            "description": "Se as preferências extraídas devem ser salvas"
+                          }
+                        },
+                        "required": ["message", "shouldSavePreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Assistente musical entusiasta e amigável - caloroso, animado, conversacional (2-4 frases)\",\"tarefas\":[\"Conversar sobre preferências musicais e fazer recomendações personalizadas\",\"Extrair informações do usuário (nome, idade, gêneros, bandas, humor, contexto)\",\"Fazer perguntas de acompanhamento para entender melhor o gosto musical\",\"SEMPRE recomendar músicas específicas (título e artista) baseado no que sabe do usuário\",\"Se você tem preferencias_previamente_armazenadas, reconheça-as e construa sobre esse conhecimento\"],\"preferencias_previamente_armazenadas\":\"Nenhuma\",\"regras_de_extracao\":{\"shouldSavePreferences\":\"Defina como true APENAS quando o USUÁRIO compartilhar NOVAS informações pessoais na mensagem_atual_do_usuario\",\"extrair_somente\":\"Informações que o USUÁRIO declarou explicitamente (nome, idade, gêneros favoritos, bandas/artistas que ELE gosta)\",\"nunca_extrair\":\"Músicas, bandas ou artistas que VOCÊ (IA) recomendou - apenas extraia o que o USUÁRIO disse gostar\",\"nao_extrair\":\"Saudações simples, perguntas sem novas informações, reações genéricas sem conteúdo novo\"},\"exemplos\":[{\"usuario\":\"Oi! Meu nome é Alex e eu amo música rock\",\"resposta\":{\"message\":\"E aí, Alex! Rock é demais! Que bandas você curte? Recomendo \\\"Everlong\\\" do Foo Fighters se você não conhece!\",\"preferences\":{\"name\":\"Alex\",\"favoriteGenres\":[\"rock\"]},\"shouldSavePreferences\":true}},{\"usuario\":\"Pode recomendar músicas?\",\"resposta\":{\"message\":\"Claro! Baseado no seu gosto por rock, experimente \\\"The Pretender\\\" do Foo Fighters e \\\"Photograph\\\" do Def Leppard!\",\"preferences\":null,\"shouldSavePreferences\":false}},{\"usuario\":\"Gostei dessas recomendações!\",\"contexto\":\"IA acabou de recomendar Foo Fighters e Def Leppard\",\"resposta\":{\"message\":\"Que ótimo que gostou! Quer mais recomendações de rock ou quer explorar outro gênero?\",\"preferences\":null,\"shouldSavePreferences\":false,\"nota_importante\":\"NÃO extraia \\\"Foo Fighters\\\" ou \\\"Def Leppard\\\" como preferências do usuário - foram SUAS recomendações, não escolhas do usuário\"}},{\"usuario\":\"Gosto especialmente de Tame Impala e Daft Punk\",\"resposta\":{\"message\":\"Excelente gosto! Tame Impala tem aquele som psicodélico único e Daft Punk é lendário! Tente \\\"Let It Happen\\\" e \\\"Digital Love\\\"!\",\"preferences\":{\"favoriteBands\":[\"Tame Impala\",\"Daft Punk\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"EXTRAIR - o usuário declarou explicitamente que GOSTA dessas bandas (não foram suas recomendações)\"}},{\"usuario\":\"Eu adoro Metallica e Iron Maiden!\",\"resposta\":{\"message\":\"Metal clássico! Perfeito! Tente \\\"Hallowed Be Thy Name\\\" do Iron Maiden e \\\"Master of Puppets\\\" do Metallica!\",\"preferences\":{\"favoriteBands\":[\"Metallica\",\"Iron Maiden\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"AQUI SIM - o usuário declarou explicitamente suas bandas favoritas\"}},{\"usuario\":\"Olá!\",\"resposta\":{\"message\":\"Olá! Sou seu assistente musical! Que tipo de música você gosta de ouvir? Me conta seu nome também! 🎵\",\"preferences\":null,\"shouldSavePreferences\":false}}]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"contexto_da_conversa\":\"User: Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais.\\nAI: Oi! 🎶 Sou seu assistente musical, sempre pronto para explorar novos sons com você! Qual é o seu nome e que tipo de música você curte? Se quiser, posso já sugerir algumas faixas que combinam com o seu estilo!\\nUser: Oi! Meu nome é Alex e eu amo rock e metal\",\"mensagem_atual_do_usuario\":\"Oi! Meu nome é Alex e eu amo rock e metal\",\"instrucoes\":[\"Gere uma resposta calorosa e envolvente em Português\",\"SEMPRE inclua recomendações de músicas específicas quando relevante\",\"Extraia quaisquer preferências compartilhadas\",\"Defina o flag shouldSavePreferences apropriadamente\"]}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Nome do usuário"
+                          },
+                          "age": {
+                            "type": "number",
+                            "description": "Idade do usuário"
+                          },
+                          "favoriteGenres": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Gêneros musicais favoritos mencionados"
+                          },
+                          "favoriteBands": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Bandas ou artistas favoritos mencionados"
+                          },
+                          "keyPreferences": {
+                            "type": "string",
+                            "description": "Sumário conciso das preferências musicais, padrões de humor e hábitos"
+                          },
+                          "importantContext": {
+                            "type": "string",
+                            "description": "Qualquer outro contexto importante sobre o usuário"
+                          }
+                        },
+                        "required": ["keyPreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Sumarizador de conversação para preferências musicais\",\"tarefa\":\"Analisar conversa e extrair preferências musicais estruturadas\",\"campos_para_extrair\":{\"name\":\"Nome do usuário\",\"age\":\"Idade do usuário\",\"favoriteGenres\":\"Todos os gêneros mencionados\",\"favoriteBands\":\"Todas as bandas/artistas mencionados\",\"keyPreferences\":\"Sumário de 2-4 frases sobre gostos, padrões de humor e contexto de escuta\",\"importantContext\":\"Outros detalhes relevantes\"},\"regras\":[\"Combinar informações duplicadas\",\"Ser específico sobre gêneros e artistas\",\"Incluir associações de humor (ex: \\\"gosta de rock animado ao fazer exercícios\\\")\",\"Se atualizando sumário anterior, preservar info não discutida na nova conversa\",\"Incluir apenas informações explicitamente declaradas\"]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"conversa\":\"User: Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais.\\nAI: Oi! 🎶 Sou seu assistente musical, sempre pronto para explorar novos sons com você! Qual é o seu nome e que tipo de música você curte? Se quiser, posso já sugerir algumas faixas que combinam com o seu estilo!\\nUser: Oi! Meu nome é Alex e eu amo rock e metal\\nAI: E aí, Alex! 🎸💥 O rock e o metal são poderosos—tô empolgado pra descobrir mais do seu gosto! Já deixei as recomendações fresquinhas pra você: \\n• \\\"Enter Sandman\\\" – Metallica\\n• \\\"Master of Puppets\\\" – Metallica\\n• \\\"The Trooper\\\" – Iron Maiden\\n• \\\"Painkiller\\\" – Judas Priest\\nCurtiu? Me conta quais bandas ou artistas de rock/metal mais fazem seu coração bater mais forte!\",\"sumario_anterior\":\"Nenhum\",\"instrucoes\":[\"Atualizar sumário com novas informações desta conversa\",\"Preservar info existente não discutida nas novas mensagens\"]}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string",
+                            "description": "A resposta conversacional para o usuário"
+                          },
+                          "preferences": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "Nome do usuário"
+                              },
+                              "age": {
+                                "type": "number",
+                                "description": "Idade do usuário"
+                              },
+                              "favoriteGenres": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Gêneros musicais favoritos"
+                              },
+                              "favoriteBands": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Bandas ou artistas favoritos"
+                              },
+                              "mood": {
+                                "type": "string",
+                                "description": "Humor ou sentimento atual"
+                              },
+                              "listeningContext": {
+                                "type": "string",
+                                "description": "Quando/onde ouve música"
+                              },
+                              "additionalInfo": {
+                                "type": "string",
+                                "description": "Outras preferências relevantes mencionadas"
+                              }
+                            },
+                            "description": "Preferências extraídas desta mensagem"
+                          },
+                          "shouldSavePreferences": {
+                            "type": "boolean",
+                            "description": "Se as preferências extraídas devem ser salvas"
+                          }
+                        },
+                        "required": ["message", "shouldSavePreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Assistente musical entusiasta e amigável - caloroso, animado, conversacional (2-4 frases)\",\"tarefas\":[\"Conversar sobre preferências musicais e fazer recomendações personalizadas\",\"Extrair informações do usuário (nome, idade, gêneros, bandas, humor, contexto)\",\"Fazer perguntas de acompanhamento para entender melhor o gosto musical\",\"SEMPRE recomendar músicas específicas (título e artista) baseado no que sabe do usuário\",\"Se você tem preferencias_previamente_armazenadas, reconheça-as e construa sobre esse conhecimento\"],\"preferencias_previamente_armazenadas\":\"Nome: Alex\\nArtistas/Bandas Favoritas: Metallica, Iron Maiden, Judas Priest\\n\\nPreferências: Alex adora música com energia intensa, especialmente rock e metal. Ele costuma ouvir essas faixas quando quer sentir a adrenalina, como durante treinos ou momentos de alta motivação. O tom conversacional sugerido pelo assistente indica que ele aprecia recomendações de bandas icônicas do gênero.\",\"regras_de_extracao\":{\"shouldSavePreferences\":\"Defina como true APENAS quando o USUÁRIO compartilhar NOVAS informações pessoais na mensagem_atual_do_usuario\",\"extrair_somente\":\"Informações que o USUÁRIO declarou explicitamente (nome, idade, gêneros favoritos, bandas/artistas que ELE gosta)\",\"nunca_extrair\":\"Músicas, bandas ou artistas que VOCÊ (IA) recomendou - apenas extraia o que o USUÁRIO disse gostar\",\"nao_extrair\":\"Saudações simples, perguntas sem novas informações, reações genéricas sem conteúdo novo\"},\"exemplos\":[{\"usuario\":\"Oi! Meu nome é Alex e eu amo música rock\",\"resposta\":{\"message\":\"E aí, Alex! Rock é demais! Que bandas você curte? Recomendo \\\"Everlong\\\" do Foo Fighters se você não conhece!\",\"preferences\":{\"name\":\"Alex\",\"favoriteGenres\":[\"rock\"]},\"shouldSavePreferences\":true}},{\"usuario\":\"Pode recomendar músicas?\",\"resposta\":{\"message\":\"Claro! Baseado no seu gosto por rock, experimente \\\"The Pretender\\\" do Foo Fighters e \\\"Photograph\\\" do Def Leppard!\",\"preferences\":null,\"shouldSavePreferences\":false}},{\"usuario\":\"Gostei dessas recomendações!\",\"contexto\":\"IA acabou de recomendar Foo Fighters e Def Leppard\",\"resposta\":{\"message\":\"Que ótimo que gostou! Quer mais recomendações de rock ou quer explorar outro gênero?\",\"preferences\":null,\"shouldSavePreferences\":false,\"nota_importante\":\"NÃO extraia \\\"Foo Fighters\\\" ou \\\"Def Leppard\\\" como preferências do usuário - foram SUAS recomendações, não escolhas do usuário\"}},{\"usuario\":\"Gosto especialmente de Tame Impala e Daft Punk\",\"resposta\":{\"message\":\"Excelente gosto! Tame Impala tem aquele som psicodélico único e Daft Punk é lendário! Tente \\\"Let It Happen\\\" e \\\"Digital Love\\\"!\",\"preferences\":{\"favoriteBands\":[\"Tame Impala\",\"Daft Punk\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"EXTRAIR - o usuário declarou explicitamente que GOSTA dessas bandas (não foram suas recomendações)\"}},{\"usuario\":\"Eu adoro Metallica e Iron Maiden!\",\"resposta\":{\"message\":\"Metal clássico! Perfeito! Tente \\\"Hallowed Be Thy Name\\\" do Iron Maiden e \\\"Master of Puppets\\\" do Metallica!\",\"preferences\":{\"favoriteBands\":[\"Metallica\",\"Iron Maiden\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"AQUI SIM - o usuário declarou explicitamente suas bandas favoritas\"}},{\"usuario\":\"Olá!\",\"resposta\":{\"message\":\"Olá! Sou seu assistente musical! Que tipo de música você gosta de ouvir? Me conta seu nome também! 🎵\",\"preferences\":null,\"shouldSavePreferences\":false}}]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"contexto_da_conversa\":\"User: Oi! Meu nome é Alex e eu amo rock e metal\\nAI: E aí, Alex! 🎸💥 O rock e o metal são poderosos—tô empolgado pra descobrir mais do seu gosto! Já deixei as recomendações fresquinhas pra você: \\n• \\\"Enter Sandman\\\" – Metallica\\n• \\\"Master of Puppets\\\" – Metallica\\n• \\\"The Trooper\\\" – Iron Maiden\\n• \\\"Painkiller\\\" – Judas Priest\\nCurtiu? Me conta quais bandas ou artistas de rock/metal mais fazem seu coração bater mais forte!\\nUser: Pode recomendar algo animado? 🎸\",\"mensagem_atual_do_usuario\":\"Pode recomendar algo animado? 🎸\",\"instrucoes\":[\"Gere uma resposta calorosa e envolvente em Português\",\"SEMPRE inclua recomendações de músicas específicas quando relevante\",\"Extraia quaisquer preferências compartilhadas\",\"Defina o flag shouldSavePreferences apropriadamente\"]}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Nome do usuário"
+                          },
+                          "age": {
+                            "type": "number",
+                            "description": "Idade do usuário"
+                          },
+                          "favoriteGenres": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Gêneros musicais favoritos mencionados"
+                          },
+                          "favoriteBands": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Bandas ou artistas favoritos mencionados"
+                          },
+                          "keyPreferences": {
+                            "type": "string",
+                            "description": "Sumário conciso das preferências musicais, padrões de humor e hábitos"
+                          },
+                          "importantContext": {
+                            "type": "string",
+                            "description": "Qualquer outro contexto importante sobre o usuário"
+                          }
+                        },
+                        "required": ["keyPreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Sumarizador de conversação para preferências musicais\",\"tarefa\":\"Analisar conversa e extrair preferências musicais estruturadas\",\"campos_para_extrair\":{\"name\":\"Nome do usuário\",\"age\":\"Idade do usuário\",\"favoriteGenres\":\"Todos os gêneros mencionados\",\"favoriteBands\":\"Todas as bandas/artistas mencionados\",\"keyPreferences\":\"Sumário de 2-4 frases sobre gostos, padrões de humor e contexto de escuta\",\"importantContext\":\"Outros detalhes relevantes\"},\"regras\":[\"Combinar informações duplicadas\",\"Ser específico sobre gêneros e artistas\",\"Incluir associações de humor (ex: \\\"gosta de rock animado ao fazer exercícios\\\")\",\"Se atualizando sumário anterior, preservar info não discutida na nova conversa\",\"Incluir apenas informações explicitamente declaradas\"]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"conversa\":\"User: Oi! Meu nome é Alex e eu amo rock e metal\\nAI: E aí, Alex! 🎸💥 O rock e o metal são poderosos—tô empolgado pra descobrir mais do seu gosto! Já deixei as recomendações fresquinhas pra você: \\n• \\\"Enter Sandman\\\" – Metallica\\n• \\\"Master of Puppets\\\" – Metallica\\n• \\\"The Trooper\\\" – Iron Maiden\\n• \\\"Painkiller\\\" – Judas Priest\\nCurtiu? Me conta quais bandas ou artistas de rock/metal mais fazem seu coração bater mais forte!\\nUser: Pode recomendar algo animado? 🎸\\nAI: Claro, Alex! Se você quer algo com energia pura, aqui vão três faixas que vão disparar a adrenalina:\\n\\n• \\\"Thunderstruck\\\" – AC/DC\\n• \\\"Electric Eye\\\" – Judas Priest\\n• \\\"The Pretender\\\" – Foo Fighters\\n\\nQual delas você já ouviu ou qual tipo de energia você prefere (treino, festa, etc.)? 🎸\",\"sumario_anterior\":{\"keyPreferences\":\"Alex adora música com energia intensa, especialmente rock e metal. Ele costuma ouvir essas faixas quando quer sentir a adrenalina, como durante treinos ou momentos de alta motivação. O tom conversacional sugerido pelo assistente indica que ele aprecia recomendações de bandas icônicas do gênero.\",\"name\":\"Alex\",\"favoriteBands\":[\"Metallica\",\"Iron Maiden\",\"Judas Priest\"],\"importantContext\":\"Não há informações adicionais sobre idade, humor específico ou contexto de escuta além da preferência por rock e metal. Alex expressou interesse em conhecer mais bandas que intensifiquem sua experiência musical. \"},\"instrucoes\":[\"Atualizar sumário com novas informações desta conversa\",\"Preservar info existente não discutida nas novas mensagens\"]}"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "file",
+          "path": "preferences.db",
+          "pattern": "^(?=[\\s\\S]*alex)(?=[\\s\\S]*Alex adora rock e metal com energia intensa)(?=[\\s\\S]*Foo Fighters)"
+        }
+      ]
+    },
+    {
+      "name": "a returning user is greeted with the preferences in the store, which the session keeps in its state while the summaries rewrite the store",
+      "program": "src/index",
+      "args": ["--user", "ana"],
+      "files": {
+        "preferences.db": {
+          "$base64": "U1FMaXRlIGZvcm1hdCAzAAIAAQEAQCAgAAAACgAAAAcAAAAAAAAAAAAAAAMAAAAEAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKAC6ZsAUAAAABAfsAAAAABgH7AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAENAAAAAQBXAABXAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACHHgEOABMTAIEzgVGJEYINM2FuYUFuYVsicm9jayIsInJvY2sgcGVzYWRvIiwicm9jayBkb3MgYW5vcyA4MCIsIm5lb21ldGFsIiwic3VyZiByb2NrIiwicm9jayBhbHRlcm5hdGl2byJdWyJHdW5zIE4nIFJvc2VzIiwiU3lzdGVtIG9mIGEgRG93biIsIlJhZ2UgQWdhaW5zdCB0aGUgTWFjaGluZSIsIldlZXplciIsIlNXTVJTIiwiRnJhbnogRmVyZGluYW5kIl1BbmEgw6kgYXBhaXhvbmFkYSBwb3Igcm9jaywgZXNwZWNpYWxtZW50ZSBwZWxvcyBlc3RpbG9zIG1haXMgcGVzYWRvcyBjb21vIHJvY2sgZG9zIGFub3MgODAgZSBuZW9tZXRhbC4gRWxhIGFwcmVjaWEgYSBlbmVyZ2lhIGludGVuc2EgZSBicnV0YSBkZSBiYW5kYXMgY29tbyBHdW5zIE4nIFJvc2VzLCBTeXN0ZW0gb2YgYSBEb3duIGUgUmFnZSBBZ2FpbnN0IHRoZSBNYWNoaW5lLiBBAAAABw0AAAABAeoAAeoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUAQMtAXVzZXJfcHJlZmVyZW5jZXMHDQAAAAEAqAAAqABWAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACCVQEHFy0tAYRddGFibGV1c2UAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAglUBBxctLQGEXXRhYmxldXNlcl9wcmVmZXJlbmNlc3VzZXJfcHJlZmVyZW5jZXMCQ1JFQVRFIFRBQkxFIGB1c2VyX3ByZWZlcmVuY2VzYCAoYGlkYCBpbnRlZ2VyIG5vdCBudWxsIHByaW1hcnkga2V5IGF1dG9pbmNyZW1lbnQsIGB1c2VyX2lkYCB2YXJjaGFyKDI1NSkgbm90IG51bGwsIGBuYW1lYCB2YXJjaGFyKDI1NSksIGBhZ2VgIGludGVnZXIsIGBmYXZvcml0ZV9nZW5yZXNgIGpzb24sIGBmYXZvcml0ZV9iYW5kc2AganNvbiwgYGtleV9wcmVmZXJlbmNlc2AgdGV4dCwgYGltcG9ydGFudF9jb250ZXh0YCB0ZXh0LCBgdXBkYXRlZF9hdGAgZGF0ZXRpbWUgZGVmYXVsdCBDVVJSRU5UX1RJTUVTVEFNUCkKAAAAAQH5AAH5AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgMTCWFuYQ0AAAACARgAAa4BGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACBEwMHF0stAYE7aW5kZXh1c2VyX3ByZWZlcmVuY2VzX3VzZXJfaWRfdW5pcXVldXNlcl9wcmVmZXJlbmNlcwVDUkVBVEUgVU5JUVVFIElOREVYIGB1c2VyX3ByZWZlcmVuY2VzX3VzZXJfaWRfdW5pcXVlYCBvbiBgdXNlcl9wcmVmZXJlbmNlc2AgKGB1c2VyX2lkYClQAgYXKysBWXRhYmxlc3FsaXRlX3NlcXVlbmNlc3FsaXRlX3NlcXVlbmNlA0NSRUFURSBUQUJMRSBzcWxpdGVfc2VxdWVuY2UobmFtZSxzZXEpAAAAAGzDqW0gZGlzc28sIGNvbW8gc3VyZmlzdGEsIGVsYSB0YW1iw6ltIGN1cnRlIG8gc3VyZiByb2NrIGUgcm9jayBhbHRlcm5hdGl2bywgY29tIGJhbmRhcyBjb21vIFdlZXplciwgU1dNUlMgZSBGcmFueiBGZXJkaW5hbmQuIFN1YXMgcHJlZmVyw6puY2lhcyBtdXNpY2FpcyBpbmRpY2FtIHVtYSBpbmNsaW5hw6fDo28gcG9yIHNvbnMgbWFpcyBwZXNhZG9zIGUgYWdyZXNzaXZvcywgY29tIHJpZmZzIGRlIGd1aXRhcnJhIG1hcmNhbnRlcyBlIHBlcmZvcm1hbmNlcyBlbsOpcmdpY2FzLCBtYXMgdGFtYsOpbSBwb3IgbcO6c2ljYXMgcXVlIGNvbWJpbmFtIGNvbSBvIGVzdGlsbyBkZSB2aWRhIHByYWlhbm8gZSBhIGVuZXJnaWEgZG8gc3VyZi5BbmEgw6kgc3VyZmlzdGEsIG8gcXVlIGluZmx1ZW5jaWEgc3VhcyBwcmVmZXLDqm5jaWFzIG11c2ljYWlzIHBhcmEgaW5jbHVpciBnw6puZXJvcyBtYWlzIHByYWlhbm9zIGUgZW5lcmfDqXRpY29zIGNvbW8gc3VyZiByb2NrLjIwMjYtMDItMTQgMDA6NDY6Mzg="
+        }
+      },
+      "stdin": {
+        "prompt": "Você: ",
+        "lines": [
+          "Me recomende algo para ouvir surfando hoje 🏄",
+          "Tenho 29 anos, aliás!",
+          "exit"
+        ]
+      },
+      "timeout": 15000,
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for OpenRouter, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793098759-qM3a0sj74yj9S6lpu8zB",
+            "model": "arcee-ai/trinity-large-preview:free",
+            "object": "chat.completion",
+            "created": 1793098759,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\"message\":\"E aí, Ana! Lembro que você curte rock pesado, 80s, neometal e surf rock, e que seu coração bate forte por Guns N’ Roses, System of a Down e Rage Against the Machine. Para entrar na vibe, ouça \\\"Welcome to the Jungle\\\" da Guns N’ Roses – um clássico que combina energia e riffs marcantes. Se quiser algo mais surf‑friendly, \\\"Boys of Summer\\\" do Don McLean é uma ótima pedida. 😉\",\"shouldSavePreferences\":false}",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1105,
+              "completion_tokens": 691,
+              "total_tokens": 1796,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for OpenRouter, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793098769-dFgGWYYWSIufhXfsLzdw",
+            "model": "arcee-ai/trinity-large-preview:free",
+            "object": "chat.completion",
+            "created": 1793098769,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\"message\":\"E aí, Ana! Para acompanhar a onda hoje, que tal colocar \\\"Surfin’ U.S.A.\\\" dos Beach Boys e o clássico “Wipeout” dos Surfaris? Esses riffs de guitarra de surf rock vão turbinar seu passeio pela água. Se quiser algo mais pesado na praia, me conta e eu dou outra dica!\",\"shouldSavePreferences\":false}",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1229,
+              "completion_tokens": 601,
+              "total_tokens": 1830,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for OpenRouter, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793098784-EdexZ8utgTWzYZwqOiBz",
+            "model": "arcee-ai/trinity-large-preview:free",
+            "object": "chat.completion",
+            "created": 1793098784,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\n  \"keyPreferences\": \"Ana prefere músicas com energia forte, especialmente rock pesado, 80s, neometal e surf rock. Ela gosta de ouvir músicas que a motivem enquanto pratica atividades físicas, como surfar. A seleção de artistas que a inspiram costuma incluir clássicos de rock e grupos que unem potência sonora e ritmo contagiante.\",\n  \"name\": \"Ana\",\n  \"favoriteBands\": [\n    \"Guns N’ Roses\",\n    \"System of a Down\",\n    \"Rage Against the Machine\",\n    \"Beach Boys\",\n    \"Surfaris\"\n  ],\n  \"importantContext\": \"Ana costuma ouvir música enquanto surfa, buscando trilhas que combinem vibração surfada com energia de rock. Ela aprecia sugestões de músicas que se encaixem bem com o ritmo das ondas e a prática de esportes ao ar livre. O estilo musical que escolhe reflete seu gosto por sons marcantes e dinâmicos, tanto em ambientes calmos quanto em situações de exercício intenso. \"\n}",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 515,
+              "completion_tokens": 914,
+              "total_tokens": 1429,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for OpenRouter, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793098799-LdheV1EX2wLtVEz0eiN4",
+            "model": "arcee-ai/trinity-large-preview:free",
+            "object": "chat.completion",
+            "created": 1793098799,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\"message\":\"Legal, Ana! 29 anos, pronto para pegar ondas e curtir boas vibes! Já que você curte surf rock, que tal experimentar “Pipeline” dos Chantays ou “Misirlou” de Dick Dale? Se quiser algo mais pesado para a praia, dê uma escuta em “The Boys Are Back in Town” do Thin Lizzy. E me conta: tem algum outro gênero ou banda que você gosta de ouvir enquanto surfa? 🎶\",\"shouldSavePreferences\":true,\"preferences\":{\"name\":\"Ana\",\"age\":29}}",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1169,
+              "completion_tokens": 885,
+              "total_tokens": 2054,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for OpenRouter, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793098810-w8zrtqXPHxCn0DY8NWzN",
+            "model": "arcee-ai/trinity-large-preview:free",
+            "object": "chat.completion",
+            "created": 1793098810,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\"keyPreferences\":\"Ana prefere músicas com energia forte, especialmente rock pesado, 80s, neometal e surf rock. Ela gosta de ouvir músicas que a motivem enquanto pratica atividades físicas, como surfar. A seleção de artistas que a inspiram costuma incluir clássicos de rock e grupos que unem potência sonora e ritmo contagiante.\",\"name\":\"Ana\",\"age\":29,\"favoriteBands\":[\"Guns N’ Roses\",\"System of a Down\",\"Rage Against the Machine\",\"Beach Boys\",\"Surfaris\"],\"importantContext\":\"Ana costuma ouvir música enquanto surfa, buscando trilhas que combinem vibração surfada com energia de rock. Ela aprecia sugestões de músicas que se encaixem bem com o ritmo das ondas e a prática de esportes ao ar livre. O estilo musical que escolhe reflete seu gosto por sons marcantes e dinâmicos, tanto em ambientes calmos quanto em situações de exercício intenso.\"}",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 674,
+              "completion_tokens": 713,
+              "total_tokens": 1387,
+              "cost": 0
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "output",
+          "pattern": "^═{60}\n  🎵 Recomendador de Músicas com Memória \\(LangGraph\\)\n═{60}\n\nDigite suas mensagens abaixo\\. Digite \"exit\" para sair\\.\n\n✅ Memória configurada: PostgreSQL\n👤 Usuário: ana\n💬 Thread da Conversa: ana-\\d{13}\n\n📚 Informações do usuário carregadas:\nNome: Ana\nGêneros Favoritos: rock, rock pesado, rock dos anos 80, neometal, surf rock, rock alternativo\nArtistas\\/Bandas Favoritas: Guns N' Roses, System of a Down, Rage Against the Machine, Weezer, SWMRS, Franz Ferdinand\n\nPreferências: Ana é apaixonada por rock, especialmente pelos estilos mais pesados como rock dos anos 80 e neometal\\. Ela aprecia a energia intensa e bruta de bandas como Guns N' Roses, System of a Down e Rage Against the Machine\\. Além disso, como surfista, ela também curte o surf rock e rock alternativo, com bandas como Weezer, SWMRS e Franz Ferdinand\\. Suas preferências musicais indicam uma inclinação por sons mais pesados e agressivos, com riffs de guitarra marcantes e performances enérgicas, mas também por músicas que combinam com o estilo de vida praiano e a energia do surf\\.\n\nAI: E aí, Ana! Lembro que você curte rock pesado, 80s, neometal e surf rock, e que seu coração bate forte por Guns N’ Roses, System of a Down e Rage Against the Machine\\. Para entrar na vibe, ouça \"Welcome to the Jungle\" da Guns N’ Roses – um clássico que combina energia e riffs marcantes\\. Se quiser algo mais surf‑friendly, \"Boys of Summer\" do Don McLean é uma ótima pedida\\. 😉\n\nVocê: \nAI: E aí, Ana! Para acompanhar a onda hoje, que tal colocar \"Surfin’ U\\.S\\.A\\.\" dos Beach Boys e o clássico “Wipeout” dos Surfaris\\? Esses riffs de guitarra de surf rock vão turbinar seu passeio pela água\\. Se quiser algo mais pesado na praia, me conta e eu dou outra dica!\n\nVocê: \nAI: Legal, Ana! 29 anos, pronto para pegar ondas e curtir boas vibes! Já que você curte surf rock, que tal experimentar “Pipeline” dos Chantays ou “Misirlou” de Dick Dale\\? Se quiser algo mais pesado para a praia, dê uma escuta em “The Boys Are Back in Town” do Thin Lizzy\\. E me conta: tem algum outro gênero ou banda que você gosta de ouvir enquanto surfa\\? 🎶\n\nVocê: \n👋 Até mais!\n\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string",
+                            "description": "A resposta conversacional para o usuário"
+                          },
+                          "preferences": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "Nome do usuário"
+                              },
+                              "age": {
+                                "type": "number",
+                                "description": "Idade do usuário"
+                              },
+                              "favoriteGenres": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Gêneros musicais favoritos"
+                              },
+                              "favoriteBands": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Bandas ou artistas favoritos"
+                              },
+                              "mood": {
+                                "type": "string",
+                                "description": "Humor ou sentimento atual"
+                              },
+                              "listeningContext": {
+                                "type": "string",
+                                "description": "Quando/onde ouve música"
+                              },
+                              "additionalInfo": {
+                                "type": "string",
+                                "description": "Outras preferências relevantes mencionadas"
+                              }
+                            },
+                            "description": "Preferências extraídas desta mensagem"
+                          },
+                          "shouldSavePreferences": {
+                            "type": "boolean",
+                            "description": "Se as preferências extraídas devem ser salvas"
+                          }
+                        },
+                        "required": ["message", "shouldSavePreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Assistente musical entusiasta e amigável - caloroso, animado, conversacional (2-4 frases)\",\"tarefas\":[\"Conversar sobre preferências musicais e fazer recomendações personalizadas\",\"Extrair informações do usuário (nome, idade, gêneros, bandas, humor, contexto)\",\"Fazer perguntas de acompanhamento para entender melhor o gosto musical\",\"SEMPRE recomendar músicas específicas (título e artista) baseado no que sabe do usuário\",\"Se você tem preferencias_previamente_armazenadas, reconheça-as e construa sobre esse conhecimento\"],\"preferencias_previamente_armazenadas\":\"Nome: Ana\\nGêneros Favoritos: rock, rock pesado, rock dos anos 80, neometal, surf rock, rock alternativo\\nArtistas/Bandas Favoritas: Guns N' Roses, System of a Down, Rage Against the Machine, Weezer, SWMRS, Franz Ferdinand\\n\\nPreferências: Ana é apaixonada por rock, especialmente pelos estilos mais pesados como rock dos anos 80 e neometal. Ela aprecia a energia intensa e bruta de bandas como Guns N' Roses, System of a Down e Rage Against the Machine. Além disso, como surfista, ela também curte o surf rock e rock alternativo, com bandas como Weezer, SWMRS e Franz Ferdinand. Suas preferências musicais indicam uma inclinação por sons mais pesados e agressivos, com riffs de guitarra marcantes e performances enérgicas, mas também por músicas que combinam com o estilo de vida praiano e a energia do surf.\",\"regras_de_extracao\":{\"shouldSavePreferences\":\"Defina como true APENAS quando o USUÁRIO compartilhar NOVAS informações pessoais na mensagem_atual_do_usuario\",\"extrair_somente\":\"Informações que o USUÁRIO declarou explicitamente (nome, idade, gêneros favoritos, bandas/artistas que ELE gosta)\",\"nunca_extrair\":\"Músicas, bandas ou artistas que VOCÊ (IA) recomendou - apenas extraia o que o USUÁRIO disse gostar\",\"nao_extrair\":\"Saudações simples, perguntas sem novas informações, reações genéricas sem conteúdo novo\"},\"exemplos\":[{\"usuario\":\"Oi! Meu nome é Alex e eu amo música rock\",\"resposta\":{\"message\":\"E aí, Alex! Rock é demais! Que bandas você curte? Recomendo \\\"Everlong\\\" do Foo Fighters se você não conhece!\",\"preferences\":{\"name\":\"Alex\",\"favoriteGenres\":[\"rock\"]},\"shouldSavePreferences\":true}},{\"usuario\":\"Pode recomendar músicas?\",\"resposta\":{\"message\":\"Claro! Baseado no seu gosto por rock, experimente \\\"The Pretender\\\" do Foo Fighters e \\\"Photograph\\\" do Def Leppard!\",\"preferences\":null,\"shouldSavePreferences\":false}},{\"usuario\":\"Gostei dessas recomendações!\",\"contexto\":\"IA acabou de recomendar Foo Fighters e Def Leppard\",\"resposta\":{\"message\":\"Que ótimo que gostou! Quer mais recomendações de rock ou quer explorar outro gênero?\",\"preferences\":null,\"shouldSavePreferences\":false,\"nota_importante\":\"NÃO extraia \\\"Foo Fighters\\\" ou \\\"Def Leppard\\\" como preferências do usuário - foram SUAS recomendações, não escolhas do usuário\"}},{\"usuario\":\"Gosto especialmente de Tame Impala e Daft Punk\",\"resposta\":{\"message\":\"Excelente gosto! Tame Impala tem aquele som psicodélico único e Daft Punk é lendário! Tente \\\"Let It Happen\\\" e \\\"Digital Love\\\"!\",\"preferences\":{\"favoriteBands\":[\"Tame Impala\",\"Daft Punk\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"EXTRAIR - o usuário declarou explicitamente que GOSTA dessas bandas (não foram suas recomendações)\"}},{\"usuario\":\"Eu adoro Metallica e Iron Maiden!\",\"resposta\":{\"message\":\"Metal clássico! Perfeito! Tente \\\"Hallowed Be Thy Name\\\" do Iron Maiden e \\\"Master of Puppets\\\" do Metallica!\",\"preferences\":{\"favoriteBands\":[\"Metallica\",\"Iron Maiden\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"AQUI SIM - o usuário declarou explicitamente suas bandas favoritas\"}},{\"usuario\":\"Olá!\",\"resposta\":{\"message\":\"Olá! Sou seu assistente musical! Que tipo de música você gosta de ouvir? Me conta seu nome também! 🎵\",\"preferences\":null,\"shouldSavePreferences\":false}}]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"contexto_da_conversa\":\"User: Inicie a conversa de forma casual mencionando o que você sabe sobre mim e recomende uma música!\",\"mensagem_atual_do_usuario\":\"Inicie a conversa de forma casual mencionando o que você sabe sobre mim e recomende uma música!\",\"instrucoes\":[\"Gere uma resposta calorosa e envolvente em Português\",\"SEMPRE inclua recomendações de músicas específicas quando relevante\",\"Extraia quaisquer preferências compartilhadas\",\"Defina o flag shouldSavePreferences apropriadamente\"]}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string",
+                            "description": "A resposta conversacional para o usuário"
+                          },
+                          "preferences": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "Nome do usuário"
+                              },
+                              "age": {
+                                "type": "number",
+                                "description": "Idade do usuário"
+                              },
+                              "favoriteGenres": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Gêneros musicais favoritos"
+                              },
+                              "favoriteBands": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Bandas ou artistas favoritos"
+                              },
+                              "mood": {
+                                "type": "string",
+                                "description": "Humor ou sentimento atual"
+                              },
+                              "listeningContext": {
+                                "type": "string",
+                                "description": "Quando/onde ouve música"
+                              },
+                              "additionalInfo": {
+                                "type": "string",
+                                "description": "Outras preferências relevantes mencionadas"
+                              }
+                            },
+                            "description": "Preferências extraídas desta mensagem"
+                          },
+                          "shouldSavePreferences": {
+                            "type": "boolean",
+                            "description": "Se as preferências extraídas devem ser salvas"
+                          }
+                        },
+                        "required": ["message", "shouldSavePreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Assistente musical entusiasta e amigável - caloroso, animado, conversacional (2-4 frases)\",\"tarefas\":[\"Conversar sobre preferências musicais e fazer recomendações personalizadas\",\"Extrair informações do usuário (nome, idade, gêneros, bandas, humor, contexto)\",\"Fazer perguntas de acompanhamento para entender melhor o gosto musical\",\"SEMPRE recomendar músicas específicas (título e artista) baseado no que sabe do usuário\",\"Se você tem preferencias_previamente_armazenadas, reconheça-as e construa sobre esse conhecimento\"],\"preferencias_previamente_armazenadas\":\"Nome: Ana\\nGêneros Favoritos: rock, rock pesado, rock dos anos 80, neometal, surf rock, rock alternativo\\nArtistas/Bandas Favoritas: Guns N' Roses, System of a Down, Rage Against the Machine, Weezer, SWMRS, Franz Ferdinand\\n\\nPreferências: Ana é apaixonada por rock, especialmente pelos estilos mais pesados como rock dos anos 80 e neometal. Ela aprecia a energia intensa e bruta de bandas como Guns N' Roses, System of a Down e Rage Against the Machine. Além disso, como surfista, ela também curte o surf rock e rock alternativo, com bandas como Weezer, SWMRS e Franz Ferdinand. Suas preferências musicais indicam uma inclinação por sons mais pesados e agressivos, com riffs de guitarra marcantes e performances enérgicas, mas também por músicas que combinam com o estilo de vida praiano e a energia do surf.\",\"regras_de_extracao\":{\"shouldSavePreferences\":\"Defina como true APENAS quando o USUÁRIO compartilhar NOVAS informações pessoais na mensagem_atual_do_usuario\",\"extrair_somente\":\"Informações que o USUÁRIO declarou explicitamente (nome, idade, gêneros favoritos, bandas/artistas que ELE gosta)\",\"nunca_extrair\":\"Músicas, bandas ou artistas que VOCÊ (IA) recomendou - apenas extraia o que o USUÁRIO disse gostar\",\"nao_extrair\":\"Saudações simples, perguntas sem novas informações, reações genéricas sem conteúdo novo\"},\"exemplos\":[{\"usuario\":\"Oi! Meu nome é Alex e eu amo música rock\",\"resposta\":{\"message\":\"E aí, Alex! Rock é demais! Que bandas você curte? Recomendo \\\"Everlong\\\" do Foo Fighters se você não conhece!\",\"preferences\":{\"name\":\"Alex\",\"favoriteGenres\":[\"rock\"]},\"shouldSavePreferences\":true}},{\"usuario\":\"Pode recomendar músicas?\",\"resposta\":{\"message\":\"Claro! Baseado no seu gosto por rock, experimente \\\"The Pretender\\\" do Foo Fighters e \\\"Photograph\\\" do Def Leppard!\",\"preferences\":null,\"shouldSavePreferences\":false}},{\"usuario\":\"Gostei dessas recomendações!\",\"contexto\":\"IA acabou de recomendar Foo Fighters e Def Leppard\",\"resposta\":{\"message\":\"Que ótimo que gostou! Quer mais recomendações de rock ou quer explorar outro gênero?\",\"preferences\":null,\"shouldSavePreferences\":false,\"nota_importante\":\"NÃO extraia \\\"Foo Fighters\\\" ou \\\"Def Leppard\\\" como preferências do usuário - foram SUAS recomendações, não escolhas do usuário\"}},{\"usuario\":\"Gosto especialmente de Tame Impala e Daft Punk\",\"resposta\":{\"message\":\"Excelente gosto! Tame Impala tem aquele som psicodélico único e Daft Punk é lendário! Tente \\\"Let It Happen\\\" e \\\"Digital Love\\\"!\",\"preferences\":{\"favoriteBands\":[\"Tame Impala\",\"Daft Punk\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"EXTRAIR - o usuário declarou explicitamente que GOSTA dessas bandas (não foram suas recomendações)\"}},{\"usuario\":\"Eu adoro Metallica e Iron Maiden!\",\"resposta\":{\"message\":\"Metal clássico! Perfeito! Tente \\\"Hallowed Be Thy Name\\\" do Iron Maiden e \\\"Master of Puppets\\\" do Metallica!\",\"preferences\":{\"favoriteBands\":[\"Metallica\",\"Iron Maiden\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"AQUI SIM - o usuário declarou explicitamente suas bandas favoritas\"}},{\"usuario\":\"Olá!\",\"resposta\":{\"message\":\"Olá! Sou seu assistente musical! Que tipo de música você gosta de ouvir? Me conta seu nome também! 🎵\",\"preferences\":null,\"shouldSavePreferences\":false}}]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"contexto_da_conversa\":\"User: Inicie a conversa de forma casual mencionando o que você sabe sobre mim e recomende uma música!\\nAI: E aí, Ana! Lembro que você curte rock pesado, 80s, neometal e surf rock, e que seu coração bate forte por Guns N’ Roses, System of a Down e Rage Against the Machine. Para entrar na vibe, ouça \\\"Welcome to the Jungle\\\" da Guns N’ Roses – um clássico que combina energia e riffs marcantes. Se quiser algo mais surf‑friendly, \\\"Boys of Summer\\\" do Don McLean é uma ótima pedida. 😉\\nUser: Me recomende algo para ouvir surfando hoje 🏄\",\"mensagem_atual_do_usuario\":\"Me recomende algo para ouvir surfando hoje 🏄\",\"instrucoes\":[\"Gere uma resposta calorosa e envolvente em Português\",\"SEMPRE inclua recomendações de músicas específicas quando relevante\",\"Extraia quaisquer preferências compartilhadas\",\"Defina o flag shouldSavePreferences apropriadamente\"]}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Nome do usuário"
+                          },
+                          "age": {
+                            "type": "number",
+                            "description": "Idade do usuário"
+                          },
+                          "favoriteGenres": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Gêneros musicais favoritos mencionados"
+                          },
+                          "favoriteBands": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Bandas ou artistas favoritos mencionados"
+                          },
+                          "keyPreferences": {
+                            "type": "string",
+                            "description": "Sumário conciso das preferências musicais, padrões de humor e hábitos"
+                          },
+                          "importantContext": {
+                            "type": "string",
+                            "description": "Qualquer outro contexto importante sobre o usuário"
+                          }
+                        },
+                        "required": ["keyPreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Sumarizador de conversação para preferências musicais\",\"tarefa\":\"Analisar conversa e extrair preferências musicais estruturadas\",\"campos_para_extrair\":{\"name\":\"Nome do usuário\",\"age\":\"Idade do usuário\",\"favoriteGenres\":\"Todos os gêneros mencionados\",\"favoriteBands\":\"Todas as bandas/artistas mencionados\",\"keyPreferences\":\"Sumário de 2-4 frases sobre gostos, padrões de humor e contexto de escuta\",\"importantContext\":\"Outros detalhes relevantes\"},\"regras\":[\"Combinar informações duplicadas\",\"Ser específico sobre gêneros e artistas\",\"Incluir associações de humor (ex: \\\"gosta de rock animado ao fazer exercícios\\\")\",\"Se atualizando sumário anterior, preservar info não discutida na nova conversa\",\"Incluir apenas informações explicitamente declaradas\"]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"conversa\":\"User: Inicie a conversa de forma casual mencionando o que você sabe sobre mim e recomende uma música!\\nAI: E aí, Ana! Lembro que você curte rock pesado, 80s, neometal e surf rock, e que seu coração bate forte por Guns N’ Roses, System of a Down e Rage Against the Machine. Para entrar na vibe, ouça \\\"Welcome to the Jungle\\\" da Guns N’ Roses – um clássico que combina energia e riffs marcantes. Se quiser algo mais surf‑friendly, \\\"Boys of Summer\\\" do Don McLean é uma ótima pedida. 😉\\nUser: Me recomende algo para ouvir surfando hoje 🏄\\nAI: E aí, Ana! Para acompanhar a onda hoje, que tal colocar \\\"Surfin’ U.S.A.\\\" dos Beach Boys e o clássico “Wipeout” dos Surfaris? Esses riffs de guitarra de surf rock vão turbinar seu passeio pela água. Se quiser algo mais pesado na praia, me conta e eu dou outra dica!\",\"sumario_anterior\":\"Nenhum\",\"instrucoes\":[\"Atualizar sumário com novas informações desta conversa\",\"Preservar info existente não discutida nas novas mensagens\"]}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string",
+                            "description": "A resposta conversacional para o usuário"
+                          },
+                          "preferences": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "Nome do usuário"
+                              },
+                              "age": {
+                                "type": "number",
+                                "description": "Idade do usuário"
+                              },
+                              "favoriteGenres": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Gêneros musicais favoritos"
+                              },
+                              "favoriteBands": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Bandas ou artistas favoritos"
+                              },
+                              "mood": {
+                                "type": "string",
+                                "description": "Humor ou sentimento atual"
+                              },
+                              "listeningContext": {
+                                "type": "string",
+                                "description": "Quando/onde ouve música"
+                              },
+                              "additionalInfo": {
+                                "type": "string",
+                                "description": "Outras preferências relevantes mencionadas"
+                              }
+                            },
+                            "description": "Preferências extraídas desta mensagem"
+                          },
+                          "shouldSavePreferences": {
+                            "type": "boolean",
+                            "description": "Se as preferências extraídas devem ser salvas"
+                          }
+                        },
+                        "required": ["message", "shouldSavePreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Assistente musical entusiasta e amigável - caloroso, animado, conversacional (2-4 frases)\",\"tarefas\":[\"Conversar sobre preferências musicais e fazer recomendações personalizadas\",\"Extrair informações do usuário (nome, idade, gêneros, bandas, humor, contexto)\",\"Fazer perguntas de acompanhamento para entender melhor o gosto musical\",\"SEMPRE recomendar músicas específicas (título e artista) baseado no que sabe do usuário\",\"Se você tem preferencias_previamente_armazenadas, reconheça-as e construa sobre esse conhecimento\"],\"preferencias_previamente_armazenadas\":\"Nome: Ana\\nGêneros Favoritos: rock, rock pesado, rock dos anos 80, neometal, surf rock, rock alternativo\\nArtistas/Bandas Favoritas: Guns N' Roses, System of a Down, Rage Against the Machine, Weezer, SWMRS, Franz Ferdinand\\n\\nPreferências: Ana é apaixonada por rock, especialmente pelos estilos mais pesados como rock dos anos 80 e neometal. Ela aprecia a energia intensa e bruta de bandas como Guns N' Roses, System of a Down e Rage Against the Machine. Além disso, como surfista, ela também curte o surf rock e rock alternativo, com bandas como Weezer, SWMRS e Franz Ferdinand. Suas preferências musicais indicam uma inclinação por sons mais pesados e agressivos, com riffs de guitarra marcantes e performances enérgicas, mas também por músicas que combinam com o estilo de vida praiano e a energia do surf.\",\"regras_de_extracao\":{\"shouldSavePreferences\":\"Defina como true APENAS quando o USUÁRIO compartilhar NOVAS informações pessoais na mensagem_atual_do_usuario\",\"extrair_somente\":\"Informações que o USUÁRIO declarou explicitamente (nome, idade, gêneros favoritos, bandas/artistas que ELE gosta)\",\"nunca_extrair\":\"Músicas, bandas ou artistas que VOCÊ (IA) recomendou - apenas extraia o que o USUÁRIO disse gostar\",\"nao_extrair\":\"Saudações simples, perguntas sem novas informações, reações genéricas sem conteúdo novo\"},\"exemplos\":[{\"usuario\":\"Oi! Meu nome é Alex e eu amo música rock\",\"resposta\":{\"message\":\"E aí, Alex! Rock é demais! Que bandas você curte? Recomendo \\\"Everlong\\\" do Foo Fighters se você não conhece!\",\"preferences\":{\"name\":\"Alex\",\"favoriteGenres\":[\"rock\"]},\"shouldSavePreferences\":true}},{\"usuario\":\"Pode recomendar músicas?\",\"resposta\":{\"message\":\"Claro! Baseado no seu gosto por rock, experimente \\\"The Pretender\\\" do Foo Fighters e \\\"Photograph\\\" do Def Leppard!\",\"preferences\":null,\"shouldSavePreferences\":false}},{\"usuario\":\"Gostei dessas recomendações!\",\"contexto\":\"IA acabou de recomendar Foo Fighters e Def Leppard\",\"resposta\":{\"message\":\"Que ótimo que gostou! Quer mais recomendações de rock ou quer explorar outro gênero?\",\"preferences\":null,\"shouldSavePreferences\":false,\"nota_importante\":\"NÃO extraia \\\"Foo Fighters\\\" ou \\\"Def Leppard\\\" como preferências do usuário - foram SUAS recomendações, não escolhas do usuário\"}},{\"usuario\":\"Gosto especialmente de Tame Impala e Daft Punk\",\"resposta\":{\"message\":\"Excelente gosto! Tame Impala tem aquele som psicodélico único e Daft Punk é lendário! Tente \\\"Let It Happen\\\" e \\\"Digital Love\\\"!\",\"preferences\":{\"favoriteBands\":[\"Tame Impala\",\"Daft Punk\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"EXTRAIR - o usuário declarou explicitamente que GOSTA dessas bandas (não foram suas recomendações)\"}},{\"usuario\":\"Eu adoro Metallica e Iron Maiden!\",\"resposta\":{\"message\":\"Metal clássico! Perfeito! Tente \\\"Hallowed Be Thy Name\\\" do Iron Maiden e \\\"Master of Puppets\\\" do Metallica!\",\"preferences\":{\"favoriteBands\":[\"Metallica\",\"Iron Maiden\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"AQUI SIM - o usuário declarou explicitamente suas bandas favoritas\"}},{\"usuario\":\"Olá!\",\"resposta\":{\"message\":\"Olá! Sou seu assistente musical! Que tipo de música você gosta de ouvir? Me conta seu nome também! 🎵\",\"preferences\":null,\"shouldSavePreferences\":false}}]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"contexto_da_conversa\":\"User: Me recomende algo para ouvir surfando hoje 🏄\\nAI: E aí, Ana! Para acompanhar a onda hoje, que tal colocar \\\"Surfin’ U.S.A.\\\" dos Beach Boys e o clássico “Wipeout” dos Surfaris? Esses riffs de guitarra de surf rock vão turbinar seu passeio pela água. Se quiser algo mais pesado na praia, me conta e eu dou outra dica!\\nUser: Tenho 29 anos, aliás!\",\"mensagem_atual_do_usuario\":\"Tenho 29 anos, aliás!\",\"instrucoes\":[\"Gere uma resposta calorosa e envolvente em Português\",\"SEMPRE inclua recomendações de músicas específicas quando relevante\",\"Extraia quaisquer preferências compartilhadas\",\"Defina o flag shouldSavePreferences apropriadamente\"]}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Nome do usuário"
+                          },
+                          "age": {
+                            "type": "number",
+                            "description": "Idade do usuário"
+                          },
+                          "favoriteGenres": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Gêneros musicais favoritos mencionados"
+                          },
+                          "favoriteBands": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Bandas ou artistas favoritos mencionados"
+                          },
+                          "keyPreferences": {
+                            "type": "string",
+                            "description": "Sumário conciso das preferências musicais, padrões de humor e hábitos"
+                          },
+                          "importantContext": {
+                            "type": "string",
+                            "description": "Qualquer outro contexto importante sobre o usuário"
+                          }
+                        },
+                        "required": ["keyPreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Sumarizador de conversação para preferências musicais\",\"tarefa\":\"Analisar conversa e extrair preferências musicais estruturadas\",\"campos_para_extrair\":{\"name\":\"Nome do usuário\",\"age\":\"Idade do usuário\",\"favoriteGenres\":\"Todos os gêneros mencionados\",\"favoriteBands\":\"Todas as bandas/artistas mencionados\",\"keyPreferences\":\"Sumário de 2-4 frases sobre gostos, padrões de humor e contexto de escuta\",\"importantContext\":\"Outros detalhes relevantes\"},\"regras\":[\"Combinar informações duplicadas\",\"Ser específico sobre gêneros e artistas\",\"Incluir associações de humor (ex: \\\"gosta de rock animado ao fazer exercícios\\\")\",\"Se atualizando sumário anterior, preservar info não discutida na nova conversa\",\"Incluir apenas informações explicitamente declaradas\"]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"conversa\":\"User: Me recomende algo para ouvir surfando hoje 🏄\\nAI: E aí, Ana! Para acompanhar a onda hoje, que tal colocar \\\"Surfin’ U.S.A.\\\" dos Beach Boys e o clássico “Wipeout” dos Surfaris? Esses riffs de guitarra de surf rock vão turbinar seu passeio pela água. Se quiser algo mais pesado na praia, me conta e eu dou outra dica!\\nUser: Tenho 29 anos, aliás!\\nAI: Legal, Ana! 29 anos, pronto para pegar ondas e curtir boas vibes! Já que você curte surf rock, que tal experimentar “Pipeline” dos Chantays ou “Misirlou” de Dick Dale? Se quiser algo mais pesado para a praia, dê uma escuta em “The Boys Are Back in Town” do Thin Lizzy. E me conta: tem algum outro gênero ou banda que você gosta de ouvir enquanto surfa? 🎶\",\"sumario_anterior\":{\"keyPreferences\":\"Ana prefere músicas com energia forte, especialmente rock pesado, 80s, neometal e surf rock. Ela gosta de ouvir músicas que a motivem enquanto pratica atividades físicas, como surfar. A seleção de artistas que a inspiram costuma incluir clássicos de rock e grupos que unem potência sonora e ritmo contagiante.\",\"name\":\"Ana\",\"favoriteBands\":[\"Guns N’ Roses\",\"System of a Down\",\"Rage Against the Machine\",\"Beach Boys\",\"Surfaris\"],\"importantContext\":\"Ana costuma ouvir música enquanto surfa, buscando trilhas que combinem vibração surfada com energia de rock. Ela aprecia sugestões de músicas que se encaixem bem com o ritmo das ondas e a prática de esportes ao ar livre. O estilo musical que escolhe reflete seu gosto por sons marcantes e dinâmicos, tanto em ambientes calmos quanto em situações de exercício intenso. \"},\"instrucoes\":[\"Atualizar sumário com novas informações desta conversa\",\"Preservar info existente não discutida nas novas mensagens\"]}"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "when the summary call fails, the merged preferences stay in the store and the thread keeps every message",
+      "program": "src/index",
+      "args": ["--user", "alex"],
+      "files": {
+        "preferences.db": null
+      },
+      "stdin": {
+        "prompt": "Você: ",
+        "lines": [
+          "Oi! Meu nome é Alex e eu amo rock e metal",
+          "Pode recomendar algo animado? 🎸",
+          "exit"
+        ]
+      },
+      "timeout": 15000,
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for OpenRouter in the first case's conversation, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793097802-FKYMxb4KQ62IDWR0b5ls",
+            "model": "arcee-ai/trinity-large-preview:free",
+            "object": "chat.completion",
+            "created": 1793097802,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\"message\":\"Oi! 🎶 Sou seu assistente musical, sempre pronto para explorar novos sons com você! Qual é o seu nome e que tipo de música você curte? Se quiser, posso já sugerir algumas faixas que combinam com o seu estilo!\",\"shouldSavePreferences\":false,\"preferences\":{} }",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 904,
+              "completion_tokens": 135,
+              "total_tokens": 1039,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for OpenRouter in the first case's conversation, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793097810-RMRNzctVbri5QiEsTQfl",
+            "model": "arcee-ai/trinity-large-preview:free",
+            "object": "chat.completion",
+            "created": 1793097810,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\"message\":\"E aí, Alex! 🎸💥 O rock e o metal são poderosos—tô empolgado pra descobrir mais do seu gosto! Já deixei as recomendações fresquinhas pra você: \\n• \\\"Enter Sandman\\\" – Metallica\\n• \\\"Master of Puppets\\\" – Metallica\\n• \\\"The Trooper\\\" – Iron Maiden\\n• \\\"Painkiller\\\" – Judas Priest\\nCurtiu? Me conta quais bandas ou artistas de rock/metal mais fazem seu coração bater mais forte!\",\"shouldSavePreferences\":true,\"preferences\":{\"name\":\"Alex\",\"favoriteGenres\":[\"rock\",\"metal\"]}}",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 968,
+              "completion_tokens": 409,
+              "total_tokens": 1377,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format for a provider that fails the call",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "status": 400,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "Provider returned error",
+              "code": 400
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for OpenRouter in the first case's conversation, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793097826-8au9skhGyzmJntopKfhM",
+            "model": "arcee-ai/trinity-large-preview:free",
+            "object": "chat.completion",
+            "created": 1793097826,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\n  \"message\": \"Claro, Alex! Se você quer algo com energia pura, aqui vão três faixas que vão disparar a adrenalina:\\n\\n• \\\"Thunderstruck\\\" – AC/DC\\n• \\\"Electric Eye\\\" – Judas Priest\\n• \\\"The Pretender\\\" – Foo Fighters\\n\\nQual delas você já ouviu ou qual tipo de energia você prefere (treino, festa, etc.)? 🎸\",\n  \"shouldSavePreferences\": false,\n  \"preferences\": {\n    \"favoriteBands\": [\"Metallica\", \"Iron Maiden\", \"Judas Priest\"]\n  }\n}",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1084,
+              "completion_tokens": 616,
+              "total_tokens": 1700,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format for a provider that fails the call",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "status": 400,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "Provider returned error",
+              "code": 400
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "output",
+          "pattern": "^═{60}\n  🎵 Recomendador de Músicas com Memória \\(LangGraph\\)\n═{60}\n\nDigite suas mensagens abaixo\\. Digite \"exit\" para sair\\.\n\n✅ Memória configurada: PostgreSQL\n👤 Usuário: alex\n💬 Thread da Conversa: alex-\\d{13}\n\nAI: Oi! 🎶 Sou seu assistente musical, sempre pronto para explorar novos sons com você! Qual é o seu nome e que tipo de música você curte\\? Se quiser, posso já sugerir algumas faixas que combinam com o seu estilo!\n\nVocê: \nAI: E aí, Alex! 🎸💥 O rock e o metal são poderosos—tô empolgado pra descobrir mais do seu gosto! Já deixei as recomendações fresquinhas pra você: \n• \"Enter Sandman\" – Metallica\n• \"Master of Puppets\" – Metallica\n• \"The Trooper\" – Iron Maiden\n• \"Painkiller\" – Judas Priest\nCurtiu\\? Me conta quais bandas ou artistas de rock\\/metal mais fazem seu coração bater mais forte!\n\nVocê: \nAI: Claro, Alex! Se você quer algo com energia pura, aqui vão três faixas que vão disparar a adrenalina:\n\n• \"Thunderstruck\" – AC\\/DC\n• \"Electric Eye\" – Judas Priest\n• \"The Pretender\" – Foo Fighters\n\nQual delas você já ouviu ou qual tipo de energia você prefere \\(treino, festa, etc\\.\\)\\? 🎸\n\nVocê: \n👋 Até mais!\n\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^(?:🔴 LLM Error: [\\s\\S]+?\\n❌ Falha ao sumarizar conversa: [\\s\\S]+?){2}$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string",
+                            "description": "A resposta conversacional para o usuário"
+                          },
+                          "preferences": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "Nome do usuário"
+                              },
+                              "age": {
+                                "type": "number",
+                                "description": "Idade do usuário"
+                              },
+                              "favoriteGenres": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Gêneros musicais favoritos"
+                              },
+                              "favoriteBands": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Bandas ou artistas favoritos"
+                              },
+                              "mood": {
+                                "type": "string",
+                                "description": "Humor ou sentimento atual"
+                              },
+                              "listeningContext": {
+                                "type": "string",
+                                "description": "Quando/onde ouve música"
+                              },
+                              "additionalInfo": {
+                                "type": "string",
+                                "description": "Outras preferências relevantes mencionadas"
+                              }
+                            },
+                            "description": "Preferências extraídas desta mensagem"
+                          },
+                          "shouldSavePreferences": {
+                            "type": "boolean",
+                            "description": "Se as preferências extraídas devem ser salvas"
+                          }
+                        },
+                        "required": ["message", "shouldSavePreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Assistente musical entusiasta e amigável - caloroso, animado, conversacional (2-4 frases)\",\"tarefas\":[\"Conversar sobre preferências musicais e fazer recomendações personalizadas\",\"Extrair informações do usuário (nome, idade, gêneros, bandas, humor, contexto)\",\"Fazer perguntas de acompanhamento para entender melhor o gosto musical\",\"SEMPRE recomendar músicas específicas (título e artista) baseado no que sabe do usuário\",\"Se você tem preferencias_previamente_armazenadas, reconheça-as e construa sobre esse conhecimento\"],\"preferencias_previamente_armazenadas\":\"Nenhuma\",\"regras_de_extracao\":{\"shouldSavePreferences\":\"Defina como true APENAS quando o USUÁRIO compartilhar NOVAS informações pessoais na mensagem_atual_do_usuario\",\"extrair_somente\":\"Informações que o USUÁRIO declarou explicitamente (nome, idade, gêneros favoritos, bandas/artistas que ELE gosta)\",\"nunca_extrair\":\"Músicas, bandas ou artistas que VOCÊ (IA) recomendou - apenas extraia o que o USUÁRIO disse gostar\",\"nao_extrair\":\"Saudações simples, perguntas sem novas informações, reações genéricas sem conteúdo novo\"},\"exemplos\":[{\"usuario\":\"Oi! Meu nome é Alex e eu amo música rock\",\"resposta\":{\"message\":\"E aí, Alex! Rock é demais! Que bandas você curte? Recomendo \\\"Everlong\\\" do Foo Fighters se você não conhece!\",\"preferences\":{\"name\":\"Alex\",\"favoriteGenres\":[\"rock\"]},\"shouldSavePreferences\":true}},{\"usuario\":\"Pode recomendar músicas?\",\"resposta\":{\"message\":\"Claro! Baseado no seu gosto por rock, experimente \\\"The Pretender\\\" do Foo Fighters e \\\"Photograph\\\" do Def Leppard!\",\"preferences\":null,\"shouldSavePreferences\":false}},{\"usuario\":\"Gostei dessas recomendações!\",\"contexto\":\"IA acabou de recomendar Foo Fighters e Def Leppard\",\"resposta\":{\"message\":\"Que ótimo que gostou! Quer mais recomendações de rock ou quer explorar outro gênero?\",\"preferences\":null,\"shouldSavePreferences\":false,\"nota_importante\":\"NÃO extraia \\\"Foo Fighters\\\" ou \\\"Def Leppard\\\" como preferências do usuário - foram SUAS recomendações, não escolhas do usuário\"}},{\"usuario\":\"Gosto especialmente de Tame Impala e Daft Punk\",\"resposta\":{\"message\":\"Excelente gosto! Tame Impala tem aquele som psicodélico único e Daft Punk é lendário! Tente \\\"Let It Happen\\\" e \\\"Digital Love\\\"!\",\"preferences\":{\"favoriteBands\":[\"Tame Impala\",\"Daft Punk\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"EXTRAIR - o usuário declarou explicitamente que GOSTA dessas bandas (não foram suas recomendações)\"}},{\"usuario\":\"Eu adoro Metallica e Iron Maiden!\",\"resposta\":{\"message\":\"Metal clássico! Perfeito! Tente \\\"Hallowed Be Thy Name\\\" do Iron Maiden e \\\"Master of Puppets\\\" do Metallica!\",\"preferences\":{\"favoriteBands\":[\"Metallica\",\"Iron Maiden\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"AQUI SIM - o usuário declarou explicitamente suas bandas favoritas\"}},{\"usuario\":\"Olá!\",\"resposta\":{\"message\":\"Olá! Sou seu assistente musical! Que tipo de música você gosta de ouvir? Me conta seu nome também! 🎵\",\"preferences\":null,\"shouldSavePreferences\":false}}]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"contexto_da_conversa\":\"User: Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais.\",\"mensagem_atual_do_usuario\":\"Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais.\",\"instrucoes\":[\"Gere uma resposta calorosa e envolvente em Português\",\"SEMPRE inclua recomendações de músicas específicas quando relevante\",\"Extraia quaisquer preferências compartilhadas\",\"Defina o flag shouldSavePreferences apropriadamente\"]}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string",
+                            "description": "A resposta conversacional para o usuário"
+                          },
+                          "preferences": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "Nome do usuário"
+                              },
+                              "age": {
+                                "type": "number",
+                                "description": "Idade do usuário"
+                              },
+                              "favoriteGenres": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Gêneros musicais favoritos"
+                              },
+                              "favoriteBands": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Bandas ou artistas favoritos"
+                              },
+                              "mood": {
+                                "type": "string",
+                                "description": "Humor ou sentimento atual"
+                              },
+                              "listeningContext": {
+                                "type": "string",
+                                "description": "Quando/onde ouve música"
+                              },
+                              "additionalInfo": {
+                                "type": "string",
+                                "description": "Outras preferências relevantes mencionadas"
+                              }
+                            },
+                            "description": "Preferências extraídas desta mensagem"
+                          },
+                          "shouldSavePreferences": {
+                            "type": "boolean",
+                            "description": "Se as preferências extraídas devem ser salvas"
+                          }
+                        },
+                        "required": ["message", "shouldSavePreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Assistente musical entusiasta e amigável - caloroso, animado, conversacional (2-4 frases)\",\"tarefas\":[\"Conversar sobre preferências musicais e fazer recomendações personalizadas\",\"Extrair informações do usuário (nome, idade, gêneros, bandas, humor, contexto)\",\"Fazer perguntas de acompanhamento para entender melhor o gosto musical\",\"SEMPRE recomendar músicas específicas (título e artista) baseado no que sabe do usuário\",\"Se você tem preferencias_previamente_armazenadas, reconheça-as e construa sobre esse conhecimento\"],\"preferencias_previamente_armazenadas\":\"Nenhuma\",\"regras_de_extracao\":{\"shouldSavePreferences\":\"Defina como true APENAS quando o USUÁRIO compartilhar NOVAS informações pessoais na mensagem_atual_do_usuario\",\"extrair_somente\":\"Informações que o USUÁRIO declarou explicitamente (nome, idade, gêneros favoritos, bandas/artistas que ELE gosta)\",\"nunca_extrair\":\"Músicas, bandas ou artistas que VOCÊ (IA) recomendou - apenas extraia o que o USUÁRIO disse gostar\",\"nao_extrair\":\"Saudações simples, perguntas sem novas informações, reações genéricas sem conteúdo novo\"},\"exemplos\":[{\"usuario\":\"Oi! Meu nome é Alex e eu amo música rock\",\"resposta\":{\"message\":\"E aí, Alex! Rock é demais! Que bandas você curte? Recomendo \\\"Everlong\\\" do Foo Fighters se você não conhece!\",\"preferences\":{\"name\":\"Alex\",\"favoriteGenres\":[\"rock\"]},\"shouldSavePreferences\":true}},{\"usuario\":\"Pode recomendar músicas?\",\"resposta\":{\"message\":\"Claro! Baseado no seu gosto por rock, experimente \\\"The Pretender\\\" do Foo Fighters e \\\"Photograph\\\" do Def Leppard!\",\"preferences\":null,\"shouldSavePreferences\":false}},{\"usuario\":\"Gostei dessas recomendações!\",\"contexto\":\"IA acabou de recomendar Foo Fighters e Def Leppard\",\"resposta\":{\"message\":\"Que ótimo que gostou! Quer mais recomendações de rock ou quer explorar outro gênero?\",\"preferences\":null,\"shouldSavePreferences\":false,\"nota_importante\":\"NÃO extraia \\\"Foo Fighters\\\" ou \\\"Def Leppard\\\" como preferências do usuário - foram SUAS recomendações, não escolhas do usuário\"}},{\"usuario\":\"Gosto especialmente de Tame Impala e Daft Punk\",\"resposta\":{\"message\":\"Excelente gosto! Tame Impala tem aquele som psicodélico único e Daft Punk é lendário! Tente \\\"Let It Happen\\\" e \\\"Digital Love\\\"!\",\"preferences\":{\"favoriteBands\":[\"Tame Impala\",\"Daft Punk\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"EXTRAIR - o usuário declarou explicitamente que GOSTA dessas bandas (não foram suas recomendações)\"}},{\"usuario\":\"Eu adoro Metallica e Iron Maiden!\",\"resposta\":{\"message\":\"Metal clássico! Perfeito! Tente \\\"Hallowed Be Thy Name\\\" do Iron Maiden e \\\"Master of Puppets\\\" do Metallica!\",\"preferences\":{\"favoriteBands\":[\"Metallica\",\"Iron Maiden\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"AQUI SIM - o usuário declarou explicitamente suas bandas favoritas\"}},{\"usuario\":\"Olá!\",\"resposta\":{\"message\":\"Olá! Sou seu assistente musical! Que tipo de música você gosta de ouvir? Me conta seu nome também! 🎵\",\"preferences\":null,\"shouldSavePreferences\":false}}]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"contexto_da_conversa\":\"User: Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais.\\nAI: Oi! 🎶 Sou seu assistente musical, sempre pronto para explorar novos sons com você! Qual é o seu nome e que tipo de música você curte? Se quiser, posso já sugerir algumas faixas que combinam com o seu estilo!\\nUser: Oi! Meu nome é Alex e eu amo rock e metal\",\"mensagem_atual_do_usuario\":\"Oi! Meu nome é Alex e eu amo rock e metal\",\"instrucoes\":[\"Gere uma resposta calorosa e envolvente em Português\",\"SEMPRE inclua recomendações de músicas específicas quando relevante\",\"Extraia quaisquer preferências compartilhadas\",\"Defina o flag shouldSavePreferences apropriadamente\"]}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Nome do usuário"
+                          },
+                          "age": {
+                            "type": "number",
+                            "description": "Idade do usuário"
+                          },
+                          "favoriteGenres": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Gêneros musicais favoritos mencionados"
+                          },
+                          "favoriteBands": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Bandas ou artistas favoritos mencionados"
+                          },
+                          "keyPreferences": {
+                            "type": "string",
+                            "description": "Sumário conciso das preferências musicais, padrões de humor e hábitos"
+                          },
+                          "importantContext": {
+                            "type": "string",
+                            "description": "Qualquer outro contexto importante sobre o usuário"
+                          }
+                        },
+                        "required": ["keyPreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Sumarizador de conversação para preferências musicais\",\"tarefa\":\"Analisar conversa e extrair preferências musicais estruturadas\",\"campos_para_extrair\":{\"name\":\"Nome do usuário\",\"age\":\"Idade do usuário\",\"favoriteGenres\":\"Todos os gêneros mencionados\",\"favoriteBands\":\"Todas as bandas/artistas mencionados\",\"keyPreferences\":\"Sumário de 2-4 frases sobre gostos, padrões de humor e contexto de escuta\",\"importantContext\":\"Outros detalhes relevantes\"},\"regras\":[\"Combinar informações duplicadas\",\"Ser específico sobre gêneros e artistas\",\"Incluir associações de humor (ex: \\\"gosta de rock animado ao fazer exercícios\\\")\",\"Se atualizando sumário anterior, preservar info não discutida na nova conversa\",\"Incluir apenas informações explicitamente declaradas\"]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"conversa\":\"User: Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais.\\nAI: Oi! 🎶 Sou seu assistente musical, sempre pronto para explorar novos sons com você! Qual é o seu nome e que tipo de música você curte? Se quiser, posso já sugerir algumas faixas que combinam com o seu estilo!\\nUser: Oi! Meu nome é Alex e eu amo rock e metal\\nAI: E aí, Alex! 🎸💥 O rock e o metal são poderosos—tô empolgado pra descobrir mais do seu gosto! Já deixei as recomendações fresquinhas pra você: \\n• \\\"Enter Sandman\\\" – Metallica\\n• \\\"Master of Puppets\\\" – Metallica\\n• \\\"The Trooper\\\" – Iron Maiden\\n• \\\"Painkiller\\\" – Judas Priest\\nCurtiu? Me conta quais bandas ou artistas de rock/metal mais fazem seu coração bater mais forte!\",\"sumario_anterior\":\"Nenhum\",\"instrucoes\":[\"Atualizar sumário com novas informações desta conversa\",\"Preservar info existente não discutida nas novas mensagens\"]}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string",
+                            "description": "A resposta conversacional para o usuário"
+                          },
+                          "preferences": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "Nome do usuário"
+                              },
+                              "age": {
+                                "type": "number",
+                                "description": "Idade do usuário"
+                              },
+                              "favoriteGenres": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Gêneros musicais favoritos"
+                              },
+                              "favoriteBands": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Bandas ou artistas favoritos"
+                              },
+                              "mood": {
+                                "type": "string",
+                                "description": "Humor ou sentimento atual"
+                              },
+                              "listeningContext": {
+                                "type": "string",
+                                "description": "Quando/onde ouve música"
+                              },
+                              "additionalInfo": {
+                                "type": "string",
+                                "description": "Outras preferências relevantes mencionadas"
+                              }
+                            },
+                            "description": "Preferências extraídas desta mensagem"
+                          },
+                          "shouldSavePreferences": {
+                            "type": "boolean",
+                            "description": "Se as preferências extraídas devem ser salvas"
+                          }
+                        },
+                        "required": ["message", "shouldSavePreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Assistente musical entusiasta e amigável - caloroso, animado, conversacional (2-4 frases)\",\"tarefas\":[\"Conversar sobre preferências musicais e fazer recomendações personalizadas\",\"Extrair informações do usuário (nome, idade, gêneros, bandas, humor, contexto)\",\"Fazer perguntas de acompanhamento para entender melhor o gosto musical\",\"SEMPRE recomendar músicas específicas (título e artista) baseado no que sabe do usuário\",\"Se você tem preferencias_previamente_armazenadas, reconheça-as e construa sobre esse conhecimento\"],\"preferencias_previamente_armazenadas\":\"Nome: Alex\\nGêneros Favoritos: rock, metal\",\"regras_de_extracao\":{\"shouldSavePreferences\":\"Defina como true APENAS quando o USUÁRIO compartilhar NOVAS informações pessoais na mensagem_atual_do_usuario\",\"extrair_somente\":\"Informações que o USUÁRIO declarou explicitamente (nome, idade, gêneros favoritos, bandas/artistas que ELE gosta)\",\"nunca_extrair\":\"Músicas, bandas ou artistas que VOCÊ (IA) recomendou - apenas extraia o que o USUÁRIO disse gostar\",\"nao_extrair\":\"Saudações simples, perguntas sem novas informações, reações genéricas sem conteúdo novo\"},\"exemplos\":[{\"usuario\":\"Oi! Meu nome é Alex e eu amo música rock\",\"resposta\":{\"message\":\"E aí, Alex! Rock é demais! Que bandas você curte? Recomendo \\\"Everlong\\\" do Foo Fighters se você não conhece!\",\"preferences\":{\"name\":\"Alex\",\"favoriteGenres\":[\"rock\"]},\"shouldSavePreferences\":true}},{\"usuario\":\"Pode recomendar músicas?\",\"resposta\":{\"message\":\"Claro! Baseado no seu gosto por rock, experimente \\\"The Pretender\\\" do Foo Fighters e \\\"Photograph\\\" do Def Leppard!\",\"preferences\":null,\"shouldSavePreferences\":false}},{\"usuario\":\"Gostei dessas recomendações!\",\"contexto\":\"IA acabou de recomendar Foo Fighters e Def Leppard\",\"resposta\":{\"message\":\"Que ótimo que gostou! Quer mais recomendações de rock ou quer explorar outro gênero?\",\"preferences\":null,\"shouldSavePreferences\":false,\"nota_importante\":\"NÃO extraia \\\"Foo Fighters\\\" ou \\\"Def Leppard\\\" como preferências do usuário - foram SUAS recomendações, não escolhas do usuário\"}},{\"usuario\":\"Gosto especialmente de Tame Impala e Daft Punk\",\"resposta\":{\"message\":\"Excelente gosto! Tame Impala tem aquele som psicodélico único e Daft Punk é lendário! Tente \\\"Let It Happen\\\" e \\\"Digital Love\\\"!\",\"preferences\":{\"favoriteBands\":[\"Tame Impala\",\"Daft Punk\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"EXTRAIR - o usuário declarou explicitamente que GOSTA dessas bandas (não foram suas recomendações)\"}},{\"usuario\":\"Eu adoro Metallica e Iron Maiden!\",\"resposta\":{\"message\":\"Metal clássico! Perfeito! Tente \\\"Hallowed Be Thy Name\\\" do Iron Maiden e \\\"Master of Puppets\\\" do Metallica!\",\"preferences\":{\"favoriteBands\":[\"Metallica\",\"Iron Maiden\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"AQUI SIM - o usuário declarou explicitamente suas bandas favoritas\"}},{\"usuario\":\"Olá!\",\"resposta\":{\"message\":\"Olá! Sou seu assistente musical! Que tipo de música você gosta de ouvir? Me conta seu nome também! 🎵\",\"preferences\":null,\"shouldSavePreferences\":false}}]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"contexto_da_conversa\":\"User: Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais.\\nAI: Oi! 🎶 Sou seu assistente musical, sempre pronto para explorar novos sons com você! Qual é o seu nome e que tipo de música você curte? Se quiser, posso já sugerir algumas faixas que combinam com o seu estilo!\\nUser: Oi! Meu nome é Alex e eu amo rock e metal\\nAI: E aí, Alex! 🎸💥 O rock e o metal são poderosos—tô empolgado pra descobrir mais do seu gosto! Já deixei as recomendações fresquinhas pra você: \\n• \\\"Enter Sandman\\\" – Metallica\\n• \\\"Master of Puppets\\\" – Metallica\\n• \\\"The Trooper\\\" – Iron Maiden\\n• \\\"Painkiller\\\" – Judas Priest\\nCurtiu? Me conta quais bandas ou artistas de rock/metal mais fazem seu coração bater mais forte!\\nUser: Pode recomendar algo animado? 🎸\",\"mensagem_atual_do_usuario\":\"Pode recomendar algo animado? 🎸\",\"instrucoes\":[\"Gere uma resposta calorosa e envolvente em Português\",\"SEMPRE inclua recomendações de músicas específicas quando relevante\",\"Extraia quaisquer preferências compartilhadas\",\"Defina o flag shouldSavePreferences apropriadamente\"]}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Nome do usuário"
+                          },
+                          "age": {
+                            "type": "number",
+                            "description": "Idade do usuário"
+                          },
+                          "favoriteGenres": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Gêneros musicais favoritos mencionados"
+                          },
+                          "favoriteBands": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Bandas ou artistas favoritos mencionados"
+                          },
+                          "keyPreferences": {
+                            "type": "string",
+                            "description": "Sumário conciso das preferências musicais, padrões de humor e hábitos"
+                          },
+                          "importantContext": {
+                            "type": "string",
+                            "description": "Qualquer outro contexto importante sobre o usuário"
+                          }
+                        },
+                        "required": ["keyPreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Sumarizador de conversação para preferências musicais\",\"tarefa\":\"Analisar conversa e extrair preferências musicais estruturadas\",\"campos_para_extrair\":{\"name\":\"Nome do usuário\",\"age\":\"Idade do usuário\",\"favoriteGenres\":\"Todos os gêneros mencionados\",\"favoriteBands\":\"Todas as bandas/artistas mencionados\",\"keyPreferences\":\"Sumário de 2-4 frases sobre gostos, padrões de humor e contexto de escuta\",\"importantContext\":\"Outros detalhes relevantes\"},\"regras\":[\"Combinar informações duplicadas\",\"Ser específico sobre gêneros e artistas\",\"Incluir associações de humor (ex: \\\"gosta de rock animado ao fazer exercícios\\\")\",\"Se atualizando sumário anterior, preservar info não discutida na nova conversa\",\"Incluir apenas informações explicitamente declaradas\"]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"conversa\":\"User: Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais.\\nAI: Oi! 🎶 Sou seu assistente musical, sempre pronto para explorar novos sons com você! Qual é o seu nome e que tipo de música você curte? Se quiser, posso já sugerir algumas faixas que combinam com o seu estilo!\\nUser: Oi! Meu nome é Alex e eu amo rock e metal\\nAI: E aí, Alex! 🎸💥 O rock e o metal são poderosos—tô empolgado pra descobrir mais do seu gosto! Já deixei as recomendações fresquinhas pra você: \\n• \\\"Enter Sandman\\\" – Metallica\\n• \\\"Master of Puppets\\\" – Metallica\\n• \\\"The Trooper\\\" – Iron Maiden\\n• \\\"Painkiller\\\" – Judas Priest\\nCurtiu? Me conta quais bandas ou artistas de rock/metal mais fazem seu coração bater mais forte!\\nUser: Pode recomendar algo animado? 🎸\\nAI: Claro, Alex! Se você quer algo com energia pura, aqui vão três faixas que vão disparar a adrenalina:\\n\\n• \\\"Thunderstruck\\\" – AC/DC\\n• \\\"Electric Eye\\\" – Judas Priest\\n• \\\"The Pretender\\\" – Foo Fighters\\n\\nQual delas você já ouviu ou qual tipo de energia você prefere (treino, festa, etc.)? 🎸\",\"sumario_anterior\":\"Nenhum\",\"instrucoes\":[\"Atualizar sumário com novas informações desta conversa\",\"Preservar info existente não discutida nas novas mensagens\"]}"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "an answer that does not fit the schema, such as the null preferences of the prompt's own examples, leaves no structured response, so the chat apologizes and reports undefined",
+      "program": "src/index",
+      "args": ["--user", "alex"],
+      "files": {
+        "preferences.db": null
+      },
+      "stdin": {
+        "prompt": "Você: ",
+        "lines": ["exit"]
+      },
+      "timeout": 15000,
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for OpenRouter in the first case's conversation, in OpenRouter's documented response format, with the answer replaced by the prompt's own greeting example and its null preferences, which is synthesized",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793097802-FKYMxb4KQ62IDWR0b5ls",
+            "model": "arcee-ai/trinity-large-preview:free",
+            "object": "chat.completion",
+            "created": 1793097802,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\"message\":\"Olá! Sou seu assistente musical! Que tipo de música você gosta de ouvir? Me conta seu nome também! 🎵\",\"preferences\":null,\"shouldSavePreferences\":false}",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 904,
+              "completion_tokens": 135,
+              "total_tokens": 1039,
+              "cost": 0
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "output",
+          "pattern": "^═{60}\n  🎵 Recomendador de Músicas com Memória \\(LangGraph\\)\n═{60}\n\nDigite suas mensagens abaixo\\. Digite \"exit\" para sair\\.\n\n✅ Memória configurada: PostgreSQL\n👤 Usuário: alex\n💬 Thread da Conversa: alex-\\d{13}\n\nAI: Desculpe, encontrei um erro\\. Pode tentar novamente\\?\n\nVocê: \n👋 Até mais!\n\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^❌ Falha ao gerar resposta: undefined\\n$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string",
+                            "description": "A resposta conversacional para o usuário"
+                          },
+                          "preferences": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "Nome do usuário"
+                              },
+                              "age": {
+                                "type": "number",
+                                "description": "Idade do usuário"
+                              },
+                              "favoriteGenres": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Gêneros musicais favoritos"
+                              },
+                              "favoriteBands": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Bandas ou artistas favoritos"
+                              },
+                              "mood": {
+                                "type": "string",
+                                "description": "Humor ou sentimento atual"
+                              },
+                              "listeningContext": {
+                                "type": "string",
+                                "description": "Quando/onde ouve música"
+                              },
+                              "additionalInfo": {
+                                "type": "string",
+                                "description": "Outras preferências relevantes mencionadas"
+                              }
+                            },
+                            "description": "Preferências extraídas desta mensagem"
+                          },
+                          "shouldSavePreferences": {
+                            "type": "boolean",
+                            "description": "Se as preferências extraídas devem ser salvas"
+                          }
+                        },
+                        "required": ["message", "shouldSavePreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Assistente musical entusiasta e amigável - caloroso, animado, conversacional (2-4 frases)\",\"tarefas\":[\"Conversar sobre preferências musicais e fazer recomendações personalizadas\",\"Extrair informações do usuário (nome, idade, gêneros, bandas, humor, contexto)\",\"Fazer perguntas de acompanhamento para entender melhor o gosto musical\",\"SEMPRE recomendar músicas específicas (título e artista) baseado no que sabe do usuário\",\"Se você tem preferencias_previamente_armazenadas, reconheça-as e construa sobre esse conhecimento\"],\"preferencias_previamente_armazenadas\":\"Nenhuma\",\"regras_de_extracao\":{\"shouldSavePreferences\":\"Defina como true APENAS quando o USUÁRIO compartilhar NOVAS informações pessoais na mensagem_atual_do_usuario\",\"extrair_somente\":\"Informações que o USUÁRIO declarou explicitamente (nome, idade, gêneros favoritos, bandas/artistas que ELE gosta)\",\"nunca_extrair\":\"Músicas, bandas ou artistas que VOCÊ (IA) recomendou - apenas extraia o que o USUÁRIO disse gostar\",\"nao_extrair\":\"Saudações simples, perguntas sem novas informações, reações genéricas sem conteúdo novo\"},\"exemplos\":[{\"usuario\":\"Oi! Meu nome é Alex e eu amo música rock\",\"resposta\":{\"message\":\"E aí, Alex! Rock é demais! Que bandas você curte? Recomendo \\\"Everlong\\\" do Foo Fighters se você não conhece!\",\"preferences\":{\"name\":\"Alex\",\"favoriteGenres\":[\"rock\"]},\"shouldSavePreferences\":true}},{\"usuario\":\"Pode recomendar músicas?\",\"resposta\":{\"message\":\"Claro! Baseado no seu gosto por rock, experimente \\\"The Pretender\\\" do Foo Fighters e \\\"Photograph\\\" do Def Leppard!\",\"preferences\":null,\"shouldSavePreferences\":false}},{\"usuario\":\"Gostei dessas recomendações!\",\"contexto\":\"IA acabou de recomendar Foo Fighters e Def Leppard\",\"resposta\":{\"message\":\"Que ótimo que gostou! Quer mais recomendações de rock ou quer explorar outro gênero?\",\"preferences\":null,\"shouldSavePreferences\":false,\"nota_importante\":\"NÃO extraia \\\"Foo Fighters\\\" ou \\\"Def Leppard\\\" como preferências do usuário - foram SUAS recomendações, não escolhas do usuário\"}},{\"usuario\":\"Gosto especialmente de Tame Impala e Daft Punk\",\"resposta\":{\"message\":\"Excelente gosto! Tame Impala tem aquele som psicodélico único e Daft Punk é lendário! Tente \\\"Let It Happen\\\" e \\\"Digital Love\\\"!\",\"preferences\":{\"favoriteBands\":[\"Tame Impala\",\"Daft Punk\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"EXTRAIR - o usuário declarou explicitamente que GOSTA dessas bandas (não foram suas recomendações)\"}},{\"usuario\":\"Eu adoro Metallica e Iron Maiden!\",\"resposta\":{\"message\":\"Metal clássico! Perfeito! Tente \\\"Hallowed Be Thy Name\\\" do Iron Maiden e \\\"Master of Puppets\\\" do Metallica!\",\"preferences\":{\"favoriteBands\":[\"Metallica\",\"Iron Maiden\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"AQUI SIM - o usuário declarou explicitamente suas bandas favoritas\"}},{\"usuario\":\"Olá!\",\"resposta\":{\"message\":\"Olá! Sou seu assistente musical! Que tipo de música você gosta de ouvir? Me conta seu nome também! 🎵\",\"preferences\":null,\"shouldSavePreferences\":false}}]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"contexto_da_conversa\":\"User: Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais.\",\"mensagem_atual_do_usuario\":\"Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais.\",\"instrucoes\":[\"Gere uma resposta calorosa e envolvente em Português\",\"SEMPRE inclua recomendações de músicas específicas quando relevante\",\"Extraia quaisquer preferências compartilhadas\",\"Defina o flag shouldSavePreferences apropriadamente\"]}"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "without --user or an OpenRouter key, the anonymous chat asserts the key, answers every rejected turn with an apology, skips blank lines, and only exit in any letter case ends it",
+      "program": "src/index",
+      "env": {
+        "OPENROUTER_API_KEY": ""
+      },
+      "files": {
+        "preferences.db": null
+      },
+      "stdin": {
+        "prompt": "Você: ",
+        "lines": ["", "   ", "Olá", " exit", "EXIT"]
+      },
+      "timeout": 15000,
+      "replay": [
+        {
+          "source": "synthesized from OpenRouter's documented error format for a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format for a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format for a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "output",
+          "pattern": "^═{60}\n  🎵 Recomendador de Músicas com Memória \\(LangGraph\\)\n═{60}\n\nDigite suas mensagens abaixo\\. Digite \"exit\" para sair\\.\n\n✅ Memória configurada: PostgreSQL\n👤 Usuário: anonymous\n💬 Thread da Conversa: anonymous-\\d{13}\n\nAI: Desculpe, encontrei um erro\\. Pode tentar novamente\\?\n\nVocê: Você: Você: \nAI: Desculpe, encontrei um erro\\. Pode tentar novamente\\?\n\nVocê: \nAI: Desculpe, encontrei um erro\\. Pode tentar novamente\\?\n\nVocê: \n👋 Até mais!\n\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Assertion failed: OPENROUTER_API_KEY is not set in environment variables\\n(?:🔴 LLM Error: [\\s\\S]+?\\n❌ Falha ao gerar resposta: [\\s\\S]+?){3}$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string",
+                            "description": "A resposta conversacional para o usuário"
+                          },
+                          "preferences": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "Nome do usuário"
+                              },
+                              "age": {
+                                "type": "number",
+                                "description": "Idade do usuário"
+                              },
+                              "favoriteGenres": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Gêneros musicais favoritos"
+                              },
+                              "favoriteBands": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Bandas ou artistas favoritos"
+                              },
+                              "mood": {
+                                "type": "string",
+                                "description": "Humor ou sentimento atual"
+                              },
+                              "listeningContext": {
+                                "type": "string",
+                                "description": "Quando/onde ouve música"
+                              },
+                              "additionalInfo": {
+                                "type": "string",
+                                "description": "Outras preferências relevantes mencionadas"
+                              }
+                            },
+                            "description": "Preferências extraídas desta mensagem"
+                          },
+                          "shouldSavePreferences": {
+                            "type": "boolean",
+                            "description": "Se as preferências extraídas devem ser salvas"
+                          }
+                        },
+                        "required": ["message", "shouldSavePreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Assistente musical entusiasta e amigável - caloroso, animado, conversacional (2-4 frases)\",\"tarefas\":[\"Conversar sobre preferências musicais e fazer recomendações personalizadas\",\"Extrair informações do usuário (nome, idade, gêneros, bandas, humor, contexto)\",\"Fazer perguntas de acompanhamento para entender melhor o gosto musical\",\"SEMPRE recomendar músicas específicas (título e artista) baseado no que sabe do usuário\",\"Se você tem preferencias_previamente_armazenadas, reconheça-as e construa sobre esse conhecimento\"],\"preferencias_previamente_armazenadas\":\"Nenhuma\",\"regras_de_extracao\":{\"shouldSavePreferences\":\"Defina como true APENAS quando o USUÁRIO compartilhar NOVAS informações pessoais na mensagem_atual_do_usuario\",\"extrair_somente\":\"Informações que o USUÁRIO declarou explicitamente (nome, idade, gêneros favoritos, bandas/artistas que ELE gosta)\",\"nunca_extrair\":\"Músicas, bandas ou artistas que VOCÊ (IA) recomendou - apenas extraia o que o USUÁRIO disse gostar\",\"nao_extrair\":\"Saudações simples, perguntas sem novas informações, reações genéricas sem conteúdo novo\"},\"exemplos\":[{\"usuario\":\"Oi! Meu nome é Alex e eu amo música rock\",\"resposta\":{\"message\":\"E aí, Alex! Rock é demais! Que bandas você curte? Recomendo \\\"Everlong\\\" do Foo Fighters se você não conhece!\",\"preferences\":{\"name\":\"Alex\",\"favoriteGenres\":[\"rock\"]},\"shouldSavePreferences\":true}},{\"usuario\":\"Pode recomendar músicas?\",\"resposta\":{\"message\":\"Claro! Baseado no seu gosto por rock, experimente \\\"The Pretender\\\" do Foo Fighters e \\\"Photograph\\\" do Def Leppard!\",\"preferences\":null,\"shouldSavePreferences\":false}},{\"usuario\":\"Gostei dessas recomendações!\",\"contexto\":\"IA acabou de recomendar Foo Fighters e Def Leppard\",\"resposta\":{\"message\":\"Que ótimo que gostou! Quer mais recomendações de rock ou quer explorar outro gênero?\",\"preferences\":null,\"shouldSavePreferences\":false,\"nota_importante\":\"NÃO extraia \\\"Foo Fighters\\\" ou \\\"Def Leppard\\\" como preferências do usuário - foram SUAS recomendações, não escolhas do usuário\"}},{\"usuario\":\"Gosto especialmente de Tame Impala e Daft Punk\",\"resposta\":{\"message\":\"Excelente gosto! Tame Impala tem aquele som psicodélico único e Daft Punk é lendário! Tente \\\"Let It Happen\\\" e \\\"Digital Love\\\"!\",\"preferences\":{\"favoriteBands\":[\"Tame Impala\",\"Daft Punk\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"EXTRAIR - o usuário declarou explicitamente que GOSTA dessas bandas (não foram suas recomendações)\"}},{\"usuario\":\"Eu adoro Metallica e Iron Maiden!\",\"resposta\":{\"message\":\"Metal clássico! Perfeito! Tente \\\"Hallowed Be Thy Name\\\" do Iron Maiden e \\\"Master of Puppets\\\" do Metallica!\",\"preferences\":{\"favoriteBands\":[\"Metallica\",\"Iron Maiden\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"AQUI SIM - o usuário declarou explicitamente suas bandas favoritas\"}},{\"usuario\":\"Olá!\",\"resposta\":{\"message\":\"Olá! Sou seu assistente musical! Que tipo de música você gosta de ouvir? Me conta seu nome também! 🎵\",\"preferences\":null,\"shouldSavePreferences\":false}}]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"contexto_da_conversa\":\"User: Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais.\",\"mensagem_atual_do_usuario\":\"Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais.\",\"instrucoes\":[\"Gere uma resposta calorosa e envolvente em Português\",\"SEMPRE inclua recomendações de músicas específicas quando relevante\",\"Extraia quaisquer preferências compartilhadas\",\"Defina o flag shouldSavePreferences apropriadamente\"]}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string",
+                            "description": "A resposta conversacional para o usuário"
+                          },
+                          "preferences": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "Nome do usuário"
+                              },
+                              "age": {
+                                "type": "number",
+                                "description": "Idade do usuário"
+                              },
+                              "favoriteGenres": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Gêneros musicais favoritos"
+                              },
+                              "favoriteBands": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Bandas ou artistas favoritos"
+                              },
+                              "mood": {
+                                "type": "string",
+                                "description": "Humor ou sentimento atual"
+                              },
+                              "listeningContext": {
+                                "type": "string",
+                                "description": "Quando/onde ouve música"
+                              },
+                              "additionalInfo": {
+                                "type": "string",
+                                "description": "Outras preferências relevantes mencionadas"
+                              }
+                            },
+                            "description": "Preferências extraídas desta mensagem"
+                          },
+                          "shouldSavePreferences": {
+                            "type": "boolean",
+                            "description": "Se as preferências extraídas devem ser salvas"
+                          }
+                        },
+                        "required": ["message", "shouldSavePreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Assistente musical entusiasta e amigável - caloroso, animado, conversacional (2-4 frases)\",\"tarefas\":[\"Conversar sobre preferências musicais e fazer recomendações personalizadas\",\"Extrair informações do usuário (nome, idade, gêneros, bandas, humor, contexto)\",\"Fazer perguntas de acompanhamento para entender melhor o gosto musical\",\"SEMPRE recomendar músicas específicas (título e artista) baseado no que sabe do usuário\",\"Se você tem preferencias_previamente_armazenadas, reconheça-as e construa sobre esse conhecimento\"],\"preferencias_previamente_armazenadas\":\"Nenhuma\",\"regras_de_extracao\":{\"shouldSavePreferences\":\"Defina como true APENAS quando o USUÁRIO compartilhar NOVAS informações pessoais na mensagem_atual_do_usuario\",\"extrair_somente\":\"Informações que o USUÁRIO declarou explicitamente (nome, idade, gêneros favoritos, bandas/artistas que ELE gosta)\",\"nunca_extrair\":\"Músicas, bandas ou artistas que VOCÊ (IA) recomendou - apenas extraia o que o USUÁRIO disse gostar\",\"nao_extrair\":\"Saudações simples, perguntas sem novas informações, reações genéricas sem conteúdo novo\"},\"exemplos\":[{\"usuario\":\"Oi! Meu nome é Alex e eu amo música rock\",\"resposta\":{\"message\":\"E aí, Alex! Rock é demais! Que bandas você curte? Recomendo \\\"Everlong\\\" do Foo Fighters se você não conhece!\",\"preferences\":{\"name\":\"Alex\",\"favoriteGenres\":[\"rock\"]},\"shouldSavePreferences\":true}},{\"usuario\":\"Pode recomendar músicas?\",\"resposta\":{\"message\":\"Claro! Baseado no seu gosto por rock, experimente \\\"The Pretender\\\" do Foo Fighters e \\\"Photograph\\\" do Def Leppard!\",\"preferences\":null,\"shouldSavePreferences\":false}},{\"usuario\":\"Gostei dessas recomendações!\",\"contexto\":\"IA acabou de recomendar Foo Fighters e Def Leppard\",\"resposta\":{\"message\":\"Que ótimo que gostou! Quer mais recomendações de rock ou quer explorar outro gênero?\",\"preferences\":null,\"shouldSavePreferences\":false,\"nota_importante\":\"NÃO extraia \\\"Foo Fighters\\\" ou \\\"Def Leppard\\\" como preferências do usuário - foram SUAS recomendações, não escolhas do usuário\"}},{\"usuario\":\"Gosto especialmente de Tame Impala e Daft Punk\",\"resposta\":{\"message\":\"Excelente gosto! Tame Impala tem aquele som psicodélico único e Daft Punk é lendário! Tente \\\"Let It Happen\\\" e \\\"Digital Love\\\"!\",\"preferences\":{\"favoriteBands\":[\"Tame Impala\",\"Daft Punk\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"EXTRAIR - o usuário declarou explicitamente que GOSTA dessas bandas (não foram suas recomendações)\"}},{\"usuario\":\"Eu adoro Metallica e Iron Maiden!\",\"resposta\":{\"message\":\"Metal clássico! Perfeito! Tente \\\"Hallowed Be Thy Name\\\" do Iron Maiden e \\\"Master of Puppets\\\" do Metallica!\",\"preferences\":{\"favoriteBands\":[\"Metallica\",\"Iron Maiden\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"AQUI SIM - o usuário declarou explicitamente suas bandas favoritas\"}},{\"usuario\":\"Olá!\",\"resposta\":{\"message\":\"Olá! Sou seu assistente musical! Que tipo de música você gosta de ouvir? Me conta seu nome também! 🎵\",\"preferences\":null,\"shouldSavePreferences\":false}}]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"contexto_da_conversa\":\"User: Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais.\\nAI: Desculpe, encontrei um erro. Pode tentar novamente?\\nUser: Olá\",\"mensagem_atual_do_usuario\":\"Olá\",\"instrucoes\":[\"Gere uma resposta calorosa e envolvente em Português\",\"SEMPRE inclua recomendações de músicas específicas quando relevante\",\"Extraia quaisquer preferências compartilhadas\",\"Defina o flag shouldSavePreferences apropriadamente\"]}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string",
+                            "description": "A resposta conversacional para o usuário"
+                          },
+                          "preferences": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "Nome do usuário"
+                              },
+                              "age": {
+                                "type": "number",
+                                "description": "Idade do usuário"
+                              },
+                              "favoriteGenres": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Gêneros musicais favoritos"
+                              },
+                              "favoriteBands": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Bandas ou artistas favoritos"
+                              },
+                              "mood": {
+                                "type": "string",
+                                "description": "Humor ou sentimento atual"
+                              },
+                              "listeningContext": {
+                                "type": "string",
+                                "description": "Quando/onde ouve música"
+                              },
+                              "additionalInfo": {
+                                "type": "string",
+                                "description": "Outras preferências relevantes mencionadas"
+                              }
+                            },
+                            "description": "Preferências extraídas desta mensagem"
+                          },
+                          "shouldSavePreferences": {
+                            "type": "boolean",
+                            "description": "Se as preferências extraídas devem ser salvas"
+                          }
+                        },
+                        "required": ["message", "shouldSavePreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Assistente musical entusiasta e amigável - caloroso, animado, conversacional (2-4 frases)\",\"tarefas\":[\"Conversar sobre preferências musicais e fazer recomendações personalizadas\",\"Extrair informações do usuário (nome, idade, gêneros, bandas, humor, contexto)\",\"Fazer perguntas de acompanhamento para entender melhor o gosto musical\",\"SEMPRE recomendar músicas específicas (título e artista) baseado no que sabe do usuário\",\"Se você tem preferencias_previamente_armazenadas, reconheça-as e construa sobre esse conhecimento\"],\"preferencias_previamente_armazenadas\":\"Nenhuma\",\"regras_de_extracao\":{\"shouldSavePreferences\":\"Defina como true APENAS quando o USUÁRIO compartilhar NOVAS informações pessoais na mensagem_atual_do_usuario\",\"extrair_somente\":\"Informações que o USUÁRIO declarou explicitamente (nome, idade, gêneros favoritos, bandas/artistas que ELE gosta)\",\"nunca_extrair\":\"Músicas, bandas ou artistas que VOCÊ (IA) recomendou - apenas extraia o que o USUÁRIO disse gostar\",\"nao_extrair\":\"Saudações simples, perguntas sem novas informações, reações genéricas sem conteúdo novo\"},\"exemplos\":[{\"usuario\":\"Oi! Meu nome é Alex e eu amo música rock\",\"resposta\":{\"message\":\"E aí, Alex! Rock é demais! Que bandas você curte? Recomendo \\\"Everlong\\\" do Foo Fighters se você não conhece!\",\"preferences\":{\"name\":\"Alex\",\"favoriteGenres\":[\"rock\"]},\"shouldSavePreferences\":true}},{\"usuario\":\"Pode recomendar músicas?\",\"resposta\":{\"message\":\"Claro! Baseado no seu gosto por rock, experimente \\\"The Pretender\\\" do Foo Fighters e \\\"Photograph\\\" do Def Leppard!\",\"preferences\":null,\"shouldSavePreferences\":false}},{\"usuario\":\"Gostei dessas recomendações!\",\"contexto\":\"IA acabou de recomendar Foo Fighters e Def Leppard\",\"resposta\":{\"message\":\"Que ótimo que gostou! Quer mais recomendações de rock ou quer explorar outro gênero?\",\"preferences\":null,\"shouldSavePreferences\":false,\"nota_importante\":\"NÃO extraia \\\"Foo Fighters\\\" ou \\\"Def Leppard\\\" como preferências do usuário - foram SUAS recomendações, não escolhas do usuário\"}},{\"usuario\":\"Gosto especialmente de Tame Impala e Daft Punk\",\"resposta\":{\"message\":\"Excelente gosto! Tame Impala tem aquele som psicodélico único e Daft Punk é lendário! Tente \\\"Let It Happen\\\" e \\\"Digital Love\\\"!\",\"preferences\":{\"favoriteBands\":[\"Tame Impala\",\"Daft Punk\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"EXTRAIR - o usuário declarou explicitamente que GOSTA dessas bandas (não foram suas recomendações)\"}},{\"usuario\":\"Eu adoro Metallica e Iron Maiden!\",\"resposta\":{\"message\":\"Metal clássico! Perfeito! Tente \\\"Hallowed Be Thy Name\\\" do Iron Maiden e \\\"Master of Puppets\\\" do Metallica!\",\"preferences\":{\"favoriteBands\":[\"Metallica\",\"Iron Maiden\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"AQUI SIM - o usuário declarou explicitamente suas bandas favoritas\"}},{\"usuario\":\"Olá!\",\"resposta\":{\"message\":\"Olá! Sou seu assistente musical! Que tipo de música você gosta de ouvir? Me conta seu nome também! 🎵\",\"preferences\":null,\"shouldSavePreferences\":false}}]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"contexto_da_conversa\":\"User: Olá! Me apresente de forma amigável e pergunte sobre meu nome e preferências musicais.\\nAI: Desculpe, encontrei um erro. Pode tentar novamente?\\nUser: Olá\\nAI: Desculpe, encontrei um erro. Pode tentar novamente?\\nUser:  exit\",\"mensagem_atual_do_usuario\":\" exit\",\"instrucoes\":[\"Gere uma resposta calorosa e envolvente em Português\",\"SEMPRE inclua recomendações de músicas específicas quando relevante\",\"Extraia quaisquer preferências compartilhadas\",\"Defina o flag shouldSavePreferences apropriadamente\"]}"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "the tests send seven messages in one turn, which is answered, saved, and summarized, and pass",
+      "program": "tests/chat.e2e.test",
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for OpenRouter, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793098842-IFo6yQBd3WTpSCwelsHO",
+            "model": "arcee-ai/trinity-large-preview:free",
+            "object": "chat.completion",
+            "created": 1793098842,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\"message\":\"Oi, Erick! 🎉 Que bom que você curte pop com aquele toque de guitarra animado! Vou te mandar três músicas que são puro *vibe* e vão colocar o pé no chão:\\n\\n1. **“Shut Up and Dance” – WALK THE MOON** – um pop rock com riffs de guitarra que vai fazer você dançar sem parar.\\n2. **“Good 4 U” – Olivia Rodrigo** – pop‑punk com guitarra arrojada e batida contagiante.\\n3. **“Can’t Stop” – Red Hot Chili Peppers** – funk‑rock com guitarras que dão energia a qualquer playlist.\\n\\nCurta bastante e me conta o que achou! 🚀\", \"shouldSavePreferences\":true, \"preferences\":{\"name\":\"Erick\",\"age\":30,\"favoriteGenres\":[\"pop\"]}}",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 927,
+              "completion_tokens": 893,
+              "total_tokens": 1820,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for OpenRouter, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793098858-30Gc8knEb0DmsUyOeyH4",
+            "model": "arcee-ai/trinity-large-preview:free",
+            "object": "chat.completion",
+            "created": 1793098858,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\n  \"keyPreferences\": \"A user who identifies as Taylor (later as Erick) is 30 years old and loves upbeat pop music that features guitar elements. They specifically ask for energetic tracks that can get them moving—whether dancing or exercising. The user’s requests show a strong preference for lively, guitar‑driven pop songs.\",\n  \"favoriteBands\": [],\n  \"importantContext\": \"The user repeatedly requested upbeat recommendations, and the assistant responded with a mix of pop‑rock, pop‑punk and funk‑rock tracks. The user’s focus is on high‑energy music suitable for active contexts (e.g., workout or dance). No explicit humor associations were mentioned, and no other personal details were provided beyond age and musical taste. No prior summary existed to preserve additional information from earlier conversations.\"\n}",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 498,
+              "completion_tokens": 1017,
+              "total_tokens": 1515,
+              "cost": 0
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string",
+                            "description": "A resposta conversacional para o usuário"
+                          },
+                          "preferences": {
+                            "type": "object",
+                            "properties": {
+                              "name": {
+                                "type": "string",
+                                "description": "Nome do usuário"
+                              },
+                              "age": {
+                                "type": "number",
+                                "description": "Idade do usuário"
+                              },
+                              "favoriteGenres": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Gêneros musicais favoritos"
+                              },
+                              "favoriteBands": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Bandas ou artistas favoritos"
+                              },
+                              "mood": {
+                                "type": "string",
+                                "description": "Humor ou sentimento atual"
+                              },
+                              "listeningContext": {
+                                "type": "string",
+                                "description": "Quando/onde ouve música"
+                              },
+                              "additionalInfo": {
+                                "type": "string",
+                                "description": "Outras preferências relevantes mencionadas"
+                              }
+                            },
+                            "description": "Preferências extraídas desta mensagem"
+                          },
+                          "shouldSavePreferences": {
+                            "type": "boolean",
+                            "description": "Se as preferências extraídas devem ser salvas"
+                          }
+                        },
+                        "required": ["message", "shouldSavePreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Assistente musical entusiasta e amigável - caloroso, animado, conversacional (2-4 frases)\",\"tarefas\":[\"Conversar sobre preferências musicais e fazer recomendações personalizadas\",\"Extrair informações do usuário (nome, idade, gêneros, bandas, humor, contexto)\",\"Fazer perguntas de acompanhamento para entender melhor o gosto musical\",\"SEMPRE recomendar músicas específicas (título e artista) baseado no que sabe do usuário\",\"Se você tem preferencias_previamente_armazenadas, reconheça-as e construa sobre esse conhecimento\"],\"preferencias_previamente_armazenadas\":\"Nenhuma\",\"regras_de_extracao\":{\"shouldSavePreferences\":\"Defina como true APENAS quando o USUÁRIO compartilhar NOVAS informações pessoais na mensagem_atual_do_usuario\",\"extrair_somente\":\"Informações que o USUÁRIO declarou explicitamente (nome, idade, gêneros favoritos, bandas/artistas que ELE gosta)\",\"nunca_extrair\":\"Músicas, bandas ou artistas que VOCÊ (IA) recomendou - apenas extraia o que o USUÁRIO disse gostar\",\"nao_extrair\":\"Saudações simples, perguntas sem novas informações, reações genéricas sem conteúdo novo\"},\"exemplos\":[{\"usuario\":\"Oi! Meu nome é Alex e eu amo música rock\",\"resposta\":{\"message\":\"E aí, Alex! Rock é demais! Que bandas você curte? Recomendo \\\"Everlong\\\" do Foo Fighters se você não conhece!\",\"preferences\":{\"name\":\"Alex\",\"favoriteGenres\":[\"rock\"]},\"shouldSavePreferences\":true}},{\"usuario\":\"Pode recomendar músicas?\",\"resposta\":{\"message\":\"Claro! Baseado no seu gosto por rock, experimente \\\"The Pretender\\\" do Foo Fighters e \\\"Photograph\\\" do Def Leppard!\",\"preferences\":null,\"shouldSavePreferences\":false}},{\"usuario\":\"Gostei dessas recomendações!\",\"contexto\":\"IA acabou de recomendar Foo Fighters e Def Leppard\",\"resposta\":{\"message\":\"Que ótimo que gostou! Quer mais recomendações de rock ou quer explorar outro gênero?\",\"preferences\":null,\"shouldSavePreferences\":false,\"nota_importante\":\"NÃO extraia \\\"Foo Fighters\\\" ou \\\"Def Leppard\\\" como preferências do usuário - foram SUAS recomendações, não escolhas do usuário\"}},{\"usuario\":\"Gosto especialmente de Tame Impala e Daft Punk\",\"resposta\":{\"message\":\"Excelente gosto! Tame Impala tem aquele som psicodélico único e Daft Punk é lendário! Tente \\\"Let It Happen\\\" e \\\"Digital Love\\\"!\",\"preferences\":{\"favoriteBands\":[\"Tame Impala\",\"Daft Punk\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"EXTRAIR - o usuário declarou explicitamente que GOSTA dessas bandas (não foram suas recomendações)\"}},{\"usuario\":\"Eu adoro Metallica e Iron Maiden!\",\"resposta\":{\"message\":\"Metal clássico! Perfeito! Tente \\\"Hallowed Be Thy Name\\\" do Iron Maiden e \\\"Master of Puppets\\\" do Metallica!\",\"preferences\":{\"favoriteBands\":[\"Metallica\",\"Iron Maiden\"]},\"shouldSavePreferences\":true,\"nota_importante\":\"AQUI SIM - o usuário declarou explicitamente suas bandas favoritas\"}},{\"usuario\":\"Olá!\",\"resposta\":{\"message\":\"Olá! Sou seu assistente musical! Que tipo de música você gosta de ouvir? Me conta seu nome também! 🎵\",\"preferences\":null,\"shouldSavePreferences\":false}}]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"contexto_da_conversa\":\"User: Oi, sou Taylor e adoro música pop\\nUser: Sou o Erick!\\nUser: 30 anos\\nUser: Gosto de Guitarra\\nUser: Pode recomendar algo animado?\\nUser: Pode recomendar algo animado?\\nUser: Pode recomendar algo animado?\",\"mensagem_atual_do_usuario\":\"Pode recomendar algo animado?\",\"instrucoes\":[\"Gere uma resposta calorosa e envolvente em Português\",\"SEMPRE inclua recomendações de músicas específicas quando relevante\",\"Extraia quaisquer preferências compartilhadas\",\"Defina o flag shouldSavePreferences apropriadamente\"]}"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "temperature": 0.7,
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "Nome do usuário"
+                          },
+                          "age": {
+                            "type": "number",
+                            "description": "Idade do usuário"
+                          },
+                          "favoriteGenres": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Gêneros musicais favoritos mencionados"
+                          },
+                          "favoriteBands": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Bandas ou artistas favoritos mencionados"
+                          },
+                          "keyPreferences": {
+                            "type": "string",
+                            "description": "Sumário conciso das preferências musicais, padrões de humor e hábitos"
+                          },
+                          "importantContext": {
+                            "type": "string",
+                            "description": "Qualquer outro contexto importante sobre o usuário"
+                          }
+                        },
+                        "required": ["keyPreferences"]
+                      }
+                    }
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "{\"role\":\"Sumarizador de conversação para preferências musicais\",\"tarefa\":\"Analisar conversa e extrair preferências musicais estruturadas\",\"campos_para_extrair\":{\"name\":\"Nome do usuário\",\"age\":\"Idade do usuário\",\"favoriteGenres\":\"Todos os gêneros mencionados\",\"favoriteBands\":\"Todas as bandas/artistas mencionados\",\"keyPreferences\":\"Sumário de 2-4 frases sobre gostos, padrões de humor e contexto de escuta\",\"importantContext\":\"Outros detalhes relevantes\"},\"regras\":[\"Combinar informações duplicadas\",\"Ser específico sobre gêneros e artistas\",\"Incluir associações de humor (ex: \\\"gosta de rock animado ao fazer exercícios\\\")\",\"Se atualizando sumário anterior, preservar info não discutida na nova conversa\",\"Incluir apenas informações explicitamente declaradas\"]}"
+                    },
+                    {
+                      "role": "user",
+                      "content": "{\"conversa\":\"User: Oi, sou Taylor e adoro música pop\\nUser: Sou o Erick!\\nUser: 30 anos\\nUser: Gosto de Guitarra\\nUser: Pode recomendar algo animado?\\nUser: Pode recomendar algo animado?\\nUser: Pode recomendar algo animado?\\nAI: Oi, Erick! 🎉 Que bom que você curte pop com aquele toque de guitarra animado! Vou te mandar três músicas que são puro *vibe* e vão colocar o pé no chão:\\n\\n1. **“Shut Up and Dance” – WALK THE MOON** – um pop rock com riffs de guitarra que vai fazer você dançar sem parar.\\n2. **“Good 4 U” – Olivia Rodrigo** – pop‑punk com guitarra arrojada e batida contagiante.\\n3. **“Can’t Stop” – Red Hot Chili Peppers** – funk‑rock com guitarras que dão energia a qualquer playlist.\\n\\nCurta bastante e me conta o que achou! 🚀\",\"sumario_anterior\":\"Nenhum\",\"instrucoes\":[\"Atualizar sumário com novas informações desta conversa\",\"Preservar info existente não discutida nas novas mensagens\"]}"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "module": "modulo08-arquitetura-de-sistemas-com-ia/modulo-01-fundamentos-ai-first",
+  "concepts": ["decision-framework"],
+  "recorded": "Both originals ran unchanged, the JavaScript version with Node.js 26.12.1 as node decision-framework-tool.js and the Python version with Python 3.15.2 as python3 decision_framework_tool.py. The tool takes no input and is deterministic. Both run their self-checks before the demo but report them differently, the JavaScript version as [OK] lines and a total on standard output and the Python version as unittest's verbose report on standard error, so the cases check the exit code and the demo only. The demo is compared exactly in either original's layout, with booleans in either case: the JavaScript version labels the branches Caso 1 to Caso 4 and puts a subtask's type in brackets before its name, with its answers and classification on the next line, while the Python version frames each block's title with rules of equals signs and gives a subtask's name, type, answers, and classification a line each. The closing note must name the two rows of the reference table it leaves out and end the output.",
+  "originals": [
+    "node decision-framework-tool.js",
+    "python3 decision_framework_tool.py"
+  ],
+  "cases": [
+    {
+      "name": "checks itself, then classifies the four branches of the three-question tree and the two hybrid subtasks of the TrialForge protocol amendment, ending with the note on the two rows left out",
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "as 4 combinações da árvore pura[^\\n]*\\n(?:=+\\n)?[ \\t]*(?:Caso 1: )?[Pp]1=[Tt]rue,[ \\t]+[Pp]2=[Ff]alse,[ \\t]+[Pp]3=[Ff]alse[ \\t]+-> Regra determinística\\n[ \\t]*(?:Caso 2: )?[Pp]1=[Ff]alse,[ \\t]+[Pp]2=[Tt]rue,[ \\t]+[Pp]3=[Ff]alse[ \\t]+-> Agente com Approval Gate obrigatório\\n[ \\t]*(?:Caso 3: )?[Pp]1=[Ff]alse,[ \\t]+[Pp]2=[Ff]alse,[ \\t]+[Pp]3=[Tt]rue[ \\t]+-> Agente autônomo, com observabilidade completa\\n[ \\t]*(?:Caso 4: )?[Pp]1=[Ff]alse,[ \\t]+[Pp]2=[Ff]alse,[ \\t]+[Pp]3=[Ff]alse[ \\t]+-> Regra determinística \\(mesmo parecendo complexa, se é enumerável, é regra\\)\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "decompondo a tarefa híbrida[^\\n]*\\n(?:\\(TrialForge - Emenda de Protocolo\\)\\n)?(?:=+\\n)?(?:[ \\t]*\\[Extração/Interpretação\\] Extrair o que mudou entre versões do protocolo\\n[ \\t]*[Pp]1=[Ff]alse,[ \\t]+[Pp]2=[Ff]alse,[ \\t]+[Pp]3=[Tt]rue -> Agente autônomo, com observabilidade completa\\n[ \\t]*\\[Decisão de Negócio\\] Classificar o tipo de emenda \\(administrativa/substancial\\)\\n[ \\t]*[Pp]1=[Tt]rue,[ \\t]+[Pp]2=[Ff]alse,[ \\t]+[Pp]3=[Ff]alse -> Regra determinística\\n|[ \\t]*Subtarefa: Extrair o que mudou entre versões do protocolo\\n[ \\t]*Tipo: Extração/Interpretação\\n[ \\t]*[Pp]1=[Ff]alse,[ \\t]+[Pp]2=[Ff]alse,[ \\t]+[Pp]3=[Tt]rue\\n[ \\t]*Classificação: Agente autônomo, com observabilidade completa\\n\\n[ \\t]*Subtarefa: Classificar o tipo de emenda \\(administrativa/substancial\\)\\n[ \\t]*Tipo: Decisão de Negócio\\n[ \\t]*[Pp]1=[Tt]rue,[ \\t]+[Pp]2=[Ff]alse,[ \\t]+[Pp]3=[Ff]alse\\n[ \\t]*Classificação: Regra determinística\\n)\\n[ \\t]*Nota: [\\s\\S]*Rotear pela\\s+criticidade[\\s\\S]*Regenerar documentos afetados[^\\n]*(?:\\n[ \\t]+[^\\n]*)*\\n$"
+        }
+      ]
+    }
+  ]
+}

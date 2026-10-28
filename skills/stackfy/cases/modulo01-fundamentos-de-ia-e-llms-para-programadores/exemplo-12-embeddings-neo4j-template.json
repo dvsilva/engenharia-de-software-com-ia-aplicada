@@ -1,0 +1,38 @@
+{
+  "module": "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-12-embeddings-neo4j-template",
+  "concepts": [
+    "vector-store",
+    "graph-database",
+    "document-chunking",
+    "text-embeddings",
+    "chat-model"
+  ],
+  "recorded": "The case passed 5 runs against the unchanged original with Node.js 26.12.1, run as node src/index.ts, the file npm start runs, without its --env-file .env flag, since the template ships only .env.example and the case sets that file's variables itself, with Neo4j's address on the case's own port. The entry point is empty, so it imports nothing, needs no installed dependency, reads no variable, connects to nothing, and calls no model. The configuration and the results formatter are never loaded, and the final version's cases exercise them. The service is Neo4j 5.14.0 community with APOC, from the lesson's compose file with an override passed on standard input, which gives the container a name of its own, publishes the browser and Bolt on ports 48121 and 48122, leaves out the bind mounts so nothing is written in the module's folder and every run starts with an empty database, and adds a cypher-shell healthcheck, so the services start only once Neo4j answers queries.",
+  "originals": ["node src/index.ts"],
+  "services": {
+    "up": "docker compose -f docker-compose.yml -f - -p stackfy-exemplo-12-embeddings-neo4j-template up -d --wait <<'EOF'\nservices:\n  neo4j:\n    container_name: stackfy-exemplo-12-embeddings-neo4j-template-neo4j\n    ports: !override ['48121:7474', '48122:7687']\n    volumes: !reset []\n    healthcheck:\n      test: ['CMD-SHELL', 'cypher-shell -u neo4j -p password \"RETURN 1\"']\n      interval: 2s\n      timeout: 10s\n      retries: 90\nEOF",
+    "down": "docker compose -f docker-compose.yml -p stackfy-exemplo-12-embeddings-neo4j-template down -v",
+    "ready": [{ "port": 48122 }]
+  },
+  "env": {
+    "NEO4J_URI": "bolt://127.0.0.1:48122",
+    "NEO4J_USER": "neo4j",
+    "NEO4J_PASSWORD": "password",
+    "EMBEDDING_MODEL": "Xenova/all-MiniLM-L6-v2",
+    "OPENROUTER_API_KEY": "replay",
+    "NLP_MODEL": "google/gemma-3-27b-it:free",
+    "OPENROUTER_SITE_URL": "http://localhost:3000",
+    "OPENROUTER_SITE_NAME": "My Example"
+  },
+  "cases": [
+    {
+      "name": "with Neo4j up and the example environment set, the empty entry point prints nothing, calls no model, and exits 0",
+      "expect": [
+        { "type": "exit", "code": 0 },
+        { "type": "output", "pattern": "^$" },
+        { "type": "output", "stream": "stderr", "pattern": "^$" },
+        { "type": "requests", "requests": [] }
+      ]
+    }
+  ]
+}

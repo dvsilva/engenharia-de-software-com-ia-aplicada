@@ -1,0 +1,201 @@
+{
+  "module": "modulo03-mcp-na-pratica/06-your-legacy-api-as-mcp/customers-mcp-template",
+  "concepts": [
+    "model-context-protocol",
+    "layered-architecture",
+    "schema-validation"
+  ],
+  "recorded": "The case passed 10 runs against the unchanged original with Node.js 26.12.1 and @modelcontextprotocol/sdk 1.27.1, run as node src/index.ts, the file npm start runs with type stripping. The template registers nothing and never calls the legacy API, so it needs no service. The SDK answers every listing and the tool call with Method not found, code -32601, and the case also accepts the empty listings and the unknown tool answers other SDKs give.",
+  "prepare": { "setup": ["npm ci"] },
+  "originals": ["node src/index.ts"],
+  "cases": [
+    {
+      "name": "introduces itself as @erickwendel/ew-customers-mcp with no tools, resources, or prompts yet",
+      "timeout": 60000,
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/list"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "resources/list"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "prompts/list"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "tools/call",
+            "params": {
+              "name": "list_customers",
+              "arguments": {}
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ew-customers-mcp",
+                      "version": "0.0.1"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "error": {
+                      "$like": {
+                        "code": -32601
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "result": {
+                      "$like": {
+                        "tools": []
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "error": {
+                      "$like": {
+                        "code": -32601
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "result": {
+                      "$like": {
+                        "resources": []
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "error": {
+                      "$like": {
+                        "code": -32601
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "result": {
+                      "$like": {
+                        "prompts": []
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "error": {
+                      "$like": {
+                        "code": -32601
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "error": {
+                      "$like": {
+                        "code": -32602
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 5,
+                    "result": {
+                      "$like": {
+                        "isError": true
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Customers MCP Server running on stdio\\n"
+        }
+      ]
+    }
+  ]
+}

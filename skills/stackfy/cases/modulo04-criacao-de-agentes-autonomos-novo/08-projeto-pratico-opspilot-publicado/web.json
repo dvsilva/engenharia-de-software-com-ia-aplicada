@@ -1,0 +1,2521 @@
+{
+  "module": "modulo04-criacao-de-agentes-autonomos-novo/08-projeto-pratico-opspilot-publicado/web",
+  "concepts": [
+    "component-framework",
+    "web-accessibility",
+    "browser-app",
+    "agent-observability",
+    "rest-api",
+    "schema-validation"
+  ],
+  "recorded": "Every case passed against the original in each of 3 runs, with Node.js 26.12.1, React 19.2.8, zod 3.25.76, Vite 8.2.0, @vitejs/plugin-react 6.0.5, and TypeScript 6.0.3, installed with npm ci and driven in headless Google Chrome. Each case names its program, and one shell command run from the web folder chose by it: dev ran `npx vite --port $PORT --host 127.0.0.1 --strictPort`, and pages ran `npm run build -- --base=/ops-pilot/ && npx vite preview --base=/ops-pilot/ --port $PORT --host 127.0.0.1 --strictPort`, the build the deploy workflow publishes to GitHub Pages, served as a static host would. The page calls the chat API at an address the user sets, so every case that reaches it types the replay's address into the settings, and the replay stands in for the API. Its bodies were recorded from unit 8's own chat API, run from the copy its cases describe, whose model answers came from the replay of unit 6's recordings. The 503 is the API's answer to OpenRouter's documented 401, synthesized, the 404 its answer to approving a request another user had already denied, and the empty answer, the conversation id that is not a UUID, and the 202 without its approval id are synthesized from those bodies. The API's default CORS reflects any origin, so the replay answers every preflight and response with Access-Control-Allow-Origin *, which the page accepts the same way, since it sends no credentials. The replay holds some answers for a second and a half so the cases can read the sending state, and the aborted one for five seconds, and the address that cannot be reached is http://127.0.0.1:9, a port the browser refuses. The cases compare texts, states, focus, and the bodies the page sends exactly, apart from the whitespace around labels, buttons, and messages, which templates may add and the page never shows, and they wait a moment after a dialog opens, because the settings reset their draft in an effect. The module's own tests run in Vitest with Testing Library over jsdom, and all twelve pass under Node.js 22.23.4, while the three App tests fail under Node.js 26, whose own localStorage hides jsdom's.",
+  "prepare": { "setup": ["npm ci"] },
+  "originals": [
+    "case {program} in dev) npx vite --port $PORT --host 127.0.0.1 --strictPort ;; pages) npm run build -- --base=/ops-pilot/ && npx vite preview --base=/ops-pilot/ --port $PORT --host 127.0.0.1 --strictPort ;; esac"
+  ],
+  "cases": [
+    {
+      "name": "the War Room opens under /opspilot/, loading every script and stylesheet of its own from there, with its header, an empty thread, and a composer that never sends blank text, and an address in storage that is not http(s) leaves the API at localhost:3000",
+      "program": "dev",
+      "serve": {
+        "port": 47771,
+        "ready": "/opspilot/",
+        "page": {
+          "path": "/opspilot/",
+          "timeout": 30000,
+          "init": "localStorage.setItem('opspilot.warRoom.apiBaseUrl', 'ftp://opspilot.example')",
+          "steps": [
+            {
+              "read": "[document.title, document.documentElement.lang]"
+            },
+            {
+              "read": "(() => { const own = [...document.querySelectorAll('script[src], link[rel=stylesheet][href]')].map((element) => new URL(element.src || element.href)).filter((address) => address.origin === location.origin); return own.length > 0 && own.every((address) => address.pathname.startsWith('/opspilot/')); })()"
+            },
+            {
+              "read": "[...document.querySelectorAll('header .eyebrow, header h1, header .lede')].map((element) => element.textContent.trim())"
+            },
+            {
+              "read": "(() => { const empty = document.querySelector('main [role=status]'); return [empty.querySelector('h2').textContent.trim(), empty.querySelector('p').textContent.trim()]; })()"
+            },
+            {
+              "read": "(() => { const field = document.querySelector('form textarea'); const toggle = document.querySelector('form input[type=checkbox]'); return [field.labels[0].textContent.trim(), field.placeholder, toggle.labels[0].textContent.trim()]; })()"
+            },
+            {
+              "read": "(() => { const field = document.querySelector('form textarea'); const toggle = document.querySelector('form input[type=checkbox]'); return [field.value, field.disabled, toggle.checked, toggle.disabled, [...document.querySelectorAll('form button')].map((button) => [button.textContent.trim(), button.disabled])]; })()"
+            },
+            {
+              "read": "(() => { const gear = document.querySelector('header button'); return [gear.getAttribute('aria-label'), gear.textContent.trim()]; })()"
+            },
+            {
+              "fill": "form textarea",
+              "value": "   "
+            },
+            {
+              "read": "(() => { const field = document.querySelector('form textarea'); const toggle = document.querySelector('form input[type=checkbox]'); return [field.value, field.disabled, toggle.checked, toggle.disabled, [...document.querySelectorAll('form button')].map((button) => [button.textContent.trim(), button.disabled])]; })()"
+            },
+            {
+              "fill": "form textarea",
+              "value": "status"
+            },
+            {
+              "read": "(() => { const field = document.querySelector('form textarea'); const toggle = document.querySelector('form input[type=checkbox]'); return [field.value, field.disabled, toggle.checked, toggle.disabled, [...document.querySelectorAll('form button')].map((button) => [button.textContent.trim(), button.disabled])]; })()"
+            },
+            {
+              "fill": "form textarea",
+              "value": "   "
+            },
+            {
+              "click": ".composer__field label"
+            },
+            {
+              "press": "Enter"
+            },
+            {
+              "read": "document.querySelector('ol.thread') === null"
+            },
+            {
+              "click": "button[aria-label=\"Configurações\"]"
+            },
+            {
+              "wait": "document.activeElement === document.querySelector('[role=dialog] input')"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 200))"
+            },
+            {
+              "read": "(() => { const dialog = document.querySelector('[role=dialog]'); if (!dialog) return null; const input = dialog.querySelector('input'); const described = input.getAttribute('aria-describedby'); return [dialog.getAttribute('aria-modal'), document.getElementById(dialog.getAttribute('aria-labelledby')).textContent.trim(), input.labels[0].textContent.trim(), input.value, document.activeElement === input, input.getAttribute('aria-invalid'), described && document.getElementById(described).textContent.trim(), [...dialog.querySelectorAll('button')].map((button) => button.textContent.trim())]; })()"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            ["OpsPilot War Room", "pt-BR"],
+            true,
+            [
+              "Plantão",
+              "OpsPilot",
+              "War Room — chat operacional com raciocínio auditável."
+            ],
+            [
+              "Nenhuma mensagem ainda",
+              "Envie a primeira mensagem para começar o plantão na War Room."
+            ],
+            [
+              "Mensagem",
+              "Descreva o incidente ou peça ajuda ao OpsPilot…",
+              "Exigir aprovação"
+            ],
+            ["", false, false, false, [["Enviar", true]]],
+            ["Configurações", "⚙"],
+            ["   ", false, false, false, [["Enviar", true]]],
+            ["status", false, false, false, [["Enviar", false]]],
+            true,
+            [
+              "true",
+              "Configurações",
+              "URL da API",
+              "http://localhost:3000",
+              true,
+              "false",
+              null,
+              ["Cancelar", "Salvar"]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "the settings dialog takes focus, rejects an address that is not http(s) until it is edited, closes with Escape, Cancelar, or the backdrop without saving, and saves the address trimmed and without trailing slashes, which the page keeps after a reload",
+      "program": "dev",
+      "serve": {
+        "port": 47772,
+        "ready": "/opspilot/",
+        "page": {
+          "path": "/opspilot/",
+          "timeout": 30000,
+          "steps": [
+            {
+              "click": "button[aria-label=\"Configurações\"]"
+            },
+            {
+              "wait": "document.activeElement === document.querySelector('[role=dialog] input')"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 200))"
+            },
+            {
+              "fill": "[role=dialog] input",
+              "value": "ftp://opspilot.example"
+            },
+            {
+              "click": "[role=dialog] button.btn--primary"
+            },
+            {
+              "wait": "document.querySelector('[role=dialog] [role=alert]') !== null"
+            },
+            {
+              "read": "(() => { const dialog = document.querySelector('[role=dialog]'); if (!dialog) return null; const input = dialog.querySelector('input'); const described = input.getAttribute('aria-describedby'); return [dialog.getAttribute('aria-modal'), document.getElementById(dialog.getAttribute('aria-labelledby')).textContent.trim(), input.labels[0].textContent.trim(), input.value, document.activeElement === input, input.getAttribute('aria-invalid'), described && document.getElementById(described).textContent.trim(), [...dialog.querySelectorAll('button')].map((button) => button.textContent.trim())]; })()"
+            },
+            {
+              "read": "document.querySelector('[role=dialog] [role=alert]').textContent.trim()"
+            },
+            {
+              "fill": "[role=dialog] input",
+              "value": "ftp://opspilot.example/"
+            },
+            {
+              "read": "(() => { const dialog = document.querySelector('[role=dialog]'); if (!dialog) return null; const input = dialog.querySelector('input'); const described = input.getAttribute('aria-describedby'); return [dialog.getAttribute('aria-modal'), document.getElementById(dialog.getAttribute('aria-labelledby')).textContent.trim(), input.labels[0].textContent.trim(), input.value, document.activeElement === input, input.getAttribute('aria-invalid'), described && document.getElementById(described).textContent.trim(), [...dialog.querySelectorAll('button')].map((button) => button.textContent.trim())]; })()"
+            },
+            {
+              "press": "Escape"
+            },
+            {
+              "wait": "document.querySelector('[role=dialog]') === null"
+            },
+            {
+              "click": "button[aria-label=\"Configurações\"]"
+            },
+            {
+              "wait": "document.activeElement === document.querySelector('[role=dialog] input')"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 200))"
+            },
+            {
+              "read": "(() => { const dialog = document.querySelector('[role=dialog]'); if (!dialog) return null; const input = dialog.querySelector('input'); const described = input.getAttribute('aria-describedby'); return [dialog.getAttribute('aria-modal'), document.getElementById(dialog.getAttribute('aria-labelledby')).textContent.trim(), input.labels[0].textContent.trim(), input.value, document.activeElement === input, input.getAttribute('aria-invalid'), described && document.getElementById(described).textContent.trim(), [...dialog.querySelectorAll('button')].map((button) => button.textContent.trim())]; })()"
+            },
+            {
+              "fill": "[role=dialog] input",
+              "value": "https://descartado.example"
+            },
+            {
+              "click": "[role=dialog] button.btn--secondary"
+            },
+            {
+              "wait": "document.querySelector('[role=dialog]') === null"
+            },
+            {
+              "click": "button[aria-label=\"Configurações\"]"
+            },
+            {
+              "wait": "document.activeElement === document.querySelector('[role=dialog] input')"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 200))"
+            },
+            {
+              "read": "document.querySelector('[role=dialog] input').value"
+            },
+            {
+              "click": ".drawer-backdrop"
+            },
+            {
+              "wait": "document.querySelector('[role=dialog]') === null"
+            },
+            {
+              "click": "button[aria-label=\"Configurações\"]"
+            },
+            {
+              "wait": "document.activeElement === document.querySelector('[role=dialog] input')"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 200))"
+            },
+            {
+              "fill": "[role=dialog] input",
+              "value": "  https://opspilot.example/api//  "
+            },
+            {
+              "click": "[role=dialog] button.btn--primary"
+            },
+            {
+              "wait": "document.querySelector('[role=dialog]') === null"
+            },
+            {
+              "click": "button[aria-label=\"Configurações\"]"
+            },
+            {
+              "wait": "document.activeElement === document.querySelector('[role=dialog] input')"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 200))"
+            },
+            {
+              "read": "document.querySelector('[role=dialog] input').value"
+            },
+            {
+              "read": "localStorage.getItem('opspilot.warRoom.apiBaseUrl')"
+            },
+            {
+              "read": "(location.reload(), \"reloading\")"
+            },
+            {
+              "wait": "document.readyState === 'complete' && document.querySelector('[role=dialog]') === null && document.querySelector('button[aria-label=\"Configurações\"]') !== null"
+            },
+            {
+              "click": "button[aria-label=\"Configurações\"]"
+            },
+            {
+              "wait": "document.activeElement === document.querySelector('[role=dialog] input')"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 200))"
+            },
+            {
+              "read": "document.querySelector('[role=dialog] input').value"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              "true",
+              "Configurações",
+              "URL da API",
+              "ftp://opspilot.example",
+              true,
+              "true",
+              "Informe uma URL http(s) válida",
+              ["Cancelar", "Salvar"]
+            ],
+            "Informe uma URL http(s) válida",
+            [
+              "true",
+              "Configurações",
+              "URL da API",
+              "ftp://opspilot.example/",
+              true,
+              "false",
+              null,
+              ["Cancelar", "Salvar"]
+            ],
+            [
+              "true",
+              "Configurações",
+              "URL da API",
+              "http://localhost:3000",
+              true,
+              "false",
+              null,
+              ["Cancelar", "Salvar"]
+            ],
+            "http://localhost:3000",
+            "https://opspilot.example/api",
+            "https://opspilot.example/api",
+            "https://opspilot.example/api"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a message goes trimmed to POST /chat at the saved address as war-room without approval, the page shows it sending until the API answers, Ver raciocínio lists every trace event with its node and tool in a dialog that takes focus, and Enter sends the next message with the conversation id",
+      "program": "dev",
+      "replay": [
+        {
+          "source": "recorded from unit 8's chat API, whose default CORS allows any origin",
+          "incidental": true,
+          "method": "OPTIONS",
+          "path": "/chat",
+          "status": 204,
+          "headers": {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400"
+          },
+          "text": ""
+        },
+        {
+          "source": "recorded from unit 8's chat API, answering from the replay of unit 6's recordings",
+          "method": "POST",
+          "path": "/chat",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400",
+            "x-request-id": "a1249594-a4dd-46e4-8c2a-826df8d590d3"
+          },
+          "json": {
+            "requestId": "a1249594-a4dd-46e4-8c2a-826df8d590d3",
+            "answer": "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments.",
+            "trace": [
+              {
+                "type": "route",
+                "node": "roteador",
+                "content": "É uma consulta pontual para listar alertas ativos.",
+                "reason": "É uma consulta pontual para listar alertas ativos.",
+                "route": "react",
+                "override": false
+              },
+              {
+                "type": "action",
+                "content": "list_alerts({\"status\":\"firing\"})",
+                "tool": "list_alerts",
+                "toolArgs": {
+                  "status": "firing"
+                },
+                "node": "react"
+              },
+              {
+                "type": "observation",
+                "content": "Found 3 firing alert(s):\n- [alert-001] payments | critical | High error rate on /checkout\n- [alert-002] auth | high | JWT validation failures spike\n- [alert-003] checkout | critical | DB connection pool exhausted",
+                "node": "react"
+              },
+              {
+                "type": "answer",
+                "content": "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments.",
+                "node": "react"
+              }
+            ],
+            "metrics": {
+              "llmCalls": 3,
+              "latencyMs": 13,
+              "promptTokens": 2813,
+              "historyMessages": 0,
+              "recalledMemories": 0,
+              "contextBreakdown": {
+                "system": 314,
+                "history": 0,
+                "memories": 0,
+                "message": 8,
+                "summary": 0
+              },
+              "route": "react",
+              "routeReason": "É uma consulta pontual para listar alertas ativos.",
+              "modelUsed": "openai/gpt-4o-mini"
+            },
+            "conversationId": "631ea0dd-2a4d-45ff-a4de-9ade968c2596"
+          },
+          "delay": 1500
+        },
+        {
+          "source": "recorded from unit 8's chat API, answering from the replay of unit 6's recordings",
+          "method": "POST",
+          "path": "/chat",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400",
+            "x-request-id": "3011ebe8-2cf7-4980-8c79-52e2703c20a9"
+          },
+          "json": {
+            "requestId": "3011ebe8-2cf7-4980-8c79-52e2703c20a9",
+            "answer": "**Resumo**\nTodos os três serviços identificados (payments, auth e checkout) possuem runbooks disponíveis.\n\n**Achados**\n- payments: Runbook disponível (Passos: Confirmar status PSP, verificar budgets de erro, toggle circuit breaker e acionar owner).\n- auth: Runbook disponível (Passos: Inspecionar métricas JWT, verificar saúde do endpoint JWKS e rotação de chaves).\n- checkout: Runbook disponível (Passos: Verificar dashboard de erro, callbacks de provedor e drenar carrinhos travados).\n\n**Próximos passos**\n- Seguir o procedimento de \"Toggle circuit breaker\" para o serviço de payments.\n- Verificar o \"IdP JWKS endpoint health\" para o serviço de auth.\n- Monitorar a fila de carrinhos travados no checkout.",
+            "trace": [
+              {
+                "type": "route",
+                "node": "roteador",
+                "content": "É uma consulta pontual para verificar a existência de runbooks em serviços específicos.",
+                "reason": "É uma consulta pontual para verificar a existência de runbooks em serviços específicos.",
+                "route": "react",
+                "override": false
+              },
+              {
+                "type": "answer",
+                "content": "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments.",
+                "node": "react"
+              },
+              {
+                "type": "action",
+                "content": "consultar_runbook({\"service\":\"payments\"})",
+                "tool": "consultar_runbook",
+                "toolArgs": {
+                  "service": "payments"
+                },
+                "node": "react"
+              },
+              {
+                "type": "action",
+                "content": "consultar_runbook({\"service\":\"auth\"})",
+                "tool": "consultar_runbook",
+                "toolArgs": {
+                  "service": "auth"
+                },
+                "node": "react"
+              },
+              {
+                "type": "action",
+                "content": "consultar_runbook({\"service\":\"checkout\"})",
+                "tool": "consultar_runbook",
+                "toolArgs": {
+                  "service": "checkout"
+                },
+                "node": "react"
+              },
+              {
+                "type": "observation",
+                "content": "Runbook for payments:\n1. Confirm PSP status page\n2. Check /charge and /refund error budgets\n3. Toggle circuit breaker if error rate > 5%\n4. Page payments owner; capture request ids",
+                "node": "react"
+              },
+              {
+                "type": "observation",
+                "content": "Runbook for auth:\n1. Inspect JWT validation metrics\n2. Verify IdP JWKS endpoint health\n3. Rotate keys only via approved runbook\n4. Force session revoke if compromise suspected",
+                "node": "react"
+              },
+              {
+                "type": "observation",
+                "content": "Runbook for checkout:\n1. Check checkout error rate dashboard\n2. Verify payment provider callbacks\n3. Drain stuck carts if queue > threshold\n4. Escalate to payments on-call if sev critical persists 10m",
+                "node": "react"
+              },
+              {
+                "type": "answer",
+                "content": "**Resumo**\nTodos os três serviços identificados (payments, auth e checkout) possuem runbooks disponíveis.\n\n**Achados**\n- payments: Runbook disponível (Passos: Confirmar status PSP, verificar budgets de erro, toggle circuit breaker e acionar owner).\n- auth: Runbook disponível (Passos: Inspecionar métricas JWT, verificar saúde do endpoint JWKS e rotação de chaves).\n- checkout: Runbook disponível (Passos: Verificar dashboard de erro, callbacks de provedor e drenar carrinhos travados).\n\n**Próximos passos**\n- Seguir o procedimento de \"Toggle circuit breaker\" para o serviço de payments.\n- Verificar o \"IdP JWKS endpoint health\" para o serviço de auth.\n- Monitorar a fila de carrinhos travados no checkout.",
+                "node": "react"
+              }
+            ],
+            "metrics": {
+              "llmCalls": 4,
+              "latencyMs": 6,
+              "promptTokens": 3225,
+              "historyMessages": 2,
+              "recalledMemories": 0,
+              "contextBreakdown": {
+                "system": 314,
+                "history": 116,
+                "memories": 0,
+                "message": 9,
+                "summary": 0
+              },
+              "route": "react",
+              "routeReason": "É uma consulta pontual para verificar a existência de runbooks em serviços específicos.",
+              "modelUsed": "openai/gpt-4o-mini"
+            },
+            "conversationId": "631ea0dd-2a4d-45ff-a4de-9ade968c2596"
+          }
+        }
+      ],
+      "serve": {
+        "port": 47773,
+        "ready": "/opspilot/",
+        "page": {
+          "path": "/opspilot/",
+          "timeout": 30000,
+          "steps": [
+            {
+              "click": "button[aria-label=\"Configurações\"]"
+            },
+            {
+              "wait": "document.activeElement === document.querySelector('[role=dialog] input')"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 200))"
+            },
+            {
+              "fill": "[role=dialog] input",
+              "value": "{replay}"
+            },
+            {
+              "click": "[role=dialog] button.btn--primary"
+            },
+            {
+              "wait": "document.querySelector('[role=dialog]') === null"
+            },
+            {
+              "fill": "form textarea",
+              "value": "  Quais serviços têm alertas ativos?  "
+            },
+            {
+              "click": "form button[type=submit]"
+            },
+            {
+              "wait": "document.querySelectorAll('ol.thread > li').length === 1"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread > li')].map((item) => [item.querySelector('.bubble__meta').textContent.trim(), item.querySelector('.bubble__content').textContent])"
+            },
+            {
+              "read": "(() => { const field = document.querySelector('form textarea'); const toggle = document.querySelector('form input[type=checkbox]'); return [field.value, field.disabled, toggle.checked, toggle.disabled, [...document.querySelectorAll('form button')].map((button) => [button.textContent.trim(), button.disabled])]; })()"
+            },
+            {
+              "wait": "document.querySelectorAll('ol.thread > li').length === 2"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread > li')].map((item) => [item.querySelector('.bubble__meta').textContent.trim(), item.querySelector('.bubble__content').textContent])"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread > li')].map((item) => [...item.querySelectorAll('button')].map((button) => button.textContent.trim()))"
+            },
+            {
+              "read": "(() => { const field = document.querySelector('form textarea'); const toggle = document.querySelector('form input[type=checkbox]'); return [field.value, field.disabled, toggle.checked, toggle.disabled, [...document.querySelectorAll('form button')].map((button) => [button.textContent.trim(), button.disabled])]; })()"
+            },
+            {
+              "click": "ol.thread > li:last-child button"
+            },
+            {
+              "wait": "document.querySelector('[role=dialog]') !== null"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 200))"
+            },
+            {
+              "read": "(() => { const dialog = document.querySelector('[role=dialog]'); return dialog && [dialog.getAttribute('aria-modal'), document.getElementById(dialog.getAttribute('aria-labelledby')).textContent.trim(), document.activeElement.getAttribute('aria-label'), document.activeElement.textContent.trim()]; })()"
+            },
+            {
+              "read": "[...document.querySelectorAll('[role=dialog] ol > li')].map((item) => [...item.children].map((part) => part.textContent.trim()))"
+            },
+            {
+              "press": "Escape"
+            },
+            {
+              "wait": "document.querySelector('[role=dialog]') === null"
+            },
+            {
+              "click": ".composer__field label"
+            },
+            {
+              "fill": "form textarea",
+              "value": "e algum desses serviços tem runbook?"
+            },
+            {
+              "press": "Enter"
+            },
+            {
+              "wait": "document.querySelectorAll('ol.thread > li').length === 4"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread > li')].map((item) => [item.querySelector('.bubble__meta').textContent.trim(), item.querySelector('.bubble__content').textContent])"
+            },
+            {
+              "click": "ol.thread > li:last-child button"
+            },
+            {
+              "wait": "document.querySelector('[role=dialog]') !== null"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 200))"
+            },
+            {
+              "read": "[...document.querySelectorAll('[role=dialog] ol > li')].map((item) => [...item.children].map((part) => part.textContent.trim()))"
+            },
+            {
+              "click": "button[aria-label=\"Fechar raciocínio\"]"
+            },
+            {
+              "wait": "document.querySelector('[role=dialog]') === null"
+            },
+            {
+              "read": "document.querySelector('[role=dialog]') === null"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [["Você", "Quais serviços têm alertas ativos?"]],
+            [
+              "",
+              true,
+              false,
+              true,
+              [
+                ["Cancelar", false],
+                ["Enviando…", true]
+              ]
+            ],
+            [
+              ["Você", "Quais serviços têm alertas ativos?"],
+              [
+                "OpsPilot",
+                "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments."
+              ]
+            ],
+            [[], ["Ver raciocínio"]],
+            ["", false, false, false, [["Enviar", true]]],
+            ["true", "Raciocínio", "Fechar raciocínio", "Fechar"],
+            [
+              [
+                "route",
+                "É uma consulta pontual para listar alertas ativos.",
+                "nó: roteador"
+              ],
+              [
+                "action",
+                "list_alerts({\"status\":\"firing\"})",
+                "nó: react",
+                "tool: list_alerts"
+              ],
+              [
+                "observation",
+                "Found 3 firing alert(s):\n- [alert-001] payments | critical | High error rate on /checkout\n- [alert-002] auth | high | JWT validation failures spike\n- [alert-003] checkout | critical | DB connection pool exhausted",
+                "nó: react"
+              ],
+              [
+                "answer",
+                "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments.",
+                "nó: react"
+              ]
+            ],
+            [
+              ["Você", "Quais serviços têm alertas ativos?"],
+              [
+                "OpsPilot",
+                "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments."
+              ],
+              ["Você", "e algum desses serviços tem runbook?"],
+              [
+                "OpsPilot",
+                "**Resumo**\nTodos os três serviços identificados (payments, auth e checkout) possuem runbooks disponíveis.\n\n**Achados**\n- payments: Runbook disponível (Passos: Confirmar status PSP, verificar budgets de erro, toggle circuit breaker e acionar owner).\n- auth: Runbook disponível (Passos: Inspecionar métricas JWT, verificar saúde do endpoint JWKS e rotação de chaves).\n- checkout: Runbook disponível (Passos: Verificar dashboard de erro, callbacks de provedor e drenar carrinhos travados).\n\n**Próximos passos**\n- Seguir o procedimento de \"Toggle circuit breaker\" para o serviço de payments.\n- Verificar o \"IdP JWKS endpoint health\" para o serviço de auth.\n- Monitorar a fila de carrinhos travados no checkout."
+              ]
+            ],
+            [
+              [
+                "route",
+                "É uma consulta pontual para verificar a existência de runbooks em serviços específicos.",
+                "nó: roteador"
+              ],
+              [
+                "answer",
+                "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments.",
+                "nó: react"
+              ],
+              [
+                "action",
+                "consultar_runbook({\"service\":\"payments\"})",
+                "nó: react",
+                "tool: consultar_runbook"
+              ],
+              [
+                "action",
+                "consultar_runbook({\"service\":\"auth\"})",
+                "nó: react",
+                "tool: consultar_runbook"
+              ],
+              [
+                "action",
+                "consultar_runbook({\"service\":\"checkout\"})",
+                "nó: react",
+                "tool: consultar_runbook"
+              ],
+              [
+                "observation",
+                "Runbook for payments:\n1. Confirm PSP status page\n2. Check /charge and /refund error budgets\n3. Toggle circuit breaker if error rate > 5%\n4. Page payments owner; capture request ids",
+                "nó: react"
+              ],
+              [
+                "observation",
+                "Runbook for auth:\n1. Inspect JWT validation metrics\n2. Verify IdP JWKS endpoint health\n3. Rotate keys only via approved runbook\n4. Force session revoke if compromise suspected",
+                "nó: react"
+              ],
+              [
+                "observation",
+                "Runbook for checkout:\n1. Check checkout error rate dashboard\n2. Verify payment provider callbacks\n3. Drain stuck carts if queue > threshold\n4. Escalate to payments on-call if sev critical persists 10m",
+                "nó: react"
+              ],
+              [
+                "answer",
+                "**Resumo**\nTodos os três serviços identificados (payments, auth e checkout) possuem runbooks disponíveis.\n\n**Achados**\n- payments: Runbook disponível (Passos: Confirmar status PSP, verificar budgets de erro, toggle circuit breaker e acionar owner).\n- auth: Runbook disponível (Passos: Inspecionar métricas JWT, verificar saúde do endpoint JWKS e rotação de chaves).\n- checkout: Runbook disponível (Passos: Verificar dashboard de erro, callbacks de provedor e drenar carrinhos travados).\n\n**Próximos passos**\n- Seguir o procedimento de \"Toggle circuit breaker\" para o serviço de payments.\n- Verificar o \"IdP JWKS endpoint health\" para o serviço de auth.\n- Monitorar a fila de carrinhos travados no checkout.",
+                "nó: react"
+              ]
+            ],
+            true
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/chat",
+              "body": {
+                "message": "Quais serviços têm alertas ativos?",
+                "userId": "war-room",
+                "awaitHumanApproval": false
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/chat",
+              "body": {
+                "message": "e algum desses serviços tem runbook?",
+                "userId": "war-room",
+                "conversationId": "631ea0dd-2a4d-45ff-a4de-9ade968c2596",
+                "awaitHumanApproval": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Exigir aprovação holds the message, whose 202 shows Ação pendente with the summary and blocks the composer, Aprovar posts the decision as war-room and shows Aprovado with the run, and the card stays while the next message carries the conversation id the run started",
+      "program": "dev",
+      "replay": [
+        {
+          "source": "recorded from unit 8's chat API, whose default CORS allows any origin",
+          "incidental": true,
+          "method": "OPTIONS",
+          "path": "/chat",
+          "status": 204,
+          "headers": {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400"
+          },
+          "text": ""
+        },
+        {
+          "source": "recorded from unit 8's chat API, whose default CORS allows any origin",
+          "incidental": true,
+          "method": "OPTIONS",
+          "path": "/approvals/27818e19-48d5-475d-b1c4-6bfe134d89df",
+          "status": 204,
+          "headers": {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400"
+          },
+          "text": ""
+        },
+        {
+          "source": "recorded from unit 8's chat API",
+          "method": "POST",
+          "path": "/chat",
+          "status": 202,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400",
+            "x-request-id": "0f14b057-80f9-4395-95f2-f370f4df364d"
+          },
+          "json": {
+            "requestId": "0f14b057-80f9-4395-95f2-f370f4df364d",
+            "conversationId": null,
+            "pending": {
+              "approvalId": "27818e19-48d5-475d-b1c4-6bfe134d89df",
+              "summary": "Quais serviços têm alertas ativos?",
+              "createdAt": 1793102030813
+            }
+          }
+        },
+        {
+          "source": "recorded from unit 8's chat API, answering from the replay of unit 6's recordings",
+          "method": "POST",
+          "path": "/approvals/27818e19-48d5-475d-b1c4-6bfe134d89df",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400",
+            "x-request-id": "a0a3669f-b4e5-4086-9887-3b04755027b1"
+          },
+          "json": {
+            "requestId": "a0a3669f-b4e5-4086-9887-3b04755027b1",
+            "answer": "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments.",
+            "trace": [
+              {
+                "type": "route",
+                "node": "roteador",
+                "content": "É uma consulta pontual para listar alertas ativos.",
+                "reason": "É uma consulta pontual para listar alertas ativos.",
+                "route": "react",
+                "override": false
+              },
+              {
+                "type": "action",
+                "content": "list_alerts({\"status\":\"firing\"})",
+                "tool": "list_alerts",
+                "toolArgs": {
+                  "status": "firing"
+                },
+                "node": "react"
+              },
+              {
+                "type": "observation",
+                "content": "Found 3 firing alert(s):\n- [alert-001] payments | critical | High error rate on /checkout\n- [alert-002] auth | high | JWT validation failures spike\n- [alert-003] checkout | critical | DB connection pool exhausted",
+                "node": "react"
+              },
+              {
+                "type": "answer",
+                "content": "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments.",
+                "node": "react"
+              }
+            ],
+            "metrics": {
+              "llmCalls": 3,
+              "latencyMs": 12,
+              "promptTokens": 2813,
+              "historyMessages": 0,
+              "recalledMemories": 0,
+              "contextBreakdown": {
+                "system": 314,
+                "history": 0,
+                "memories": 0,
+                "message": 8,
+                "summary": 0
+              },
+              "route": "react",
+              "routeReason": "É uma consulta pontual para listar alertas ativos.",
+              "modelUsed": "openai/gpt-4o-mini"
+            },
+            "conversationId": "5c8542fc-7686-48be-9599-90d9c52f11bd"
+          },
+          "delay": 1500
+        },
+        {
+          "source": "recorded from unit 8's chat API, answering from the replay of unit 6's recordings",
+          "method": "POST",
+          "path": "/chat",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400",
+            "x-request-id": "a66f2cb1-f189-4a49-81af-c63f94ea16d7"
+          },
+          "json": {
+            "requestId": "a66f2cb1-f189-4a49-81af-c63f94ea16d7",
+            "answer": "**Resumo**\nTodos os três serviços identificados (payments, auth e checkout) possuem runbooks disponíveis.\n\n**Achados**\n- payments: Runbook disponível (Passos: Confirmar status PSP, verificar budgets de erro, toggle circuit breaker e acionar owner).\n- auth: Runbook disponível (Passos: Inspecionar métricas JWT, verificar saúde do endpoint JWKS e rotação de chaves).\n- checkout: Runbook disponível (Passos: Verificar dashboard de erro, callbacks de provedor e drenar carrinhos travados).\n\n**Próximos passos**\n- Seguir o procedimento de \"Toggle circuit breaker\" para o serviço de payments.\n- Verificar o \"IdP JWKS endpoint health\" para o serviço de auth.\n- Monitorar a fila de carrinhos travados no checkout.",
+            "trace": [
+              {
+                "type": "route",
+                "node": "roteador",
+                "content": "É uma consulta pontual para verificar a existência de runbooks em serviços específicos.",
+                "reason": "É uma consulta pontual para verificar a existência de runbooks em serviços específicos.",
+                "route": "react",
+                "override": false
+              },
+              {
+                "type": "answer",
+                "content": "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments.",
+                "node": "react"
+              },
+              {
+                "type": "action",
+                "content": "consultar_runbook({\"service\":\"payments\"})",
+                "tool": "consultar_runbook",
+                "toolArgs": {
+                  "service": "payments"
+                },
+                "node": "react"
+              },
+              {
+                "type": "action",
+                "content": "consultar_runbook({\"service\":\"auth\"})",
+                "tool": "consultar_runbook",
+                "toolArgs": {
+                  "service": "auth"
+                },
+                "node": "react"
+              },
+              {
+                "type": "action",
+                "content": "consultar_runbook({\"service\":\"checkout\"})",
+                "tool": "consultar_runbook",
+                "toolArgs": {
+                  "service": "checkout"
+                },
+                "node": "react"
+              },
+              {
+                "type": "observation",
+                "content": "Runbook for payments:\n1. Confirm PSP status page\n2. Check /charge and /refund error budgets\n3. Toggle circuit breaker if error rate > 5%\n4. Page payments owner; capture request ids",
+                "node": "react"
+              },
+              {
+                "type": "observation",
+                "content": "Runbook for auth:\n1. Inspect JWT validation metrics\n2. Verify IdP JWKS endpoint health\n3. Rotate keys only via approved runbook\n4. Force session revoke if compromise suspected",
+                "node": "react"
+              },
+              {
+                "type": "observation",
+                "content": "Runbook for checkout:\n1. Check checkout error rate dashboard\n2. Verify payment provider callbacks\n3. Drain stuck carts if queue > threshold\n4. Escalate to payments on-call if sev critical persists 10m",
+                "node": "react"
+              },
+              {
+                "type": "answer",
+                "content": "**Resumo**\nTodos os três serviços identificados (payments, auth e checkout) possuem runbooks disponíveis.\n\n**Achados**\n- payments: Runbook disponível (Passos: Confirmar status PSP, verificar budgets de erro, toggle circuit breaker e acionar owner).\n- auth: Runbook disponível (Passos: Inspecionar métricas JWT, verificar saúde do endpoint JWKS e rotação de chaves).\n- checkout: Runbook disponível (Passos: Verificar dashboard de erro, callbacks de provedor e drenar carrinhos travados).\n\n**Próximos passos**\n- Seguir o procedimento de \"Toggle circuit breaker\" para o serviço de payments.\n- Verificar o \"IdP JWKS endpoint health\" para o serviço de auth.\n- Monitorar a fila de carrinhos travados no checkout.",
+                "node": "react"
+              }
+            ],
+            "metrics": {
+              "llmCalls": 4,
+              "latencyMs": 5,
+              "promptTokens": 3225,
+              "historyMessages": 2,
+              "recalledMemories": 0,
+              "contextBreakdown": {
+                "system": 314,
+                "history": 116,
+                "memories": 0,
+                "message": 9,
+                "summary": 0
+              },
+              "route": "react",
+              "routeReason": "É uma consulta pontual para verificar a existência de runbooks em serviços específicos.",
+              "modelUsed": "openai/gpt-4o-mini"
+            },
+            "conversationId": "5c8542fc-7686-48be-9599-90d9c52f11bd"
+          }
+        }
+      ],
+      "serve": {
+        "port": 47774,
+        "ready": "/opspilot/",
+        "page": {
+          "path": "/opspilot/",
+          "timeout": 30000,
+          "steps": [
+            {
+              "click": "button[aria-label=\"Configurações\"]"
+            },
+            {
+              "wait": "document.activeElement === document.querySelector('[role=dialog] input')"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 200))"
+            },
+            {
+              "fill": "[role=dialog] input",
+              "value": "{replay}"
+            },
+            {
+              "click": "[role=dialog] button.btn--primary"
+            },
+            {
+              "wait": "document.querySelector('[role=dialog]') === null"
+            },
+            {
+              "click": "form input[type=checkbox]"
+            },
+            {
+              "fill": "form textarea",
+              "value": "Quais serviços têm alertas ativos?"
+            },
+            {
+              "click": "form button[type=submit]"
+            },
+            {
+              "wait": "document.querySelector('section[aria-label=\"Ação pendente\"]') !== null"
+            },
+            {
+              "read": "(() => { const card = document.querySelector('section[aria-label=\"Ação pendente\"]'); return card && [card.querySelector('h2').textContent.trim(), card.querySelector('p').textContent.trim(), [...card.querySelectorAll('button')].map((button) => [button.textContent.trim(), button.disabled]), card.querySelector('[role=status]')?.textContent.trim() ?? null, card.querySelector('[role=alert]')?.textContent.trim() ?? null]; })()"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread > li')].map((item) => [item.querySelector('.bubble__meta').textContent.trim(), item.querySelector('.bubble__content').textContent])"
+            },
+            {
+              "read": "(() => { const field = document.querySelector('form textarea'); const toggle = document.querySelector('form input[type=checkbox]'); return [field.value, field.disabled, toggle.checked, toggle.disabled, [...document.querySelectorAll('form button')].map((button) => [button.textContent.trim(), button.disabled])]; })()"
+            },
+            {
+              "click": "section[aria-label=\"Ação pendente\"] button.btn--primary"
+            },
+            {
+              "wait": "document.querySelector('section[aria-label=\"Ação pendente\"] button').disabled"
+            },
+            {
+              "read": "(() => { const card = document.querySelector('section[aria-label=\"Ação pendente\"]'); return card && [card.querySelector('h2').textContent.trim(), card.querySelector('p').textContent.trim(), [...card.querySelectorAll('button')].map((button) => [button.textContent.trim(), button.disabled]), card.querySelector('[role=status]')?.textContent.trim() ?? null, card.querySelector('[role=alert]')?.textContent.trim() ?? null]; })()"
+            },
+            {
+              "read": "(() => { const field = document.querySelector('form textarea'); const toggle = document.querySelector('form input[type=checkbox]'); return [field.value, field.disabled, toggle.checked, toggle.disabled, [...document.querySelectorAll('form button')].map((button) => [button.textContent.trim(), button.disabled])]; })()"
+            },
+            {
+              "wait": "document.querySelectorAll('ol.thread > li').length === 2"
+            },
+            {
+              "read": "(() => { const card = document.querySelector('section[aria-label=\"Ação pendente\"]'); return card && [card.querySelector('h2').textContent.trim(), card.querySelector('p').textContent.trim(), [...card.querySelectorAll('button')].map((button) => [button.textContent.trim(), button.disabled]), card.querySelector('[role=status]')?.textContent.trim() ?? null, card.querySelector('[role=alert]')?.textContent.trim() ?? null]; })()"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread > li')].map((item) => [item.querySelector('.bubble__meta').textContent.trim(), item.querySelector('.bubble__content').textContent])"
+            },
+            {
+              "read": "(() => { const field = document.querySelector('form textarea'); const toggle = document.querySelector('form input[type=checkbox]'); return [field.value, field.disabled, toggle.checked, toggle.disabled, [...document.querySelectorAll('form button')].map((button) => [button.textContent.trim(), button.disabled])]; })()"
+            },
+            {
+              "click": "form input[type=checkbox]"
+            },
+            {
+              "fill": "form textarea",
+              "value": "e algum desses serviços tem runbook?"
+            },
+            {
+              "click": "form button[type=submit]"
+            },
+            {
+              "wait": "document.querySelectorAll('ol.thread > li').length === 4"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread > li')].map((item) => [item.querySelector('.bubble__meta').textContent.trim(), item.querySelector('.bubble__content').textContent])"
+            },
+            {
+              "read": "(() => { const card = document.querySelector('section[aria-label=\"Ação pendente\"]'); return card && [card.querySelector('h2').textContent.trim(), card.querySelector('p').textContent.trim(), [...card.querySelectorAll('button')].map((button) => [button.textContent.trim(), button.disabled]), card.querySelector('[role=status]')?.textContent.trim() ?? null, card.querySelector('[role=alert]')?.textContent.trim() ?? null]; })()"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              "Ação pendente",
+              "Quais serviços têm alertas ativos?",
+              [
+                ["Aprovar", false],
+                ["Negar", false]
+              ],
+              null,
+              null
+            ],
+            [["Você", "Quais serviços têm alertas ativos?"]],
+            ["", true, true, true, [["Enviar", true]]],
+            [
+              "Ação pendente",
+              "Quais serviços têm alertas ativos?",
+              [
+                ["Aprovar", true],
+                ["Negar", true]
+              ],
+              null,
+              null
+            ],
+            [
+              "",
+              true,
+              true,
+              true,
+              [
+                ["Cancelar", false],
+                ["Enviando…", true]
+              ]
+            ],
+            [
+              "Ação pendente",
+              "Quais serviços têm alertas ativos?",
+              [],
+              "Aprovado",
+              null
+            ],
+            [
+              ["Você", "Quais serviços têm alertas ativos?"],
+              [
+                "OpsPilot",
+                "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments."
+              ]
+            ],
+            ["", false, true, false, [["Enviar", true]]],
+            [
+              ["Você", "Quais serviços têm alertas ativos?"],
+              [
+                "OpsPilot",
+                "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments."
+              ],
+              ["Você", "e algum desses serviços tem runbook?"],
+              [
+                "OpsPilot",
+                "**Resumo**\nTodos os três serviços identificados (payments, auth e checkout) possuem runbooks disponíveis.\n\n**Achados**\n- payments: Runbook disponível (Passos: Confirmar status PSP, verificar budgets de erro, toggle circuit breaker e acionar owner).\n- auth: Runbook disponível (Passos: Inspecionar métricas JWT, verificar saúde do endpoint JWKS e rotação de chaves).\n- checkout: Runbook disponível (Passos: Verificar dashboard de erro, callbacks de provedor e drenar carrinhos travados).\n\n**Próximos passos**\n- Seguir o procedimento de \"Toggle circuit breaker\" para o serviço de payments.\n- Verificar o \"IdP JWKS endpoint health\" para o serviço de auth.\n- Monitorar a fila de carrinhos travados no checkout."
+              ]
+            ],
+            [
+              "Ação pendente",
+              "Quais serviços têm alertas ativos?",
+              [],
+              "Aprovado",
+              null
+            ]
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/chat",
+              "body": {
+                "message": "Quais serviços têm alertas ativos?",
+                "userId": "war-room",
+                "awaitHumanApproval": true
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/approvals/27818e19-48d5-475d-b1c4-6bfe134d89df",
+              "body": {
+                "decision": "approve",
+                "userId": "war-room"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/chat",
+              "body": {
+                "message": "e algum desses serviços tem runbook?",
+                "userId": "war-room",
+                "conversationId": "5c8542fc-7686-48be-9599-90d9c52f11bd",
+                "awaitHumanApproval": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Negar shows Negado and the API's cancellation, whose reasoning names the approval node, the card shows the summary the API truncated, and approving a request the API no longer holds shows Erro na decisão with the HTTP status and frees the composer",
+      "program": "dev",
+      "replay": [
+        {
+          "source": "recorded from unit 8's chat API, whose default CORS allows any origin",
+          "incidental": true,
+          "method": "OPTIONS",
+          "path": "/chat",
+          "status": 204,
+          "headers": {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400"
+          },
+          "text": ""
+        },
+        {
+          "source": "recorded from unit 8's chat API, whose default CORS allows any origin",
+          "incidental": true,
+          "method": "OPTIONS",
+          "path": "/approvals/cc990cae-e9c7-47ec-bdbf-e88321eb238f",
+          "status": 204,
+          "headers": {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400"
+          },
+          "text": ""
+        },
+        {
+          "source": "recorded from unit 8's chat API, whose default CORS allows any origin",
+          "incidental": true,
+          "method": "OPTIONS",
+          "path": "/approvals/b1502e64-de1a-484d-b7dc-5412fb52c0cc",
+          "status": 204,
+          "headers": {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400"
+          },
+          "text": ""
+        },
+        {
+          "source": "recorded from unit 8's chat API",
+          "method": "POST",
+          "path": "/chat",
+          "status": 202,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400",
+            "x-request-id": "b74c765e-bc05-4378-b750-63aaecf6c736"
+          },
+          "json": {
+            "requestId": "b74c765e-bc05-4378-b750-63aaecf6c736",
+            "conversationId": null,
+            "pending": {
+              "approvalId": "cc990cae-e9c7-47ec-bdbf-e88321eb238f",
+              "summary": "silencie todos os alertas de payments e auth, abra um incidente critical para checkout e resolva os incidentes antigos de catalog; antes de executar qualquer ação destrutiva confirme comigo, pois estamos em janela de freeze de deploys até …",
+              "createdAt": 1793102036280
+            }
+          }
+        },
+        {
+          "source": "recorded from unit 8's chat API",
+          "method": "POST",
+          "path": "/approvals/cc990cae-e9c7-47ec-bdbf-e88321eb238f",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400",
+            "x-request-id": "0a313eaa-9a3a-48de-ad0a-4584771e1d03"
+          },
+          "json": {
+            "requestId": "0a313eaa-9a3a-48de-ad0a-4584771e1d03",
+            "answer": "Ação cancelada pelo plantonista.",
+            "trace": [
+              {
+                "type": "answer",
+                "content": "Ação cancelada pelo plantonista.",
+                "node": "approval"
+              }
+            ],
+            "metrics": {
+              "llmCalls": 0,
+              "latencyMs": 0
+            },
+            "conversationId": null
+          }
+        },
+        {
+          "source": "recorded from unit 8's chat API",
+          "method": "POST",
+          "path": "/chat",
+          "status": 202,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400",
+            "x-request-id": "e7f00ba0-7b17-4f37-b4b3-8500e5ed8c9d"
+          },
+          "json": {
+            "requestId": "e7f00ba0-7b17-4f37-b4b3-8500e5ed8c9d",
+            "conversationId": null,
+            "pending": {
+              "approvalId": "b1502e64-de1a-484d-b7dc-5412fb52c0cc",
+              "summary": "abra um incidente high para checkout: p99 acima de 2s",
+              "createdAt": 1793102039292
+            }
+          }
+        },
+        {
+          "source": "recorded from unit 8's chat API, after another user denied the request it held",
+          "method": "POST",
+          "path": "/approvals/b1502e64-de1a-484d-b7dc-5412fb52c0cc",
+          "status": 404,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400"
+          },
+          "json": {
+            "error": "approval_not_found",
+            "approvalId": "b1502e64-de1a-484d-b7dc-5412fb52c0cc"
+          }
+        }
+      ],
+      "serve": {
+        "port": 47775,
+        "ready": "/opspilot/",
+        "page": {
+          "path": "/opspilot/",
+          "timeout": 30000,
+          "steps": [
+            {
+              "click": "button[aria-label=\"Configurações\"]"
+            },
+            {
+              "wait": "document.activeElement === document.querySelector('[role=dialog] input')"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 200))"
+            },
+            {
+              "fill": "[role=dialog] input",
+              "value": "{replay}"
+            },
+            {
+              "click": "[role=dialog] button.btn--primary"
+            },
+            {
+              "wait": "document.querySelector('[role=dialog]') === null"
+            },
+            {
+              "click": "form input[type=checkbox]"
+            },
+            {
+              "fill": "form textarea",
+              "value": "silencie todos os alertas de payments e auth, abra um incidente critical para checkout e resolva os incidentes antigos de catalog; antes de executar qualquer ação destrutiva confirme comigo, pois estamos em janela de freeze de deploys até o dia 15 e qualquer mudança precisa de aprovação do plantonista responsável"
+            },
+            {
+              "click": "form button[type=submit]"
+            },
+            {
+              "wait": "document.querySelector('section[aria-label=\"Ação pendente\"]') !== null"
+            },
+            {
+              "read": "(() => { const card = document.querySelector('section[aria-label=\"Ação pendente\"]'); return card && [card.querySelector('h2').textContent.trim(), card.querySelector('p').textContent.trim(), [...card.querySelectorAll('button')].map((button) => [button.textContent.trim(), button.disabled]), card.querySelector('[role=status]')?.textContent.trim() ?? null, card.querySelector('[role=alert]')?.textContent.trim() ?? null]; })()"
+            },
+            {
+              "click": "section[aria-label=\"Ação pendente\"] button.btn--danger"
+            },
+            {
+              "wait": "document.querySelectorAll('ol.thread > li').length === 2"
+            },
+            {
+              "read": "(() => { const card = document.querySelector('section[aria-label=\"Ação pendente\"]'); return card && [card.querySelector('h2').textContent.trim(), card.querySelector('p').textContent.trim(), [...card.querySelectorAll('button')].map((button) => [button.textContent.trim(), button.disabled]), card.querySelector('[role=status]')?.textContent.trim() ?? null, card.querySelector('[role=alert]')?.textContent.trim() ?? null]; })()"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread > li')].map((item) => [item.querySelector('.bubble__meta').textContent.trim(), item.querySelector('.bubble__content').textContent])"
+            },
+            {
+              "click": "ol.thread > li:last-child button"
+            },
+            {
+              "wait": "document.querySelector('[role=dialog]') !== null"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 200))"
+            },
+            {
+              "read": "[...document.querySelectorAll('[role=dialog] ol > li')].map((item) => [...item.children].map((part) => part.textContent.trim()))"
+            },
+            {
+              "click": ".drawer-backdrop"
+            },
+            {
+              "wait": "document.querySelector('[role=dialog]') === null"
+            },
+            {
+              "read": "(() => { const field = document.querySelector('form textarea'); const toggle = document.querySelector('form input[type=checkbox]'); return [field.value, field.disabled, toggle.checked, toggle.disabled, [...document.querySelectorAll('form button')].map((button) => [button.textContent.trim(), button.disabled])]; })()"
+            },
+            {
+              "fill": "form textarea",
+              "value": "abra um incidente high para checkout: p99 acima de 2s"
+            },
+            {
+              "click": "form button[type=submit]"
+            },
+            {
+              "wait": "document.querySelector('section[aria-label=\"Ação pendente\"] p').textContent.trim().startsWith('abra')"
+            },
+            {
+              "read": "(() => { const card = document.querySelector('section[aria-label=\"Ação pendente\"]'); return card && [card.querySelector('h2').textContent.trim(), card.querySelector('p').textContent.trim(), [...card.querySelectorAll('button')].map((button) => [button.textContent.trim(), button.disabled]), card.querySelector('[role=status]')?.textContent.trim() ?? null, card.querySelector('[role=alert]')?.textContent.trim() ?? null]; })()"
+            },
+            {
+              "read": "(() => { const field = document.querySelector('form textarea'); const toggle = document.querySelector('form input[type=checkbox]'); return [field.value, field.disabled, toggle.checked, toggle.disabled, [...document.querySelectorAll('form button')].map((button) => [button.textContent.trim(), button.disabled])]; })()"
+            },
+            {
+              "click": "section[aria-label=\"Ação pendente\"] button.btn--primary"
+            },
+            {
+              "wait": "document.querySelector('section[aria-label=\"Ação pendente\"] [role=alert]') !== null"
+            },
+            {
+              "read": "(() => { const card = document.querySelector('section[aria-label=\"Ação pendente\"]'); return card && [card.querySelector('h2').textContent.trim(), card.querySelector('p').textContent.trim(), [...card.querySelectorAll('button')].map((button) => [button.textContent.trim(), button.disabled]), card.querySelector('[role=status]')?.textContent.trim() ?? null, card.querySelector('[role=alert]')?.textContent.trim() ?? null]; })()"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread > li')].map((item) => [item.querySelector('.bubble__meta').textContent.trim(), item.querySelector('.bubble__content').textContent])"
+            },
+            {
+              "read": "(() => { const field = document.querySelector('form textarea'); const toggle = document.querySelector('form input[type=checkbox]'); return [field.value, field.disabled, toggle.checked, toggle.disabled, [...document.querySelectorAll('form button')].map((button) => [button.textContent.trim(), button.disabled])]; })()"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              "Ação pendente",
+              "silencie todos os alertas de payments e auth, abra um incidente critical para checkout e resolva os incidentes antigos de catalog; antes de executar qualquer ação destrutiva confirme comigo, pois estamos em janela de freeze de deploys até …",
+              [
+                ["Aprovar", false],
+                ["Negar", false]
+              ],
+              null,
+              null
+            ],
+            [
+              "Ação pendente",
+              "silencie todos os alertas de payments e auth, abra um incidente critical para checkout e resolva os incidentes antigos de catalog; antes de executar qualquer ação destrutiva confirme comigo, pois estamos em janela de freeze de deploys até …",
+              [],
+              "Negado",
+              null
+            ],
+            [
+              [
+                "Você",
+                "silencie todos os alertas de payments e auth, abra um incidente critical para checkout e resolva os incidentes antigos de catalog; antes de executar qualquer ação destrutiva confirme comigo, pois estamos em janela de freeze de deploys até o dia 15 e qualquer mudança precisa de aprovação do plantonista responsável"
+              ],
+              ["OpsPilot", "Ação cancelada pelo plantonista."]
+            ],
+            [["answer", "Ação cancelada pelo plantonista.", "nó: approval"]],
+            ["", false, true, false, [["Enviar", true]]],
+            [
+              "Ação pendente",
+              "abra um incidente high para checkout: p99 acima de 2s",
+              [
+                ["Aprovar", false],
+                ["Negar", false]
+              ],
+              null,
+              null
+            ],
+            ["", true, true, true, [["Enviar", true]]],
+            [
+              "Ação pendente",
+              "abra um incidente high para checkout: p99 acima de 2s",
+              [],
+              "Erro na decisão",
+              "Falha na aprovação (HTTP 404)"
+            ],
+            [
+              [
+                "Você",
+                "silencie todos os alertas de payments e auth, abra um incidente critical para checkout e resolva os incidentes antigos de catalog; antes de executar qualquer ação destrutiva confirme comigo, pois estamos em janela de freeze de deploys até o dia 15 e qualquer mudança precisa de aprovação do plantonista responsável"
+              ],
+              ["OpsPilot", "Ação cancelada pelo plantonista."],
+              ["Você", "abra um incidente high para checkout: p99 acima de 2s"]
+            ],
+            ["", false, true, false, [["Enviar", true]]]
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/chat",
+              "body": {
+                "message": "silencie todos os alertas de payments e auth, abra um incidente critical para checkout e resolva os incidentes antigos de catalog; antes de executar qualquer ação destrutiva confirme comigo, pois estamos em janela de freeze de deploys até o dia 15 e qualquer mudança precisa de aprovação do plantonista responsável",
+                "userId": "war-room",
+                "awaitHumanApproval": true
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/approvals/cc990cae-e9c7-47ec-bdbf-e88321eb238f",
+              "body": {
+                "decision": "deny",
+                "userId": "war-room"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/chat",
+              "body": {
+                "message": "abra um incidente high para checkout: p99 acima de 2s",
+                "userId": "war-room",
+                "awaitHumanApproval": true
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/approvals/b1502e64-de1a-484d-b7dc-5412fb52c0cc",
+              "body": {
+                "decision": "approve",
+                "userId": "war-room"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a failed chat shows Erro with the HTTP status beside Tentar de novo, which sends the same message again in a new turn and drops the error once the API answers",
+      "program": "dev",
+      "replay": [
+        {
+          "source": "recorded from unit 8's chat API, whose default CORS allows any origin",
+          "incidental": true,
+          "method": "OPTIONS",
+          "path": "/chat",
+          "status": 204,
+          "headers": {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400"
+          },
+          "text": ""
+        },
+        {
+          "source": "recorded from unit 8's chat API, answering from OpenRouter's documented 401 for a missing key, synthesized",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/chat",
+          "status": 503,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400"
+          },
+          "json": {
+            "error": "model_unavailable",
+            "message": "401 No auth credentials found\n\nTroubleshooting URL: https://js.langchain.com/docs/troubleshooting/errors/MODEL_AUTHENTICATION/\n"
+          }
+        },
+        {
+          "source": "recorded from unit 8's chat API, answering from the replay of unit 6's recordings",
+          "method": "POST",
+          "path": "/chat",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400",
+            "x-request-id": "a1249594-a4dd-46e4-8c2a-826df8d590d3"
+          },
+          "json": {
+            "requestId": "a1249594-a4dd-46e4-8c2a-826df8d590d3",
+            "answer": "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments.",
+            "trace": [
+              {
+                "type": "route",
+                "node": "roteador",
+                "content": "É uma consulta pontual para listar alertas ativos.",
+                "reason": "É uma consulta pontual para listar alertas ativos.",
+                "route": "react",
+                "override": false
+              },
+              {
+                "type": "action",
+                "content": "list_alerts({\"status\":\"firing\"})",
+                "tool": "list_alerts",
+                "toolArgs": {
+                  "status": "firing"
+                },
+                "node": "react"
+              },
+              {
+                "type": "observation",
+                "content": "Found 3 firing alert(s):\n- [alert-001] payments | critical | High error rate on /checkout\n- [alert-002] auth | high | JWT validation failures spike\n- [alert-003] checkout | critical | DB connection pool exhausted",
+                "node": "react"
+              },
+              {
+                "type": "answer",
+                "content": "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments.",
+                "node": "react"
+              }
+            ],
+            "metrics": {
+              "llmCalls": 3,
+              "latencyMs": 13,
+              "promptTokens": 2813,
+              "historyMessages": 0,
+              "recalledMemories": 0,
+              "contextBreakdown": {
+                "system": 314,
+                "history": 0,
+                "memories": 0,
+                "message": 8,
+                "summary": 0
+              },
+              "route": "react",
+              "routeReason": "É uma consulta pontual para listar alertas ativos.",
+              "modelUsed": "openai/gpt-4o-mini"
+            },
+            "conversationId": "631ea0dd-2a4d-45ff-a4de-9ade968c2596"
+          }
+        }
+      ],
+      "serve": {
+        "port": 47776,
+        "ready": "/opspilot/",
+        "page": {
+          "path": "/opspilot/",
+          "timeout": 30000,
+          "steps": [
+            {
+              "click": "button[aria-label=\"Configurações\"]"
+            },
+            {
+              "wait": "document.activeElement === document.querySelector('[role=dialog] input')"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 200))"
+            },
+            {
+              "fill": "[role=dialog] input",
+              "value": "{replay}"
+            },
+            {
+              "click": "[role=dialog] button.btn--primary"
+            },
+            {
+              "wait": "document.querySelector('[role=dialog]') === null"
+            },
+            {
+              "fill": "form textarea",
+              "value": "Quais serviços têm alertas ativos?"
+            },
+            {
+              "click": "form button[type=submit]"
+            },
+            {
+              "wait": "document.querySelectorAll('ol.thread > li').length === 2"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread > li')].map((item) => [item.querySelector('.bubble__meta').textContent.trim(), item.querySelector('.bubble__content').textContent])"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread [role=alert]')].map((alert) => [...alert.children].map((part) => part.textContent.trim()))"
+            },
+            {
+              "read": "(() => { const field = document.querySelector('form textarea'); const toggle = document.querySelector('form input[type=checkbox]'); return [field.value, field.disabled, toggle.checked, toggle.disabled, [...document.querySelectorAll('form button')].map((button) => [button.textContent.trim(), button.disabled])]; })()"
+            },
+            {
+              "click": "ol.thread [role=alert] button"
+            },
+            {
+              "wait": "document.querySelectorAll('ol.thread > li').length === 3"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread > li')].map((item) => [item.querySelector('.bubble__meta').textContent.trim(), item.querySelector('.bubble__content').textContent])"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread [role=alert]')].map((alert) => [...alert.children].map((part) => part.textContent.trim()))"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread > li')].map((item) => [...item.querySelectorAll('button')].map((button) => button.textContent.trim()))"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              ["Você", "Quais serviços têm alertas ativos?"],
+              ["Sistema", ""]
+            ],
+            [["Erro", "Falha no chat (HTTP 503)", "Tentar de novo"]],
+            ["", false, false, false, [["Enviar", true]]],
+            [
+              ["Você", "Quais serviços têm alertas ativos?"],
+              ["Você", "Quais serviços têm alertas ativos?"],
+              [
+                "OpsPilot",
+                "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments."
+              ]
+            ],
+            [],
+            [[], [], ["Ver raciocínio"]]
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/chat",
+              "body": {
+                "message": "Quais serviços têm alertas ativos?",
+                "userId": "war-room",
+                "awaitHumanApproval": false
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/chat",
+              "body": {
+                "message": "Quais serviços têm alertas ativos?",
+                "userId": "war-room",
+                "awaitHumanApproval": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "an API that cannot be reached shows Não foi possível falar com a API, and answers outside the contract, an empty answer, a conversation id that is not a UUID, or a 202 without its pending request, each show their own error and keep only the latest",
+      "program": "dev",
+      "replay": [
+        {
+          "source": "recorded from unit 8's chat API, whose default CORS allows any origin",
+          "incidental": true,
+          "method": "OPTIONS",
+          "path": "/chat",
+          "status": 204,
+          "headers": {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400"
+          },
+          "text": ""
+        },
+        {
+          "source": "synthesized from unit 8's chat answer with an empty answer",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/chat",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400"
+          },
+          "json": {
+            "requestId": "a1249594-a4dd-46e4-8c2a-826df8d590d3",
+            "answer": "",
+            "trace": [
+              {
+                "type": "route",
+                "node": "roteador",
+                "content": "É uma consulta pontual para listar alertas ativos.",
+                "reason": "É uma consulta pontual para listar alertas ativos.",
+                "route": "react",
+                "override": false
+              },
+              {
+                "type": "action",
+                "content": "list_alerts({\"status\":\"firing\"})",
+                "tool": "list_alerts",
+                "toolArgs": {
+                  "status": "firing"
+                },
+                "node": "react"
+              },
+              {
+                "type": "observation",
+                "content": "Found 3 firing alert(s):\n- [alert-001] payments | critical | High error rate on /checkout\n- [alert-002] auth | high | JWT validation failures spike\n- [alert-003] checkout | critical | DB connection pool exhausted",
+                "node": "react"
+              },
+              {
+                "type": "answer",
+                "content": "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments.",
+                "node": "react"
+              }
+            ],
+            "metrics": {
+              "llmCalls": 3,
+              "latencyMs": 13,
+              "promptTokens": 2813,
+              "historyMessages": 0,
+              "recalledMemories": 0,
+              "contextBreakdown": {
+                "system": 314,
+                "history": 0,
+                "memories": 0,
+                "message": 8,
+                "summary": 0
+              },
+              "route": "react",
+              "routeReason": "É uma consulta pontual para listar alertas ativos.",
+              "modelUsed": "openai/gpt-4o-mini"
+            },
+            "conversationId": "631ea0dd-2a4d-45ff-a4de-9ade968c2596"
+          }
+        },
+        {
+          "source": "synthesized from unit 8's chat answer with a conversation id that is not a UUID",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/chat",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400"
+          },
+          "json": {
+            "requestId": "a1249594-a4dd-46e4-8c2a-826df8d590d3",
+            "answer": "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments.",
+            "trace": [
+              {
+                "type": "route",
+                "node": "roteador",
+                "content": "É uma consulta pontual para listar alertas ativos.",
+                "reason": "É uma consulta pontual para listar alertas ativos.",
+                "route": "react",
+                "override": false
+              },
+              {
+                "type": "action",
+                "content": "list_alerts({\"status\":\"firing\"})",
+                "tool": "list_alerts",
+                "toolArgs": {
+                  "status": "firing"
+                },
+                "node": "react"
+              },
+              {
+                "type": "observation",
+                "content": "Found 3 firing alert(s):\n- [alert-001] payments | critical | High error rate on /checkout\n- [alert-002] auth | high | JWT validation failures spike\n- [alert-003] checkout | critical | DB connection pool exhausted",
+                "node": "react"
+              },
+              {
+                "type": "answer",
+                "content": "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments.",
+                "node": "react"
+              }
+            ],
+            "metrics": {
+              "llmCalls": 3,
+              "latencyMs": 13,
+              "promptTokens": 2813,
+              "historyMessages": 0,
+              "recalledMemories": 0,
+              "contextBreakdown": {
+                "system": 314,
+                "history": 0,
+                "memories": 0,
+                "message": 8,
+                "summary": 0
+              },
+              "route": "react",
+              "routeReason": "É uma consulta pontual para listar alertas ativos.",
+              "modelUsed": "openai/gpt-4o-mini"
+            },
+            "conversationId": "conversa-1"
+          }
+        },
+        {
+          "source": "synthesized from unit 8's 202 without the approval id",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/chat",
+          "status": 202,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400"
+          },
+          "json": {
+            "requestId": "0f14b057-80f9-4395-95f2-f370f4df364d",
+            "conversationId": null,
+            "pending": {
+              "summary": "Quais serviços têm alertas ativos?",
+              "createdAt": 1793102030813
+            }
+          }
+        }
+      ],
+      "serve": {
+        "port": 47777,
+        "ready": "/opspilot/",
+        "page": {
+          "path": "/opspilot/",
+          "timeout": 30000,
+          "steps": [
+            {
+              "click": "button[aria-label=\"Configurações\"]"
+            },
+            {
+              "wait": "document.activeElement === document.querySelector('[role=dialog] input')"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 200))"
+            },
+            {
+              "fill": "[role=dialog] input",
+              "value": "http://127.0.0.1:9"
+            },
+            {
+              "click": "[role=dialog] button.btn--primary"
+            },
+            {
+              "wait": "document.querySelector('[role=dialog]') === null"
+            },
+            {
+              "fill": "form textarea",
+              "value": "um"
+            },
+            {
+              "click": "form button[type=submit]"
+            },
+            {
+              "wait": "document.querySelectorAll('ol.thread > li').length === 2"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread [role=alert]')].map((alert) => [...alert.children].map((part) => part.textContent.trim()))"
+            },
+            {
+              "click": "button[aria-label=\"Configurações\"]"
+            },
+            {
+              "wait": "document.activeElement === document.querySelector('[role=dialog] input')"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 200))"
+            },
+            {
+              "fill": "[role=dialog] input",
+              "value": "{replay}"
+            },
+            {
+              "click": "[role=dialog] button.btn--primary"
+            },
+            {
+              "wait": "document.querySelector('[role=dialog]') === null"
+            },
+            {
+              "fill": "form textarea",
+              "value": "dois"
+            },
+            {
+              "click": "form button[type=submit]"
+            },
+            {
+              "wait": "document.querySelector('ol.thread [role=alert] p')?.textContent.trim() === 'Resposta sem answer'"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread > li')].map((item) => [item.querySelector('.bubble__meta').textContent.trim(), item.querySelector('.bubble__content').textContent])"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread [role=alert]')].map((alert) => [...alert.children].map((part) => part.textContent.trim()))"
+            },
+            {
+              "fill": "form textarea",
+              "value": "três"
+            },
+            {
+              "click": "form button[type=submit]"
+            },
+            {
+              "wait": "document.querySelector('ol.thread [role=alert] p')?.textContent.trim() === 'Resposta sem answer válida'"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread [role=alert]')].map((alert) => [...alert.children].map((part) => part.textContent.trim()))"
+            },
+            {
+              "fill": "form textarea",
+              "value": "quatro"
+            },
+            {
+              "click": "form button[type=submit]"
+            },
+            {
+              "wait": "document.querySelector('ol.thread [role=alert] p')?.textContent.trim() === 'Resposta 202 inválida'"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread > li')].map((item) => [item.querySelector('.bubble__meta').textContent.trim(), item.querySelector('.bubble__content').textContent])"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread [role=alert]')].map((alert) => [...alert.children].map((part) => part.textContent.trim()))"
+            },
+            {
+              "read": "document.querySelector('section[aria-label=\"Ação pendente\"]') === null"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [["Erro", "Não foi possível falar com a API", "Tentar de novo"]],
+            [
+              ["Você", "um"],
+              ["Você", "dois"],
+              ["Sistema", ""]
+            ],
+            [["Erro", "Resposta sem answer", "Tentar de novo"]],
+            [["Erro", "Resposta sem answer válida", "Tentar de novo"]],
+            [
+              ["Você", "um"],
+              ["Você", "dois"],
+              ["Você", "três"],
+              ["Você", "quatro"],
+              ["Sistema", ""]
+            ],
+            [["Erro", "Resposta 202 inválida", "Tentar de novo"]],
+            true
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/chat",
+              "body": {
+                "message": "dois",
+                "userId": "war-room",
+                "awaitHumanApproval": false
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/chat",
+              "body": {
+                "message": "três",
+                "userId": "war-room",
+                "awaitHumanApproval": false
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/chat",
+              "body": {
+                "message": "quatro",
+                "userId": "war-room",
+                "awaitHumanApproval": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Cancelar aborts the message in flight without an error or an answer, and the next message starts a new conversation",
+      "program": "dev",
+      "replay": [
+        {
+          "source": "recorded from unit 8's chat API, whose default CORS allows any origin",
+          "incidental": true,
+          "method": "OPTIONS",
+          "path": "/chat",
+          "status": 204,
+          "headers": {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400"
+          },
+          "text": ""
+        },
+        {
+          "source": "recorded from unit 8's chat API, answering from the replay of unit 6's recordings",
+          "method": "POST",
+          "path": "/chat",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400",
+            "x-request-id": "a1249594-a4dd-46e4-8c2a-826df8d590d3"
+          },
+          "json": {
+            "requestId": "a1249594-a4dd-46e4-8c2a-826df8d590d3",
+            "answer": "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments.",
+            "trace": [
+              {
+                "type": "route",
+                "node": "roteador",
+                "content": "É uma consulta pontual para listar alertas ativos.",
+                "reason": "É uma consulta pontual para listar alertas ativos.",
+                "route": "react",
+                "override": false
+              },
+              {
+                "type": "action",
+                "content": "list_alerts({\"status\":\"firing\"})",
+                "tool": "list_alerts",
+                "toolArgs": {
+                  "status": "firing"
+                },
+                "node": "react"
+              },
+              {
+                "type": "observation",
+                "content": "Found 3 firing alert(s):\n- [alert-001] payments | critical | High error rate on /checkout\n- [alert-002] auth | high | JWT validation failures spike\n- [alert-003] checkout | critical | DB connection pool exhausted",
+                "node": "react"
+              },
+              {
+                "type": "answer",
+                "content": "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments.",
+                "node": "react"
+              }
+            ],
+            "metrics": {
+              "llmCalls": 3,
+              "latencyMs": 13,
+              "promptTokens": 2813,
+              "historyMessages": 0,
+              "recalledMemories": 0,
+              "contextBreakdown": {
+                "system": 314,
+                "history": 0,
+                "memories": 0,
+                "message": 8,
+                "summary": 0
+              },
+              "route": "react",
+              "routeReason": "É uma consulta pontual para listar alertas ativos.",
+              "modelUsed": "openai/gpt-4o-mini"
+            },
+            "conversationId": "631ea0dd-2a4d-45ff-a4de-9ade968c2596"
+          },
+          "delay": 5000
+        },
+        {
+          "source": "recorded from unit 8's chat API, answering from the replay of unit 6's recordings",
+          "method": "POST",
+          "path": "/chat",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400",
+            "x-request-id": "a1249594-a4dd-46e4-8c2a-826df8d590d3"
+          },
+          "json": {
+            "requestId": "a1249594-a4dd-46e4-8c2a-826df8d590d3",
+            "answer": "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments.",
+            "trace": [
+              {
+                "type": "route",
+                "node": "roteador",
+                "content": "É uma consulta pontual para listar alertas ativos.",
+                "reason": "É uma consulta pontual para listar alertas ativos.",
+                "route": "react",
+                "override": false
+              },
+              {
+                "type": "action",
+                "content": "list_alerts({\"status\":\"firing\"})",
+                "tool": "list_alerts",
+                "toolArgs": {
+                  "status": "firing"
+                },
+                "node": "react"
+              },
+              {
+                "type": "observation",
+                "content": "Found 3 firing alert(s):\n- [alert-001] payments | critical | High error rate on /checkout\n- [alert-002] auth | high | JWT validation failures spike\n- [alert-003] checkout | critical | DB connection pool exhausted",
+                "node": "react"
+              },
+              {
+                "type": "answer",
+                "content": "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments.",
+                "node": "react"
+              }
+            ],
+            "metrics": {
+              "llmCalls": 3,
+              "latencyMs": 13,
+              "promptTokens": 2813,
+              "historyMessages": 0,
+              "recalledMemories": 0,
+              "contextBreakdown": {
+                "system": 314,
+                "history": 0,
+                "memories": 0,
+                "message": 8,
+                "summary": 0
+              },
+              "route": "react",
+              "routeReason": "É uma consulta pontual para listar alertas ativos.",
+              "modelUsed": "openai/gpt-4o-mini"
+            },
+            "conversationId": "631ea0dd-2a4d-45ff-a4de-9ade968c2596"
+          }
+        }
+      ],
+      "serve": {
+        "port": 47778,
+        "ready": "/opspilot/",
+        "page": {
+          "path": "/opspilot/",
+          "timeout": 30000,
+          "steps": [
+            {
+              "click": "button[aria-label=\"Configurações\"]"
+            },
+            {
+              "wait": "document.activeElement === document.querySelector('[role=dialog] input')"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 200))"
+            },
+            {
+              "fill": "[role=dialog] input",
+              "value": "{replay}"
+            },
+            {
+              "click": "[role=dialog] button.btn--primary"
+            },
+            {
+              "wait": "document.querySelector('[role=dialog]') === null"
+            },
+            {
+              "fill": "form textarea",
+              "value": "Quais serviços têm alertas ativos?"
+            },
+            {
+              "click": "form button[type=submit]"
+            },
+            {
+              "wait": "document.querySelector('form button[type=button]') !== null"
+            },
+            {
+              "click": "form button[type=button]"
+            },
+            {
+              "wait": "document.querySelector('form button[type=submit]').textContent.trim() === 'Enviar'"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread > li')].map((item) => [item.querySelector('.bubble__meta').textContent.trim(), item.querySelector('.bubble__content').textContent])"
+            },
+            {
+              "read": "(() => { const field = document.querySelector('form textarea'); const toggle = document.querySelector('form input[type=checkbox]'); return [field.value, field.disabled, toggle.checked, toggle.disabled, [...document.querySelectorAll('form button')].map((button) => [button.textContent.trim(), button.disabled])]; })()"
+            },
+            {
+              "fill": "form textarea",
+              "value": "Quais serviços têm alertas ativos?"
+            },
+            {
+              "click": "form button[type=submit]"
+            },
+            {
+              "wait": "document.querySelectorAll('ol.thread > li').length === 3"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread > li')].map((item) => [item.querySelector('.bubble__meta').textContent.trim(), item.querySelector('.bubble__content').textContent])"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [["Você", "Quais serviços têm alertas ativos?"]],
+            ["", false, false, false, [["Enviar", true]]],
+            [
+              ["Você", "Quais serviços têm alertas ativos?"],
+              ["Você", "Quais serviços têm alertas ativos?"],
+              [
+                "OpsPilot",
+                "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments."
+              ]
+            ]
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/chat",
+              "body": {
+                "message": "Quais serviços têm alertas ativos?",
+                "userId": "war-room",
+                "awaitHumanApproval": false
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/chat",
+              "body": {
+                "message": "Quais serviços têm alertas ativos?",
+                "userId": "war-room",
+                "awaitHumanApproval": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "the build for GitHub Pages serves the War Room as static files under /ops-pilot/, loading every script and stylesheet of its own from there, and it reaches the API the same way",
+      "program": "pages",
+      "replay": [
+        {
+          "source": "recorded from unit 8's chat API, whose default CORS allows any origin",
+          "incidental": true,
+          "method": "OPTIONS",
+          "path": "/chat",
+          "status": 204,
+          "headers": {
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400"
+          },
+          "text": ""
+        },
+        {
+          "source": "recorded from unit 8's chat API, answering from the replay of unit 6's recordings",
+          "method": "POST",
+          "path": "/chat",
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8",
+            "access-control-allow-origin": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+            "access-control-allow-headers": "Content-Type, X-Request-Id",
+            "access-control-expose-headers": "X-Request-Id",
+            "access-control-max-age": "86400",
+            "x-request-id": "a1249594-a4dd-46e4-8c2a-826df8d590d3"
+          },
+          "json": {
+            "requestId": "a1249594-a4dd-46e4-8c2a-826df8d590d3",
+            "answer": "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments.",
+            "trace": [
+              {
+                "type": "route",
+                "node": "roteador",
+                "content": "É uma consulta pontual para listar alertas ativos.",
+                "reason": "É uma consulta pontual para listar alertas ativos.",
+                "route": "react",
+                "override": false
+              },
+              {
+                "type": "action",
+                "content": "list_alerts({\"status\":\"firing\"})",
+                "tool": "list_alerts",
+                "toolArgs": {
+                  "status": "firing"
+                },
+                "node": "react"
+              },
+              {
+                "type": "observation",
+                "content": "Found 3 firing alert(s):\n- [alert-001] payments | critical | High error rate on /checkout\n- [alert-002] auth | high | JWT validation failures spike\n- [alert-003] checkout | critical | DB connection pool exhausted",
+                "node": "react"
+              },
+              {
+                "type": "answer",
+                "content": "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments.",
+                "node": "react"
+              }
+            ],
+            "metrics": {
+              "llmCalls": 3,
+              "latencyMs": 13,
+              "promptTokens": 2813,
+              "historyMessages": 0,
+              "recalledMemories": 0,
+              "contextBreakdown": {
+                "system": 314,
+                "history": 0,
+                "memories": 0,
+                "message": 8,
+                "summary": 0
+              },
+              "route": "react",
+              "routeReason": "É uma consulta pontual para listar alertas ativos.",
+              "modelUsed": "openai/gpt-4o-mini"
+            },
+            "conversationId": "631ea0dd-2a4d-45ff-a4de-9ade968c2596"
+          }
+        }
+      ],
+      "serve": {
+        "port": 47779,
+        "ready": "/ops-pilot/",
+        "timeout": 180000,
+        "page": {
+          "path": "/ops-pilot/",
+          "timeout": 30000,
+          "steps": [
+            {
+              "wait": "document.querySelector('h1') !== null"
+            },
+            {
+              "read": "[document.title, document.querySelector('h1').textContent.trim()]"
+            },
+            {
+              "read": "(() => { const own = [...document.querySelectorAll('script[src], link[rel=stylesheet][href]')].map((element) => new URL(element.src || element.href)).filter((address) => address.origin === location.origin); return own.length > 0 && own.every((address) => address.pathname.startsWith('/ops-pilot/')); })()"
+            },
+            {
+              "click": "button[aria-label=\"Configurações\"]"
+            },
+            {
+              "wait": "document.activeElement === document.querySelector('[role=dialog] input')"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 200))"
+            },
+            {
+              "fill": "[role=dialog] input",
+              "value": "{replay}"
+            },
+            {
+              "click": "[role=dialog] button.btn--primary"
+            },
+            {
+              "wait": "document.querySelector('[role=dialog]') === null"
+            },
+            {
+              "fill": "form textarea",
+              "value": "Quais serviços têm alertas ativos?"
+            },
+            {
+              "click": "form button[type=submit]"
+            },
+            {
+              "wait": "document.querySelectorAll('ol.thread > li').length === 2"
+            },
+            {
+              "read": "[...document.querySelectorAll('ol.thread > li')].map((item) => [item.querySelector('.bubble__meta').textContent.trim(), item.querySelector('.bubble__content').textContent])"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            ["OpsPilot War Room", "OpsPilot"],
+            true,
+            [
+              ["Você", "Quais serviços têm alertas ativos?"],
+              [
+                "OpsPilot",
+                "**Resumo**\nForam identificados 3 alertas ativos nos serviços de payments, auth e checkout.\n\n**Achados**\n- [alert-001] payments | critical\n- [alert-003] checkout | critical\n- [alert-002] auth | high\n\n**Próximos passos**\n- Verificar causa raiz do esgotamento de pool de conexão no checkout.\n- Investigar pico de falhas de validação JWT no serviço de auth.\n- Monitorar taxa de erro no checkout do serviço de payments."
+              ]
+            ]
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/chat",
+              "body": {
+                "message": "Quais serviços têm alertas ativos?",
+                "userId": "war-room",
+                "awaitHumanApproval": false
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

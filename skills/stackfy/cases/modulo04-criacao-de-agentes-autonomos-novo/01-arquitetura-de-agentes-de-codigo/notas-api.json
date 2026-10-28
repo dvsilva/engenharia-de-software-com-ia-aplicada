@@ -1,0 +1,1375 @@
+{
+  "module": "modulo04-criacao-de-agentes-autonomos-novo/01-arquitetura-de-agentes-de-codigo/notas-api",
+  "concepts": [
+    "coding-agent-harness",
+    "layered-architecture",
+    "rest-api",
+    "command-line-interface",
+    "schema-validation"
+  ],
+  "recorded": "Every case passed against the original with Node.js 26, tsx 4.23, and zod 4.4.3, run as \"node --import tsx src/{program}.ts\". The module never calls an LLM. The original server always listens on port 3000, so the copy that produced these cases reads PORT first and falls back to 3000, a one-line change. Validation messages that come from zod defaults, such as a missing title or an unknown status filter, are checked only as a validation failure, while the messages the module writes itself are checked exactly. The CLI cases point TASK_CLI_STORE_PATH to tasks.json and seed it, except the one that checks the default path in the working directory.",
+  "prepare": {
+    "setup": ["npm ci"],
+    "patches": [
+      {
+        "file": "src/index.ts",
+        "find": "const port = 3000;",
+        "replace": "const port = Number(process.env.PORT ?? 3000);"
+      }
+    ]
+  },
+  "originals": ["node --import tsx src/{program}.ts"],
+  "cases": [
+    {
+      "name": "serves the task lifecycle over HTTP",
+      "program": "index",
+      "serve": {
+        "port": 39301,
+        "requests": [
+          {
+            "method": "GET",
+            "path": "/tasks"
+          },
+          {
+            "method": "POST",
+            "path": "/tasks",
+            "json": {
+              "title": "  Comprar leite  ",
+              "status": "done"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/tasks",
+            "json": {
+              "title": "Passear com o cachorro"
+            }
+          },
+          {
+            "method": "PATCH",
+            "path": "/tasks/{responses.2.id}/complete"
+          },
+          {
+            "method": "PATCH",
+            "path": "/tasks/{responses.2.id}/complete"
+          },
+          {
+            "method": "GET",
+            "path": "/tasks"
+          },
+          {
+            "method": "GET",
+            "path": "/tasks?status=open"
+          },
+          {
+            "method": "GET",
+            "path": "/tasks?status=done"
+          },
+          {
+            "method": "GET",
+            "path": "/tasks?status=all"
+          },
+          {
+            "method": "DELETE",
+            "path": "/tasks/{responses.1.id}"
+          },
+          {
+            "method": "GET",
+            "path": "/tasks"
+          },
+          {
+            "method": "DELETE",
+            "path": "/tasks/{responses.1.id}"
+          },
+          {
+            "method": "PATCH",
+            "path": "/tasks/{responses.1.id}/complete"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "output",
+          "pattern": "^HTTP server listening on http://localhost:39301\n$"
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "values": [[]]
+            },
+            {
+              "status": 201,
+              "match": {
+                "title": "Comprar leite",
+                "status": "open"
+              },
+              "pattern": "\"id\"\\s*:\\s*\"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\""
+            },
+            {
+              "status": 201,
+              "match": {
+                "title": "Passear com o cachorro",
+                "status": "open"
+              },
+              "pattern": "\"id\"\\s*:\\s*\"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\""
+            },
+            {
+              "status": 200,
+              "values": [
+                {
+                  "id": "{responses.2.id}",
+                  "title": "Passear com o cachorro",
+                  "status": "done"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                {
+                  "id": "{responses.2.id}",
+                  "title": "Passear com o cachorro",
+                  "status": "done"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                [
+                  {
+                    "id": "{responses.1.id}",
+                    "title": "Comprar leite",
+                    "status": "open"
+                  },
+                  {
+                    "id": "{responses.2.id}",
+                    "title": "Passear com o cachorro",
+                    "status": "done"
+                  }
+                ]
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                [
+                  {
+                    "id": "{responses.1.id}",
+                    "title": "Comprar leite",
+                    "status": "open"
+                  }
+                ]
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                [
+                  {
+                    "id": "{responses.2.id}",
+                    "title": "Passear com o cachorro",
+                    "status": "done"
+                  }
+                ]
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                [
+                  {
+                    "id": "{responses.1.id}",
+                    "title": "Comprar leite",
+                    "status": "open"
+                  },
+                  {
+                    "id": "{responses.2.id}",
+                    "title": "Passear com o cachorro",
+                    "status": "done"
+                  }
+                ]
+              ]
+            },
+            {
+              "status": 204,
+              "pattern": "^$"
+            },
+            {
+              "status": 200,
+              "values": [
+                [
+                  {
+                    "id": "{responses.2.id}",
+                    "title": "Passear com o cachorro",
+                    "status": "done"
+                  }
+                ]
+              ]
+            },
+            {
+              "status": 404,
+              "values": [
+                {
+                  "error": "Task \"{responses.1.id}\" was not found"
+                }
+              ]
+            },
+            {
+              "status": 404,
+              "values": [
+                {
+                  "error": "Task \"{responses.1.id}\" was not found"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rejects invalid input and unknown routes over HTTP",
+      "program": "index",
+      "serve": {
+        "port": 39301,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/tasks",
+            "json": {
+              "title": "   "
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/tasks",
+            "json": {}
+          },
+          {
+            "method": "POST",
+            "path": "/tasks"
+          },
+          {
+            "method": "POST",
+            "path": "/tasks",
+            "json": {
+              "title": 42
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/tasks",
+            "body": "{nope"
+          },
+          {
+            "method": "GET",
+            "path": "/tasks?status=bogus"
+          },
+          {
+            "method": "GET",
+            "path": "/tasks?status="
+          },
+          {
+            "method": "PATCH",
+            "path": "/tasks/missing/complete"
+          },
+          {
+            "method": "DELETE",
+            "path": "/tasks/missing"
+          },
+          {
+            "method": "GET",
+            "path": "/health"
+          },
+          {
+            "method": "PUT",
+            "path": "/tasks"
+          },
+          {
+            "method": "GET",
+            "path": "/tasks"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "output",
+          "pattern": "^HTTP server listening on http://localhost:39301\n$"
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 400,
+              "values": [
+                {
+                  "error": "Validation failed",
+                  "issues": ["Task title is required"]
+                }
+              ]
+            },
+            {
+              "status": 400,
+              "match": {
+                "error": "Validation failed"
+              },
+              "pattern": "\"issues\"\\s*:\\s*\\[\\s*\""
+            },
+            {
+              "status": 400,
+              "match": {
+                "error": "Validation failed"
+              },
+              "pattern": "\"issues\"\\s*:\\s*\\[\\s*\""
+            },
+            {
+              "status": 400,
+              "match": {
+                "error": "Validation failed"
+              },
+              "pattern": "\"issues\"\\s*:\\s*\\[\\s*\""
+            },
+            {
+              "status": 400,
+              "values": [
+                {
+                  "error": "Invalid JSON body"
+                }
+              ]
+            },
+            {
+              "status": 400,
+              "match": {
+                "error": "Validation failed"
+              },
+              "pattern": "\"issues\"\\s*:\\s*\\[\\s*\""
+            },
+            {
+              "status": 400,
+              "match": {
+                "error": "Validation failed"
+              },
+              "pattern": "\"issues\"\\s*:\\s*\\[\\s*\""
+            },
+            {
+              "status": 404,
+              "values": [
+                {
+                  "error": "Task \"missing\" was not found"
+                }
+              ]
+            },
+            {
+              "status": 404,
+              "values": [
+                {
+                  "error": "Task \"missing\" was not found"
+                }
+              ]
+            },
+            {
+              "status": 404,
+              "values": [
+                {
+                  "error": "Route not found"
+                }
+              ]
+            },
+            {
+              "status": 404,
+              "values": [
+                {
+                  "error": "Route not found"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [[]]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "creates the store on first use with a trimmed open task",
+      "program": "cli",
+      "args": ["task", "create", "--title", "  Comprar leite  "],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": null
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^Created task: [0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\\topen\\tComprar leite\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        },
+        {
+          "type": "file",
+          "path": "tasks.json",
+          "pattern": "^\\s*\\{\\s*\"tasks\"\\s*:\\s*\\[\\s*\\{(?=[^{}]*\"id\"\\s*:\\s*\"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\")(?=[^{}]*\"title\"\\s*:\\s*\"Comprar leite\")(?=[^{}]*\"status\"\\s*:\\s*\"open\")[^{}]*\\}\\s*\\]\\s*\\}\\s*$"
+        }
+      ]
+    },
+    {
+      "name": "lists every task in the store in insertion order",
+      "program": "cli",
+      "args": ["task", "list"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": {
+          "tasks": [
+            {
+              "id": "t-1",
+              "title": "Comprar leite",
+              "status": "open"
+            },
+            {
+              "id": "t-2",
+              "title": "Passear com o cachorro",
+              "status": "done"
+            },
+            {
+              "id": "t-3",
+              "title": "Revisar a spec",
+              "status": "open"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^t-1\topen\tComprar leite\nt-2\tdone\tPassear com o cachorro\nt-3\topen\tRevisar a spec\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        }
+      ]
+    },
+    {
+      "name": "lists every task with the all filter",
+      "program": "cli",
+      "args": ["task", "list", "--status", "all"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": {
+          "tasks": [
+            {
+              "id": "t-1",
+              "title": "Comprar leite",
+              "status": "open"
+            },
+            {
+              "id": "t-2",
+              "title": "Passear com o cachorro",
+              "status": "done"
+            },
+            {
+              "id": "t-3",
+              "title": "Revisar a spec",
+              "status": "open"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^t-1\topen\tComprar leite\nt-2\tdone\tPassear com o cachorro\nt-3\topen\tRevisar a spec\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        }
+      ]
+    },
+    {
+      "name": "lists only open tasks",
+      "program": "cli",
+      "args": ["task", "list", "--status", "open"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": {
+          "tasks": [
+            {
+              "id": "t-1",
+              "title": "Comprar leite",
+              "status": "open"
+            },
+            {
+              "id": "t-2",
+              "title": "Passear com o cachorro",
+              "status": "done"
+            },
+            {
+              "id": "t-3",
+              "title": "Revisar a spec",
+              "status": "open"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^t-1\topen\tComprar leite\nt-3\topen\tRevisar a spec\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        }
+      ]
+    },
+    {
+      "name": "lists only done tasks",
+      "program": "cli",
+      "args": ["task", "list", "--status", "done"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": {
+          "tasks": [
+            {
+              "id": "t-1",
+              "title": "Comprar leite",
+              "status": "open"
+            },
+            {
+              "id": "t-2",
+              "title": "Passear com o cachorro",
+              "status": "done"
+            },
+            {
+              "id": "t-3",
+              "title": "Revisar a spec",
+              "status": "open"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^t-2\tdone\tPassear com o cachorro\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        }
+      ]
+    },
+    {
+      "name": "treats a missing store as empty",
+      "program": "cli",
+      "args": ["task", "list"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": null
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^No tasks found\\.\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        }
+      ]
+    },
+    {
+      "name": "treats an empty store file as empty",
+      "program": "cli",
+      "args": ["task", "list", "--status", "open"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": ""
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^No tasks found\\.\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        }
+      ]
+    },
+    {
+      "name": "completes an open task and persists it in place",
+      "program": "cli",
+      "args": ["task", "complete", "--id", "t-1"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": {
+          "tasks": [
+            {
+              "id": "t-1",
+              "title": "Comprar leite",
+              "status": "open"
+            },
+            {
+              "id": "t-2",
+              "title": "Passear com o cachorro",
+              "status": "done"
+            },
+            {
+              "id": "t-3",
+              "title": "Revisar a spec",
+              "status": "open"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^Completed task: t-1\tdone\tComprar leite\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        },
+        {
+          "type": "file",
+          "path": "tasks.json",
+          "values": [
+            {
+              "tasks": [
+                {
+                  "id": "t-1",
+                  "title": "Comprar leite",
+                  "status": "done"
+                },
+                {
+                  "id": "t-2",
+                  "title": "Passear com o cachorro",
+                  "status": "done"
+                },
+                {
+                  "id": "t-3",
+                  "title": "Revisar a spec",
+                  "status": "open"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "completes a done task again without failing",
+      "program": "cli",
+      "args": ["task", "complete", "--id", "t-2"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": {
+          "tasks": [
+            {
+              "id": "t-1",
+              "title": "Comprar leite",
+              "status": "open"
+            },
+            {
+              "id": "t-2",
+              "title": "Passear com o cachorro",
+              "status": "done"
+            },
+            {
+              "id": "t-3",
+              "title": "Revisar a spec",
+              "status": "open"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^Completed task: t-2\tdone\tPassear com o cachorro\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        }
+      ]
+    },
+    {
+      "name": "removes a task and persists the rest",
+      "program": "cli",
+      "args": ["task", "remove", "--id", "t-2"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": {
+          "tasks": [
+            {
+              "id": "t-1",
+              "title": "Comprar leite",
+              "status": "open"
+            },
+            {
+              "id": "t-2",
+              "title": "Passear com o cachorro",
+              "status": "done"
+            },
+            {
+              "id": "t-3",
+              "title": "Revisar a spec",
+              "status": "open"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^Removed task: t-2\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        },
+        {
+          "type": "file",
+          "path": "tasks.json",
+          "values": [
+            {
+              "tasks": [
+                {
+                  "id": "t-1",
+                  "title": "Comprar leite",
+                  "status": "open"
+                },
+                {
+                  "id": "t-3",
+                  "title": "Revisar a spec",
+                  "status": "open"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "accepts commands without the task prefix",
+      "program": "cli",
+      "args": ["list", "--status", "done"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": {
+          "tasks": [
+            {
+              "id": "t-1",
+              "title": "Comprar leite",
+              "status": "open"
+            },
+            {
+              "id": "t-2",
+              "title": "Passear com o cachorro",
+              "status": "done"
+            },
+            {
+              "id": "t-3",
+              "title": "Revisar a spec",
+              "status": "open"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^t-2\tdone\tPassear com o cachorro\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        }
+      ]
+    },
+    {
+      "name": "reports a missing task when completing",
+      "program": "cli",
+      "args": ["task", "complete", "--id", "missing"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": {
+          "tasks": [
+            {
+              "id": "t-1",
+              "title": "Comprar leite",
+              "status": "open"
+            },
+            {
+              "id": "t-2",
+              "title": "Passear com o cachorro",
+              "status": "done"
+            },
+            {
+              "id": "t-3",
+              "title": "Revisar a spec",
+              "status": "open"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "stream": "stdout",
+          "pattern": "^$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Task \"missing\" was not found\nUsage:\n  task create --title <title>\n  task list \\[--status all\\|open\\|done\\]\n  task complete --id <task-id>\n  task remove --id <task-id>\n$"
+        }
+      ]
+    },
+    {
+      "name": "reports a missing task when removing",
+      "program": "cli",
+      "args": ["task", "remove", "--id", "missing"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": {
+          "tasks": [
+            {
+              "id": "t-1",
+              "title": "Comprar leite",
+              "status": "open"
+            },
+            {
+              "id": "t-2",
+              "title": "Passear com o cachorro",
+              "status": "done"
+            },
+            {
+              "id": "t-3",
+              "title": "Revisar a spec",
+              "status": "open"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "stream": "stdout",
+          "pattern": "^$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Task \"missing\" was not found\nUsage:\n  task create --title <title>\n  task list \\[--status all\\|open\\|done\\]\n  task complete --id <task-id>\n  task remove --id <task-id>\n$"
+        }
+      ]
+    },
+    {
+      "name": "rejects a blank title",
+      "program": "cli",
+      "args": ["task", "create", "--title", "   "],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": null
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "stream": "stdout",
+          "pattern": "^$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Task title is required\nUsage:\n  task create --title <title>\n  task list \\[--status all\\|open\\|done\\]\n  task complete --id <task-id>\n  task remove --id <task-id>\n$"
+        }
+      ]
+    },
+    {
+      "name": "rejects a blank id",
+      "program": "cli",
+      "args": ["task", "complete", "--id", "  "],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": {
+          "tasks": [
+            {
+              "id": "t-1",
+              "title": "Comprar leite",
+              "status": "open"
+            },
+            {
+              "id": "t-2",
+              "title": "Passear com o cachorro",
+              "status": "done"
+            },
+            {
+              "id": "t-3",
+              "title": "Revisar a spec",
+              "status": "open"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "stream": "stdout",
+          "pattern": "^$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Task id is required\nUsage:\n  task create --title <title>\n  task list \\[--status all\\|open\\|done\\]\n  task complete --id <task-id>\n  task remove --id <task-id>\n$"
+        }
+      ]
+    },
+    {
+      "name": "rejects an unknown status filter",
+      "program": "cli",
+      "args": ["task", "list", "--status", "bogus"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": {
+          "tasks": [
+            {
+              "id": "t-1",
+              "title": "Comprar leite",
+              "status": "open"
+            },
+            {
+              "id": "t-2",
+              "title": "Passear com o cachorro",
+              "status": "done"
+            },
+            {
+              "id": "t-3",
+              "title": "Revisar a spec",
+              "status": "open"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "stream": "stdout",
+          "pattern": "^$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^[^\\n]+\\nUsage:\n  task create --title <title>\n  task list \\[--status all\\|open\\|done\\]\n  task complete --id <task-id>\n  task remove --id <task-id>\n$"
+        }
+      ]
+    },
+    {
+      "name": "rejects a call without a command",
+      "program": "cli",
+      "args": [],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": null
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "stream": "stdout",
+          "pattern": "^$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Missing command\nUsage:\n  task create --title <title>\n  task list \\[--status all\\|open\\|done\\]\n  task complete --id <task-id>\n  task remove --id <task-id>\n$"
+        }
+      ]
+    },
+    {
+      "name": "rejects an unknown command",
+      "program": "cli",
+      "args": ["task", "archive"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": null
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "stream": "stdout",
+          "pattern": "^$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Unknown command \"archive\"\nUsage:\n  task create --title <title>\n  task list \\[--status all\\|open\\|done\\]\n  task complete --id <task-id>\n  task remove --id <task-id>\n$"
+        }
+      ]
+    },
+    {
+      "name": "rejects create without its title flag",
+      "program": "cli",
+      "args": ["task", "create"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": null
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "stream": "stdout",
+          "pattern": "^$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Missing required flag --title for command \"create\"\nUsage:\n  task create --title <title>\n  task list \\[--status all\\|open\\|done\\]\n  task complete --id <task-id>\n  task remove --id <task-id>\n$"
+        }
+      ]
+    },
+    {
+      "name": "rejects a flag without its value",
+      "program": "cli",
+      "args": ["task", "complete", "--id"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": null
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "stream": "stdout",
+          "pattern": "^$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Missing value for flag --id in command \"complete\"\nUsage:\n  task create --title <title>\n  task list \\[--status all\\|open\\|done\\]\n  task complete --id <task-id>\n  task remove --id <task-id>\n$"
+        }
+      ]
+    },
+    {
+      "name": "rejects extra arguments after the flag value",
+      "program": "cli",
+      "args": ["task", "create", "--title", "Comprar", "leite"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": null
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "stream": "stdout",
+          "pattern": "^$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Unexpected extra arguments for command \"create\"\nUsage:\n  task create --title <title>\n  task list \\[--status all\\|open\\|done\\]\n  task complete --id <task-id>\n  task remove --id <task-id>\n$"
+        }
+      ]
+    },
+    {
+      "name": "rejects list arguments other than the status flag",
+      "program": "cli",
+      "args": ["task", "list", "--status"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": null
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "stream": "stdout",
+          "pattern": "^$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Invalid arguments for command \"list\"\nUsage:\n  task create --title <title>\n  task list \\[--status all\\|open\\|done\\]\n  task complete --id <task-id>\n  task remove --id <task-id>\n$"
+        }
+      ]
+    },
+    {
+      "name": "reports a store that is not valid JSON",
+      "program": "cli",
+      "args": ["task", "list"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": "{nope"
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "stream": "stdout",
+          "pattern": "^$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Task store file at \"tasks\\.json\" contains invalid JSON\n$"
+        }
+      ]
+    },
+    {
+      "name": "reports a store with an invalid structure",
+      "program": "cli",
+      "args": ["task", "list"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "tasks.json"
+      },
+      "files": {
+        "tasks.json": {
+          "tasks": [
+            {
+              "id": "t-1"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "stream": "stdout",
+          "pattern": "^$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Task store file at \"tasks\\.json\" has an invalid structure\n$"
+        }
+      ]
+    },
+    {
+      "name": "reports a store it cannot write",
+      "program": "cli",
+      "args": ["task", "create", "--title", "Comprar leite"],
+      "env": {
+        "TASK_CLI_STORE_PATH": "blocker/tasks.json"
+      },
+      "files": {
+        "blocker": ""
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "stream": "stdout",
+          "pattern": "^$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Failed to persist task store file at \"blocker/tasks\\.json\"\n$"
+        }
+      ]
+    },
+    {
+      "name": "keeps the store in the working directory by default",
+      "program": "cli",
+      "args": ["task", "list", "--status", "done"],
+      "env": {},
+      "files": {
+        ".tasks-cli-store.json": {
+          "tasks": [
+            {
+              "id": "t-1",
+              "title": "Comprar leite",
+              "status": "open"
+            },
+            {
+              "id": "t-2",
+              "title": "Passear com o cachorro",
+              "status": "done"
+            },
+            {
+              "id": "t-3",
+              "title": "Revisar a spec",
+              "status": "open"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^t-2\tdone\tPassear com o cachorro\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        }
+      ]
+    }
+  ]
+}

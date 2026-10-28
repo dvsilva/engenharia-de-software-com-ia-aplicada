@@ -1,0 +1,1653 @@
+{
+  "module": "modulo05-ferramentas-de-IA-para-UI-UX/modulo-04/cfp-plataform_v1/cfp-platform_v1",
+  "concepts": [
+    "full-stack-monorepo",
+    "end-to-end-testing",
+    "component-framework",
+    "web-accessibility",
+    "rest-api",
+    "schema-validation",
+    "layered-architecture",
+    "coding-agent-harness"
+  ],
+  "recorded": "Original run from a copy with Nx 22.6.3, NestJS 11.1.17, Angular 21.2.6, Cypress 15.13.0, and Node.js 26.12.1, installed with npm install because npm ci rejects the lock file as out of sync, plus npx cypress install for Cypress's binary, and driven in headless Google Chrome. The api and the frontend are the same as in modulo-03's cfp-platform, so their cases are the same, on ports of their own. Each case names its program. The api ran with npx nx serve api --inspect=false, which builds it with webpack and serves it on PORT, and the frontend ran alone with npx nx run frontend:serve --excludeTaskDependencies --port=$PORT --host=127.0.0.1 --proxyConfig=frontend/proxy.conf.mjs, with Nx's daemon, cloud, cache, and terminal UI off. The original proxy configuration hard-codes http://localhost:3000, so the copy gained proxy.conf.mjs, which sends /api to API_URL, its only patch. The frontend-e2e cases name the spec to run as their argument and set BASE_URL, where the same command first serves the frontend that way, and then ran npx nx e2e frontend-e2e --spec=cypress/e2e/<spec>.cy.ts --config=baseUrl=$BASE_URL, because the Cypress configuration hard-codes http://localhost:4200 and starts no server. Cypress ran its bundled Electron, with ELECTRON_RUN_AS_NODE unset, since the variable makes the binary reject its own flags. The frontend and frontend-e2e cases set API_URL to the replay, which stands in for the api with bodies recorded from the module's own api, the empty 500 the dev server's proxy answered while the api was not running, and NestJS's body for an unexpected error, synthesized, and it holds some answers for 1.5 seconds so the cases can read the loading states and the success test must wait for its message. The frontend-e2e cases check the suite's exit code and the request its success test makes the page send, because each test runner prints its results differently. The cases cover the api, the frontend, and the traditional spec. The AI-driven spec is left out, and run without that access it fails at once with PromptAuthenticationError. Ids are random, so the api cases check their shape and compare later lists with the ids the api returned. Validation messages are class-validator's, so the api cases check one message per broken rule, each naming its field in declaration order, while the frontend cases compare the replayed messages exactly. Every case passed in each of 3 runs.",
+  "blocked": {
+    "status": "partial",
+    "reason": "The AI-driven Cypress spec's cy.prompt resolves its steps through Cypress Cloud, which needs a logged-in account or a record key, so only the api, the frontend, and the traditional spec have passing cases",
+    "completion": "requires a Cypress Cloud account or record key"
+  },
+  "prepare": {
+    "files": ["frontend/proxy.conf.mjs"],
+    "setup": ["npm install --no-audit --no-fund", "npx cypress install"]
+  },
+  "originals": [
+    "export NX_DAEMON=false NX_NO_CLOUD=true NX_TUI=false NX_SKIP_NX_CACHE=true; serve_frontend() { npx nx run frontend:serve --excludeTaskDependencies --port=$1 --host=127.0.0.1 --proxyConfig=frontend/proxy.conf.mjs; }; case {program} in api) npx nx serve api --inspect=false ;; frontend) serve_frontend $PORT ;; frontend-e2e) set -m; serve_frontend \"${BASE_URL##*:}\" >/dev/null 2>&1 & server=$!; for attempt in $(seq 180); do curl -sf \"$BASE_URL\" >/dev/null && break; sleep 1; done; unset ELECTRON_RUN_AS_NODE; npx nx e2e frontend-e2e --spec=cypress/e2e/{args}.cy.ts --config=baseUrl=$BASE_URL; status=$?; kill -TERM -$server; exit $status ;; esac"
+  ],
+  "cases": [
+    {
+      "name": "greets at the API root and lists no speakers or events before the first submission",
+      "program": "api",
+      "serve": {
+        "port": 47640,
+        "ready": "/api",
+        "requests": [
+          {
+            "path": "/api"
+          },
+          {
+            "path": "/api/speakers"
+          },
+          {
+            "path": "/api/events"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "values": [
+                {
+                  "message": "Hello API"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [[]]
+            },
+            {
+              "status": 200,
+              "values": [[]]
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "Application is running on: http://localhost:47640/api"
+        }
+      ]
+    },
+    {
+      "name": "creates speakers with a short random id and lists them in the order they arrived",
+      "program": "api",
+      "serve": {
+        "port": 47640,
+        "ready": "/api",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/api/speakers",
+            "json": {
+              "name": "Ana Souza",
+              "email": "ana@example.com",
+              "talkTitle": "Angular Signals in Practice",
+              "isGDE": true
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/speakers",
+            "json": {
+              "name": "Bruno Lima",
+              "email": "bruno@example.com",
+              "talkTitle": "Testing NestJS APIs",
+              "isGDE": false
+            }
+          },
+          {
+            "path": "/api/speakers"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 201,
+              "match": {
+                "name": "Ana Souza",
+                "email": "ana@example.com",
+                "talkTitle": "Angular Signals in Practice",
+                "isGDE": true
+              },
+              "pattern": "\"id\":\\s*\"[0-9a-z]{1,7}\""
+            },
+            {
+              "status": 201,
+              "match": {
+                "name": "Bruno Lima",
+                "email": "bruno@example.com",
+                "talkTitle": "Testing NestJS APIs",
+                "isGDE": false
+              },
+              "pattern": "\"id\":\\s*\"[0-9a-z]{1,7}\""
+            },
+            {
+              "status": 200,
+              "values": [
+                [
+                  {
+                    "id": "{responses.0.id}",
+                    "name": "Ana Souza",
+                    "email": "ana@example.com",
+                    "talkTitle": "Angular Signals in Practice",
+                    "isGDE": true
+                  },
+                  {
+                    "id": "{responses.1.id}",
+                    "name": "Bruno Lima",
+                    "email": "bruno@example.com",
+                    "talkTitle": "Testing NestJS APIs",
+                    "isGDE": false
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "keeps fields it does not know, lets the body choose the id, and never trims text",
+      "program": "api",
+      "serve": {
+        "port": 47640,
+        "ready": "/api",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/api/speakers",
+            "json": {
+              "id": "speaker-1",
+              "name": "   ",
+              "email": "dani@example.com",
+              "talkTitle": " Signals ",
+              "isGDE": false,
+              "track": "frontend"
+            }
+          },
+          {
+            "path": "/api/speakers"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 201,
+              "values": [
+                {
+                  "id": "speaker-1",
+                  "name": "   ",
+                  "email": "dani@example.com",
+                  "talkTitle": " Signals ",
+                  "isGDE": false,
+                  "track": "frontend"
+                }
+              ]
+            },
+            {
+              "status": 200,
+              "values": [
+                [
+                  {
+                    "id": "speaker-1",
+                    "name": "   ",
+                    "email": "dani@example.com",
+                    "talkTitle": " Signals ",
+                    "isGDE": false,
+                    "track": "frontend"
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rejects a speaker that breaks its rules with one message per broken rule, each naming its field, and stores nothing",
+      "program": "api",
+      "serve": {
+        "port": 47640,
+        "ready": "/api",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/api/speakers",
+            "json": {}
+          },
+          {
+            "method": "POST",
+            "path": "/api/speakers",
+            "json": {
+              "name": "",
+              "email": "not-an-email",
+              "talkTitle": "",
+              "isGDE": "yes"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/speakers",
+            "json": {
+              "name": 5,
+              "email": "ana@example",
+              "talkTitle": null,
+              "isGDE": 1
+            }
+          },
+          {
+            "path": "/api/speakers"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\":\\s*\\[\\s*\"name [^\"]+\",\\s*\"name [^\"]+\",\\s*\"email [^\"]+\",\\s*\"email [^\"]+\",\\s*\"talkTitle [^\"]+\",\\s*\"talkTitle [^\"]+\",\\s*\"isGDE [^\"]+\",\\s*\"isGDE [^\"]+\"\\s*\\]"
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\":\\s*\\[\\s*\"name [^\"]+\",\\s*\"email [^\"]+\",\\s*\"talkTitle [^\"]+\",\\s*\"isGDE [^\"]+\"\\s*\\]"
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\":\\s*\\[\\s*\"name [^\"]+\",\\s*\"email [^\"]+\",\\s*\"talkTitle [^\"]+\",\\s*\"talkTitle [^\"]+\",\\s*\"isGDE [^\"]+\"\\s*\\]"
+            },
+            {
+              "status": 200,
+              "values": [[]]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "creates events without a minimum capacity, dated in ISO 8601 with or without a time, and lists them in order",
+      "program": "api",
+      "serve": {
+        "port": 47640,
+        "ready": "/api",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/api/events",
+            "json": {
+              "nome": "Centro de Convenções",
+              "endereco": "Av. Principal, 123",
+              "capacidade": 250,
+              "data": "2026-05-10"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/events",
+            "json": {
+              "nome": "Auditório Central",
+              "endereco": "Rua das Flores, 45",
+              "capacidade": 0,
+              "data": "2026-05-10T19:00:00Z"
+            }
+          },
+          {
+            "path": "/api/events"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 201,
+              "match": {
+                "nome": "Centro de Convenções",
+                "endereco": "Av. Principal, 123",
+                "capacidade": 250,
+                "data": "2026-05-10"
+              },
+              "pattern": "\"id\":\\s*\"[0-9a-z]{1,7}\""
+            },
+            {
+              "status": 201,
+              "match": {
+                "nome": "Auditório Central",
+                "endereco": "Rua das Flores, 45",
+                "capacidade": 0,
+                "data": "2026-05-10T19:00:00Z"
+              },
+              "pattern": "\"id\":\\s*\"[0-9a-z]{1,7}\""
+            },
+            {
+              "status": 200,
+              "values": [
+                [
+                  {
+                    "id": "{responses.0.id}",
+                    "nome": "Centro de Convenções",
+                    "endereco": "Av. Principal, 123",
+                    "capacidade": 250,
+                    "data": "2026-05-10"
+                  },
+                  {
+                    "id": "{responses.1.id}",
+                    "nome": "Auditório Central",
+                    "endereco": "Rua das Flores, 45",
+                    "capacidade": 0,
+                    "data": "2026-05-10T19:00:00Z"
+                  }
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rejects an event whose capacity arrives as text or whose date is not ISO 8601, and stores nothing",
+      "program": "api",
+      "serve": {
+        "port": 47640,
+        "ready": "/api",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/api/events",
+            "json": {
+              "nome": "Centro de Convenções",
+              "endereco": "Av. Principal, 123",
+              "capacidade": "500",
+              "data": "10/05/2026"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/events",
+            "json": {}
+          },
+          {
+            "path": "/api/events"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\":\\s*\\[\\s*\"capacidade [^\"]+\",\\s*\"data [^\"]+\"\\s*\\]"
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\":\\s*\\[\\s*\"nome [^\"]+\",\\s*\"nome [^\"]+\",\\s*\"endereco [^\"]+\",\\s*\"endereco [^\"]+\",\\s*\"capacidade [^\"]+\",\\s*\"capacidade [^\"]+\",\\s*\"data [^\"]+\",\\s*\"data [^\"]+\"\\s*\\]"
+            },
+            {
+              "status": 200,
+              "values": [[]]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reads form bodies as text, ignores bodies of other types, and rejects malformed JSON",
+      "program": "api",
+      "serve": {
+        "port": 47640,
+        "ready": "/api",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/api/speakers",
+            "headers": {
+              "content-type": "application/x-www-form-urlencoded"
+            },
+            "body": "name=Caio+Reis&email=caio%40example.com&talkTitle=APIs&isGDE=true"
+          },
+          {
+            "method": "POST",
+            "path": "/api/speakers",
+            "headers": {
+              "content-type": "text/plain"
+            },
+            "body": "Ana Souza"
+          },
+          {
+            "method": "POST",
+            "path": "/api/speakers",
+            "headers": {
+              "content-type": "application/json"
+            },
+            "body": "{\"name\":"
+          },
+          {
+            "path": "/api/speakers"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\":\\s*\\[\\s*\"isGDE [^\"]+\"\\s*\\]"
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\":\\s*\\[\\s*\"name [^\"]+\",\\s*\"name [^\"]+\",\\s*\"email [^\"]+\",\\s*\"email [^\"]+\",\\s*\"talkTitle [^\"]+\",\\s*\"talkTitle [^\"]+\",\\s*\"isGDE [^\"]+\",\\s*\"isGDE [^\"]+\"\\s*\\]"
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\":\\s*\""
+            },
+            {
+              "status": 200,
+              "values": [[]]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "answers any other route or method with a 404 that names them",
+      "program": "api",
+      "serve": {
+        "port": 47640,
+        "ready": "/api",
+        "requests": [
+          {
+            "path": "/"
+          },
+          {
+            "path": "/api/talks"
+          },
+          {
+            "method": "POST",
+            "path": "/api",
+            "json": {}
+          },
+          {
+            "method": "DELETE",
+            "path": "/api/speakers"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 404,
+              "values": [
+                {
+                  "message": "Cannot GET /",
+                  "error": "Not Found",
+                  "statusCode": 404
+                }
+              ]
+            },
+            {
+              "status": 404,
+              "values": [
+                {
+                  "message": "Cannot GET /api/talks",
+                  "error": "Not Found",
+                  "statusCode": 404
+                }
+              ]
+            },
+            {
+              "status": 404,
+              "values": [
+                {
+                  "message": "Cannot POST /api",
+                  "error": "Not Found",
+                  "statusCode": 404
+                }
+              ]
+            },
+            {
+              "status": 404,
+              "values": [
+                {
+                  "message": "Cannot DELETE /api/speakers",
+                  "error": "Not Found",
+                  "statusCode": 404
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "redirects to the dashboard, which lists every submitted talk with a badge for each GDE, and marks the current page in the menu",
+      "program": "frontend",
+      "env": {
+        "API_URL": "{replay}"
+      },
+      "replay": [
+        {
+          "source": "recorded from the module's own api",
+          "method": "GET",
+          "path": "/api/speakers",
+          "json": [
+            {
+              "id": "axr4uxm",
+              "name": "Ana Souza",
+              "email": "ana@example.com",
+              "talkTitle": "Angular Signals in Practice",
+              "isGDE": true
+            },
+            {
+              "id": "mj4vnfa",
+              "name": "Bruno Lima",
+              "email": "bruno@example.com",
+              "talkTitle": "Testing NestJS APIs",
+              "isGDE": false
+            }
+          ]
+        },
+        {
+          "source": "recorded from the module's own api",
+          "method": "GET",
+          "path": "/api/speakers",
+          "json": [
+            {
+              "id": "axr4uxm",
+              "name": "Ana Souza",
+              "email": "ana@example.com",
+              "talkTitle": "Angular Signals in Practice",
+              "isGDE": true
+            },
+            {
+              "id": "mj4vnfa",
+              "name": "Bruno Lima",
+              "email": "bruno@example.com",
+              "talkTitle": "Testing NestJS APIs",
+              "isGDE": false
+            }
+          ]
+        }
+      ],
+      "serve": {
+        "port": 47641,
+        "ready": "/",
+        "page": {
+          "path": "/",
+          "steps": [
+            {
+              "wait": "document.querySelectorAll('tbody tr').length === 2"
+            },
+            {
+              "read": "[location.pathname, document.title]"
+            },
+            {
+              "read": "[...document.querySelectorAll('nav a')].map((link) => [link.textContent.trim(), link.getAttribute('href'), link.classList.contains('active')])"
+            },
+            {
+              "read": "[document.querySelector('h1').textContent.trim(), document.querySelector('.subtitle').textContent.trim()]"
+            },
+            {
+              "read": "(() => { const region = document.querySelector('[role=region]'); return [region.getAttribute('aria-label'), [...region.querySelectorAll('th')].map((header) => [header.textContent.trim(), header.getAttribute('scope')])]; })()"
+            },
+            {
+              "read": "[...document.querySelectorAll('tbody tr')].map((row) => [...row.querySelectorAll('td')].map((cell) => cell.textContent.trim()))"
+            },
+            {
+              "read": "[...document.querySelectorAll('tbody .badge')].map((badge) => [badge.textContent.trim(), badge.classList.contains('badge-gde'), getComputedStyle(badge).backgroundImage])"
+            },
+            {
+              "read": "[...document.querySelectorAll('.actions a')].map((link) => [link.textContent.trim(), link.getAttribute('href')])"
+            },
+            {
+              "read": "[document.querySelector('[role=status]') === null, document.querySelector('[role=alert]') === null, getComputedStyle(document.querySelector('nav a.active')).backgroundImage]"
+            },
+            {
+              "click": "nav a[href='/event/new']"
+            },
+            {
+              "wait": "document.querySelector('#nome') !== null"
+            },
+            {
+              "read": "[location.pathname, [...document.querySelectorAll('nav a.active')].map((link) => link.textContent.trim())]"
+            },
+            {
+              "read": "[getComputedStyle(document.querySelector('.cfp-container')).backgroundImage, getComputedStyle(document.querySelector('.glass-card')).maxWidth]"
+            },
+            {
+              "click": "a.dashboard-link"
+            },
+            {
+              "wait": "document.querySelectorAll('tbody tr').length === 2"
+            },
+            {
+              "read": "[location.pathname, [...document.querySelectorAll('nav a.active')].map((link) => link.textContent.trim())]"
+            },
+            {
+              "read": "[getComputedStyle(document.querySelector('.cfp-container')).backgroundImage, getComputedStyle(document.querySelector('.glass-card')).maxWidth]"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            ["/dashboard", "frontend"],
+            [
+              ["Cadastro de Evento", "/event/new", false],
+              ["Cadastro de Palestra", "/talks/new", false],
+              ["Dashboard", "/dashboard", true]
+            ],
+            [
+              "CFP Dashboard",
+              "Review all submitted talks and speaker details."
+            ],
+            [
+              "Submitted talks",
+              [
+                ["Speaker Name", "col"],
+                ["Email", "col"],
+                ["Talk Title", "col"],
+                ["GDE Status", "col"]
+              ]
+            ],
+            [
+              [
+                "Ana Souza",
+                "ana@example.com",
+                "Angular Signals in Practice",
+                "GDE"
+              ],
+              [
+                "Bruno Lima",
+                "bruno@example.com",
+                "Testing NestJS APIs",
+                "Speaker"
+              ]
+            ],
+            [
+              [
+                "GDE",
+                true,
+                "linear-gradient(90deg, rgb(66, 133, 244), rgb(52, 168, 83))"
+              ],
+              ["Speaker", false, "none"]
+            ],
+            [["Back to Submission", "/talks/new"]],
+            [
+              true,
+              true,
+              "linear-gradient(90deg, rgb(255, 138, 0), rgb(255, 0, 128))"
+            ],
+            ["/event/new", ["Cadastro de Evento"]],
+            [
+              "radial-gradient(circle at 0% 0%, rgb(28, 28, 30), rgb(10, 10, 12))",
+              "500px"
+            ],
+            ["/dashboard", ["Dashboard"]],
+            [
+              "radial-gradient(circle at 0% 0%, rgb(28, 28, 30), rgb(10, 10, 12))",
+              "900px"
+            ]
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/api/speakers"
+            },
+            {
+              "method": "GET",
+              "path": "/api/speakers"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "shows a busy status while the dashboard loads, then invites the first submission when there is none",
+      "program": "frontend",
+      "env": {
+        "API_URL": "{replay}"
+      },
+      "replay": [
+        {
+          "source": "recorded from the module's own api",
+          "method": "GET",
+          "path": "/api/speakers",
+          "json": [],
+          "delay": 1500
+        }
+      ],
+      "serve": {
+        "port": 47641,
+        "ready": "/",
+        "page": {
+          "path": "/dashboard",
+          "steps": [
+            {
+              "wait": "document.querySelector('[role=status]') !== null"
+            },
+            {
+              "read": "(() => { const box = document.querySelector('[role=status]'); return [box.getAttribute('aria-busy'), box.textContent.trim()]; })()"
+            },
+            {
+              "wait": "document.querySelector('[role=status]') === null"
+            },
+            {
+              "read": "[document.querySelector('table') === null, document.querySelector('.status-box p').textContent.trim(), [...document.querySelectorAll('.status-box a')].map((link) => [link.textContent.trim(), link.getAttribute('href')])]"
+            },
+            {
+              "click": ".status-box a"
+            },
+            {
+              "wait": "document.querySelector('#talkTitle') !== null"
+            },
+            {
+              "read": "[location.pathname, [...document.querySelectorAll('nav a.active')].map((link) => link.textContent.trim())]"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            ["true", "Loading submissions..."],
+            [
+              true,
+              "No submissions found. Be the first to submit a talk!",
+              [["Submit a Talk", "/talks/new"]]
+            ],
+            ["/talks/new", ["Cadastro de Palestra"]]
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/api/speakers"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "alerts when the speakers cannot be loaded and lists them once Retry succeeds",
+      "program": "frontend",
+      "env": {
+        "API_URL": "{replay}"
+      },
+      "replay": [
+        {
+          "source": "recorded from the Angular dev server's proxy while the api was not running",
+          "method": "GET",
+          "path": "/api/speakers",
+          "status": 500,
+          "headers": {
+            "content-type": "text/plain"
+          },
+          "text": ""
+        },
+        {
+          "source": "recorded from the module's own api",
+          "method": "GET",
+          "path": "/api/speakers",
+          "json": [
+            {
+              "id": "axr4uxm",
+              "name": "Ana Souza",
+              "email": "ana@example.com",
+              "talkTitle": "Angular Signals in Practice",
+              "isGDE": true
+            },
+            {
+              "id": "mj4vnfa",
+              "name": "Bruno Lima",
+              "email": "bruno@example.com",
+              "talkTitle": "Testing NestJS APIs",
+              "isGDE": false
+            }
+          ]
+        }
+      ],
+      "serve": {
+        "port": 47641,
+        "ready": "/",
+        "page": {
+          "path": "/dashboard",
+          "steps": [
+            {
+              "wait": "document.querySelector('[role=alert]') !== null"
+            },
+            {
+              "read": "(() => { const box = document.querySelector('[role=alert]'); return [box.querySelector('p').textContent.trim(), [...box.querySelectorAll('button')].map((button) => button.textContent.trim()), document.querySelector('table') === null]; })()"
+            },
+            {
+              "click": "[role=alert] button"
+            },
+            {
+              "wait": "document.querySelectorAll('tbody tr').length === 2"
+            },
+            {
+              "read": "[document.querySelector('[role=alert]') === null, [...document.querySelectorAll('tbody tr')].map((row) => [...row.querySelectorAll('td')].map((cell) => cell.textContent.trim())).map(([name]) => name)]"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              "Failed to load submissions. Please try again later.",
+              ["Retry"],
+              true
+            ],
+            [true, ["Ana Souza", "Bruno Lima"]]
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/api/speakers"
+            },
+            {
+              "method": "GET",
+              "path": "/api/speakers"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sends a talk proposal with its fields disabled while it travels, then clears the form and lists the speaker on the dashboard",
+      "program": "frontend",
+      "env": {
+        "API_URL": "{replay}"
+      },
+      "replay": [
+        {
+          "source": "recorded from the module's own api",
+          "method": "POST",
+          "path": "/api/speakers",
+          "status": 201,
+          "json": {
+            "id": "entnsmx",
+            "name": "Carla Dias",
+            "email": "carla@example.com",
+            "talkTitle": "Accessible Forms with ARIA",
+            "isGDE": true
+          },
+          "delay": 1500
+        },
+        {
+          "source": "recorded from the module's own api",
+          "method": "GET",
+          "path": "/api/speakers",
+          "json": [
+            {
+              "id": "entnsmx",
+              "name": "Carla Dias",
+              "email": "carla@example.com",
+              "talkTitle": "Accessible Forms with ARIA",
+              "isGDE": true
+            }
+          ]
+        }
+      ],
+      "serve": {
+        "port": 47641,
+        "ready": "/",
+        "page": {
+          "path": "/talks/new",
+          "steps": [
+            {
+              "wait": "document.querySelector('form') !== null"
+            },
+            {
+              "read": "[location.pathname, [...document.querySelectorAll('nav a.active')].map((link) => link.textContent.trim())]"
+            },
+            {
+              "read": "[document.querySelector('h1').textContent.trim(), document.querySelector('.subtitle').textContent.trim()]"
+            },
+            {
+              "read": "document.getElementById(document.querySelector('form').getAttribute('aria-labelledby'))?.textContent.trim() ?? null"
+            },
+            {
+              "read": "[...document.querySelectorAll('form input')].map((input) => [input.id, input.type, input.required, input.getAttribute('aria-required'), input.placeholder, input.labels[0]?.textContent.trim() ?? null])"
+            },
+            {
+              "read": "[...document.querySelectorAll('form input')].map((input) => input.type === 'checkbox' ? input.checked : input.value)"
+            },
+            {
+              "read": "[document.querySelector('button[type=submit]').textContent.trim(), document.querySelector('button[type=submit]').disabled]"
+            },
+            {
+              "read": "(() => { const region = document.querySelector('form .feedback'); return [region.getAttribute('role'), region.getAttribute('aria-live'), region.textContent.trim()]; })()"
+            },
+            {
+              "fill": "#name",
+              "value": "Carla Dias"
+            },
+            {
+              "fill": "#email",
+              "value": "carla@example.com"
+            },
+            {
+              "fill": "#talkTitle",
+              "value": "Accessible Forms with ARIA"
+            },
+            {
+              "click": "#isGDE"
+            },
+            {
+              "click": "button[type=submit]"
+            },
+            {
+              "wait": "document.querySelector('button[type=submit]').disabled"
+            },
+            {
+              "read": "[document.querySelector('button[type=submit]').textContent.trim(), document.querySelector('button[type=submit]').disabled]"
+            },
+            {
+              "read": "[...document.querySelectorAll('form input')].map((input) => input.disabled)"
+            },
+            {
+              "wait": "document.querySelector('.success-msg') !== null"
+            },
+            {
+              "read": "document.querySelector('form .feedback').textContent.trim()"
+            },
+            {
+              "read": "getComputedStyle(document.querySelector('.success-msg')).color"
+            },
+            {
+              "read": "[document.querySelector('button[type=submit]').textContent.trim(), document.querySelector('button[type=submit]').disabled]"
+            },
+            {
+              "read": "[...document.querySelectorAll('form input')].map((input) => input.type === 'checkbox' ? input.checked : input.value)"
+            },
+            {
+              "read": "[...document.querySelectorAll('form input')].map((input) => input.disabled)"
+            },
+            {
+              "read": "[...document.querySelectorAll('a.dashboard-link')].map((link) => [link.textContent.trim(), link.getAttribute('href')])"
+            },
+            {
+              "click": "a.dashboard-link"
+            },
+            {
+              "wait": "document.querySelectorAll('tbody tr').length === 1"
+            },
+            {
+              "read": "[location.pathname, [...document.querySelectorAll('nav a.active')].map((link) => link.textContent.trim())]"
+            },
+            {
+              "read": "[...document.querySelectorAll('tbody tr')].map((row) => [...row.querySelectorAll('td')].map((cell) => cell.textContent.trim()))"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            ["/talks/new", ["Cadastro de Palestra"]],
+            [
+              "Call for Papers",
+              "Submit your proposal for our upcoming conference."
+            ],
+            "Call for Papers",
+            [
+              ["name", "text", true, "true", "Juan Pérez", "Full Name"],
+              [
+                "email",
+                "email",
+                true,
+                "true",
+                "juan@example.com",
+                "Email Address"
+              ],
+              [
+                "talkTitle",
+                "text",
+                true,
+                "true",
+                "Angular Signals in Practice",
+                "Talk Title"
+              ],
+              [
+                "isGDE",
+                "checkbox",
+                false,
+                null,
+                "",
+                "Are you a Google Developer Expert (GDE)?"
+              ]
+            ],
+            ["", "", "", false],
+            ["Submit Proposal", false],
+            ["alert", "polite", ""],
+            ["Submitting...", true],
+            [true, true, true, true],
+            "✓ Proposal submitted successfully!",
+            "rgb(76, 217, 100)",
+            ["Submit Proposal", false],
+            ["", "", "", false],
+            [false, false, false, false],
+            [["View Dashboard", "/dashboard"]],
+            ["/dashboard", ["Dashboard"]],
+            [
+              [
+                "Carla Dias",
+                "carla@example.com",
+                "Accessible Forms with ARIA",
+                "GDE"
+              ]
+            ]
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/api/speakers",
+              "body": {
+                "name": "Carla Dias",
+                "email": "carla@example.com",
+                "talkTitle": "Accessible Forms with ARIA",
+                "isGDE": true
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/api/speakers"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sends empty fields, since the proposal form never validates, and shows the API's messages joined by commas or a fallback",
+      "program": "frontend",
+      "env": {
+        "API_URL": "{replay}"
+      },
+      "replay": [
+        {
+          "source": "recorded from the module's own api",
+          "method": "POST",
+          "path": "/api/speakers",
+          "status": 400,
+          "json": {
+            "message": [
+              "name should not be empty",
+              "email must be an email",
+              "email should not be empty",
+              "talkTitle should not be empty"
+            ],
+            "error": "Bad Request",
+            "statusCode": 400
+          }
+        },
+        {
+          "source": "recorded from the Angular dev server's proxy while the api was not running",
+          "method": "POST",
+          "path": "/api/speakers",
+          "status": 500,
+          "headers": {
+            "content-type": "text/plain"
+          },
+          "text": ""
+        }
+      ],
+      "serve": {
+        "port": 47641,
+        "ready": "/",
+        "page": {
+          "path": "/talks/new",
+          "steps": [
+            {
+              "click": "button[type=submit]"
+            },
+            {
+              "wait": "document.querySelector('.error-msg') !== null"
+            },
+            {
+              "read": "document.querySelector('form .feedback').textContent.trim()"
+            },
+            {
+              "read": "getComputedStyle(document.querySelector('.error-msg')).color"
+            },
+            {
+              "read": "[document.querySelector('button[type=submit]').textContent.trim(), document.querySelector('button[type=submit]').disabled]"
+            },
+            {
+              "read": "[...document.querySelectorAll('form input')].map((input) => input.type === 'checkbox' ? input.checked : input.value)"
+            },
+            {
+              "fill": "#name",
+              "value": "Carla Dias"
+            },
+            {
+              "click": "button[type=submit]"
+            },
+            {
+              "wait": "document.querySelector('.error-msg')?.textContent.includes('unexpected') === true"
+            },
+            {
+              "read": "document.querySelector('form .feedback').textContent.trim()"
+            },
+            {
+              "read": "[...document.querySelectorAll('form input')].map((input) => input.type === 'checkbox' ? input.checked : input.value)"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            "⚠ name should not be empty,email must be an email,email should not be empty,talkTitle should not be empty",
+            "rgb(255, 59, 48)",
+            ["Submit Proposal", false],
+            ["", "", "", false],
+            "⚠ An unexpected error occurred.",
+            ["Carla Dias", "", "", false]
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/api/speakers",
+              "body": {
+                "name": "",
+                "email": "",
+                "talkTitle": "",
+                "isGDE": false
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/speakers",
+              "body": {
+                "name": "Carla Dias",
+                "email": "",
+                "talkTitle": "",
+                "isGDE": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "checks the event form before sending, shows each message once submitted, keeps the fields enabled while sending, and resets after success",
+      "program": "frontend",
+      "env": {
+        "API_URL": "{replay}"
+      },
+      "replay": [
+        {
+          "source": "recorded from the module's own api",
+          "method": "POST",
+          "path": "/api/events",
+          "status": 201,
+          "json": {
+            "id": "bkslzix",
+            "nome": "Centro de Convenções",
+            "endereco": "Av. Principal, 123",
+            "capacidade": 250,
+            "data": "2026-05-10"
+          },
+          "delay": 1500
+        }
+      ],
+      "serve": {
+        "port": 47641,
+        "ready": "/",
+        "page": {
+          "path": "/event/new",
+          "steps": [
+            {
+              "wait": "document.querySelector('form') !== null"
+            },
+            {
+              "read": "[location.pathname, [...document.querySelectorAll('nav a.active')].map((link) => link.textContent.trim())]"
+            },
+            {
+              "read": "[document.querySelector('h1').textContent.trim(), document.querySelector('.subtitle').textContent.trim()]"
+            },
+            {
+              "read": "document.getElementById(document.querySelector('form').getAttribute('aria-labelledby'))?.textContent.trim() ?? null"
+            },
+            {
+              "read": "[...document.querySelectorAll('form input')].map((input) => [input.id, input.type, input.required, input.getAttribute('aria-required'), input.placeholder, input.labels[0]?.textContent.trim() ?? null])"
+            },
+            {
+              "read": "[...document.querySelectorAll('form input')].map((input) => input.type === 'checkbox' ? input.checked : input.value)"
+            },
+            {
+              "read": "[document.querySelector('button[type=submit]').textContent.trim(), document.querySelector('button[type=submit]').disabled]"
+            },
+            {
+              "read": "[...document.querySelectorAll('a.dashboard-link')].map((link) => [link.textContent.trim(), link.getAttribute('href')])"
+            },
+            {
+              "read": "(() => { const region = document.querySelector('form .feedback'); return [region.getAttribute('role'), region.getAttribute('aria-live'), region.textContent.trim()]; })()"
+            },
+            {
+              "read": "[...document.querySelectorAll('.error-text')].map((error) => error.textContent.trim())"
+            },
+            {
+              "click": "button[type=submit]"
+            },
+            {
+              "wait": "document.querySelectorAll('.error-text').length === 4"
+            },
+            {
+              "read": "[...document.querySelectorAll('.error-text')].map((error) => error.textContent.trim())"
+            },
+            {
+              "fill": "#nome",
+              "value": "Centro de Convenções"
+            },
+            {
+              "wait": "document.querySelectorAll('.error-text').length === 3"
+            },
+            {
+              "read": "[...document.querySelectorAll('.error-text')].map((error) => error.textContent.trim())"
+            },
+            {
+              "fill": "#endereco",
+              "value": "Av. Principal, 123"
+            },
+            {
+              "fill": "#capacidade",
+              "value": "250"
+            },
+            {
+              "fill": "#data",
+              "value": "2026-05-10"
+            },
+            {
+              "wait": "document.querySelectorAll('.error-text').length === 0"
+            },
+            {
+              "click": "button[type=submit]"
+            },
+            {
+              "wait": "document.querySelector('button[type=submit]').disabled"
+            },
+            {
+              "read": "[document.querySelector('button[type=submit]').textContent.trim(), document.querySelector('button[type=submit]').disabled]"
+            },
+            {
+              "read": "[...document.querySelectorAll('form input')].map((input) => input.disabled)"
+            },
+            {
+              "wait": "document.querySelector('.success-msg') !== null"
+            },
+            {
+              "read": "document.querySelector('form .feedback').textContent.trim()"
+            },
+            {
+              "read": "[...document.querySelectorAll('form input')].map((input) => input.type === 'checkbox' ? input.checked : input.value)"
+            },
+            {
+              "read": "[...document.querySelectorAll('.error-text')].map((error) => error.textContent.trim())"
+            },
+            {
+              "read": "[document.querySelector('button[type=submit]').textContent.trim(), document.querySelector('button[type=submit]').disabled]"
+            },
+            {
+              "click": "button[type=submit]"
+            },
+            {
+              "wait": "document.querySelectorAll('.error-text').length === 4"
+            },
+            {
+              "read": "document.querySelector('form .feedback').textContent.trim()"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            ["/event/new", ["Cadastro de Evento"]],
+            [
+              "Cadastro de Local do Evento",
+              "Registre um novo local para a conferência."
+            ],
+            "Cadastro de Local do Evento",
+            [
+              [
+                "nome",
+                "text",
+                true,
+                "true",
+                "Ex: Centro de Convenções",
+                "Nome do Local"
+              ],
+              [
+                "endereco",
+                "text",
+                true,
+                "true",
+                "Ex: Av. Principal, 123",
+                "Endereço"
+              ],
+              ["capacidade", "number", true, "true", "Ex: 500", "Capacidade"],
+              ["data", "date", true, "true", "", "Data do Evento"]
+            ],
+            ["", "", "0", ""],
+            ["Cadastrar Evento", false],
+            [["Ver Dashboard", "/dashboard"]],
+            ["alert", "polite", ""],
+            [],
+            [
+              "O nome é obrigatório.",
+              "O endereço é obrigatório.",
+              "Informe uma capacidade válida (mínimo 1).",
+              "A data é obrigatória."
+            ],
+            [
+              "O endereço é obrigatório.",
+              "Informe uma capacidade válida (mínimo 1).",
+              "A data é obrigatória."
+            ],
+            ["Cadastrando...", true],
+            [false, false, false, false],
+            "✓ Evento cadastrado com sucesso!",
+            ["", "", "0", ""],
+            [],
+            ["Cadastrar Evento", false],
+            "✓ Evento cadastrado com sucesso!"
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/api/events",
+              "body": {
+                "nome": "Centro de Convenções",
+                "endereco": "Av. Principal, 123",
+                "capacidade": 250,
+                "data": "2026-05-10"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "shows the API's message, or a fallback, when an event cannot be registered, keeping what was typed",
+      "program": "frontend",
+      "env": {
+        "API_URL": "{replay}"
+      },
+      "replay": [
+        {
+          "source": "synthesized from NestJS's documented body for an unexpected error",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/events",
+          "status": 500,
+          "json": {
+            "statusCode": 500,
+            "message": "Internal server error"
+          }
+        },
+        {
+          "source": "recorded from the Angular dev server's proxy while the api was not running",
+          "method": "POST",
+          "path": "/api/events",
+          "status": 500,
+          "headers": {
+            "content-type": "text/plain"
+          },
+          "text": ""
+        }
+      ],
+      "serve": {
+        "port": 47641,
+        "ready": "/",
+        "page": {
+          "path": "/event/new",
+          "steps": [
+            {
+              "fill": "#nome",
+              "value": "Centro de Convenções"
+            },
+            {
+              "fill": "#endereco",
+              "value": "Av. Principal, 123"
+            },
+            {
+              "fill": "#capacidade",
+              "value": "1"
+            },
+            {
+              "fill": "#data",
+              "value": "2026-05-10"
+            },
+            {
+              "click": "button[type=submit]"
+            },
+            {
+              "wait": "document.querySelector('.error-msg') !== null"
+            },
+            {
+              "read": "document.querySelector('form .feedback').textContent.trim()"
+            },
+            {
+              "read": "getComputedStyle(document.querySelector('.error-msg')).color"
+            },
+            {
+              "read": "[document.querySelector('button[type=submit]').textContent.trim(), document.querySelector('button[type=submit]').disabled]"
+            },
+            {
+              "click": "button[type=submit]"
+            },
+            {
+              "wait": "document.querySelector('.error-msg')?.textContent.includes('inesperado') === true"
+            },
+            {
+              "read": "document.querySelector('form .feedback').textContent.trim()"
+            },
+            {
+              "read": "[...document.querySelectorAll('form input')].map((input) => input.type === 'checkbox' ? input.checked : input.value)"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            "⚠ Internal server error",
+            "rgb(255, 59, 48)",
+            ["Cadastrar Evento", false],
+            "⚠ Ocorreu um erro inesperado ao cadastrar o evento.",
+            ["Centro de Convenções", "Av. Principal, 123", "1", "2026-05-10"]
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/api/events",
+              "body": {
+                "nome": "Centro de Convenções",
+                "endereco": "Av. Principal, 123",
+                "capacidade": 1,
+                "data": "2026-05-10"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/events",
+              "body": {
+                "nome": "Centro de Convenções",
+                "endereco": "Av. Principal, 123",
+                "capacidade": 1,
+                "data": "2026-05-10"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "registers the event the spec types once the api answers, and passes the empty form test without sending anything",
+      "program": "frontend-e2e",
+      "args": ["event-registration"],
+      "env": {
+        "API_URL": "{replay}",
+        "BASE_URL": "http://127.0.0.1:47642"
+      },
+      "replay": [
+        {
+          "source": "recorded from the module's own api",
+          "method": "POST",
+          "path": "/api/events",
+          "status": 201,
+          "json": {
+            "id": "85swyzw",
+            "nome": "Alvaro Neto Conference",
+            "endereco": "Main Street, 456",
+            "capacidade": 200,
+            "data": "2026-06-15"
+          },
+          "delay": 1500
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/api/events",
+              "body": {
+                "nome": "Alvaro Neto Conference",
+                "endereco": "Main Street, 456",
+                "capacidade": 200,
+                "data": "2026-06-15"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "fails when the api rejects the event, since the success test waits for the success message",
+      "program": "frontend-e2e",
+      "args": ["event-registration"],
+      "env": {
+        "API_URL": "{replay}",
+        "BASE_URL": "http://127.0.0.1:47642"
+      },
+      "replay": [
+        {
+          "source": "recorded from the module's own api, for an event whose capacity arrived as text",
+          "method": "POST",
+          "path": "/api/events",
+          "status": 400,
+          "json": {
+            "message": [
+              "capacidade must be a number conforming to the specified constraints"
+            ],
+            "error": "Bad Request",
+            "statusCode": 400
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/api/events",
+              "body": {
+                "nome": "Alvaro Neto Conference",
+                "endereco": "Main Street, 456",
+                "capacidade": 200,
+                "data": "2026-06-15"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

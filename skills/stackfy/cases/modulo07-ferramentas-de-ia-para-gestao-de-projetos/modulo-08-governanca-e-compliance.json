@@ -1,0 +1,2833 @@
+{
+  "module": "modulo07-ferramentas-de-ia-para-gestao-de-projetos/modulo-08-governanca-e-compliance",
+  "concepts": ["pull-request-governance", "command-line-interface"],
+  "recorded": "Every case passed against the original with Python 3.15.2 and requests 2.34.2, run as python3 {program}.py, and with Node.js 26.12.1 and Danger JS 11.3.1, the version the template's workflow step names, run as npx danger ci --text-only --failOnErrors --dangerfile {program}.js, the command of the lesson's routewise-danger-demo pipeline, with one shell command choosing between them by {program}. No GitHub token was available, so every GitHub REST API response is synthesized from GitHub's documented format, for pull requests of unipds-engenharia-de-ia-aplicada/routewise-danger-demo: 42 and 43 carry pr-mock-routewise.json and pr-mock-falhas.json, and 44 to 46 cover the edges the mocks leave out. The cases set the variables of a GitHub Actions run for a pull_request event, point GITHUB_API_URL and DANGER_GITHUB_API_BASE_URL to the replay, and seed the event file, the coverage files, and the mocks. The Python original always calls https://api.github.com, so the copy that produced these cases reads GITHUB_API_URL first and falls back to that address, a one-line change. Danger JS asks for the pull request and for its diff at the same path, told apart by the Accept header, and every request it makes is incidental, so a Danger port or a Danger JS process may ask in its own order. The Dangerfile is checked by whether the run fails and by the report Danger JS prints, every failure, warning, and message in its section and order, skipping the summary line above it. The Python check is compared exactly, its GitHub requests in order with the comment it posts, except the hint after missing variables, which names the command that runs the local mode. A coverage of 79.25 shows that the Dangerfile rounds exact ties up and the Python check rounds them to even.",
+  "prepare": {
+    "setup": [
+      "python3 -m venv .venv && .venv/bin/pip install -q requests==2.34.2"
+    ],
+    "patches": [
+      {
+        "file": "danger-config-routewise.py",
+        "find": "BASE_URL = f\"https://api.github.com/repos/",
+        "replace": "BASE_URL = f\"{os.environ.get('GITHUB_API_URL', 'https://api.github.com')}/repos/"
+      }
+    ]
+  },
+  "originals": [
+    "if [ {program} = danger-config-routewise ]; then .venv/bin/python {program}.py {args}; else npx --yes danger@11.3.1 ci --text-only --failOnErrors --dangerfile {program}.js {args}; fi"
+  ],
+  "env": {
+    "GITHUB_ACTIONS": "true",
+    "GITHUB_WORKFLOW": "CI RouteWise",
+    "GITHUB_EVENT_NAME": "pull_request",
+    "GITHUB_REPOSITORY": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+    "GITHUB_TOKEN": "ghs_synthesized_for_stackfy",
+    "GITHUB_API_URL": "{replay}",
+    "DANGER_GITHUB_API_BASE_URL": "{replay}"
+  },
+  "cases": [
+    {
+      "name": "the local check reads pr-mock-routewise.json by default and passes it, listing the critical files it approved",
+      "program": "danger-config-routewise",
+      "args": ["--local"],
+      "files": {
+        "pr-mock-routewise.json": {
+          "pr": {
+            "title": "ROUTEWISE-42: módulo de alertas de velocidade - integração GPS em produção",
+            "body": "Implementa o módulo de Alertas de Velocidade em tempo real para a release inicial do RouteWise.\n\nModifica a integração com a API de GPS (src/integrations/gps) para ingestão contínua de dados dos 97 rastreadores ativos. O BUG-S4-10 (43 rastreadores v1 sem suporte ao guard de hardware) está isolado: a falha não afeta a API dos 97 funcionais.\n\nTestado em staging com carga de 97 conexões simultâneas.\n\nRelacionado: ROUTEWISE-40 (LGPD - consentimento motoristas), ROUTEWISE-41 (runbook de rollback).",
+            "additions": 312,
+            "deletions": 47
+          },
+          "changed_files": [
+            "src/integrations/gps/tracker-client.js",
+            "src/integrations/gps/guard-filter.js",
+            "src/services/notifications/push-service.js",
+            "src/api/routes/alerts.js",
+            "tests/integrations/gps.test.js",
+            "tests/services/push.test.js",
+            "CHANGELOG.md"
+          ],
+          "reviews": [
+            {
+              "author": "priya-ti",
+              "state": "APPROVED"
+            },
+            {
+              "author": "carlos-ops",
+              "state": "APPROVED"
+            }
+          ],
+          "coverage": {
+            "total": {
+              "lines": {
+                "pct": 81.4
+              }
+            }
+          },
+          "base_coverage": {
+            "total": {
+              "lines": {
+                "pct": 83.1
+              }
+            }
+          }
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^\\[MODO LOCAL\\] Lendo PR: ROUTEWISE-42: módulo de alertas de velocidade - integração GPS em produção\nArquivos alterados: 7 \\| Aprovadores: 2 \\| Linhas: 359\n\n------------------------------------------------------------\nGOVERNANCE CHECK -- RESULTADO\n------------------------------------------------------------\n\nINFORMACAO \\(2\\):\n\n  1\\. Arquivo critico com 2 aprovadores -- requisito de revisao atendido\\. \\(src/integrations/gps/tracker-client\\.js, src/integrations/gps/guard-filter\\.js, src/services/notifications/push-service\\.js, src/api/routes/alerts\\.js\\)\n  2\\. Cobertura de testes: 81\\.4% \\(queda de 1\\.7p em relacao a base 83\\.1%\\) -- dentro do limite aceitavel\\.\n\n------------------------------------------------------------\nStatus final: OK\nRegras verificadas: referencia Jira, aprovadores para arquivos criticos,\ntamanho do PR, cobertura de testes e qualidade da descricao\\.\n------------------------------------------------------------\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        }
+      ]
+    },
+    {
+      "name": "the local check fails the mock with problems, numbering its failures, warnings, and information, and exits with 1",
+      "program": "danger-config-routewise",
+      "args": ["--local", "--mock", "pr-mock-falhas.json"],
+      "files": {
+        "pr-mock-falhas.json": {
+          "pr": {
+            "title": "fix: corrige bug de conexao GPS",
+            "body": "corrigido",
+            "additions": 620,
+            "deletions": 15
+          },
+          "changed_files": [
+            "src/integrations/gps/tracker-client.js",
+            "src/integrations/gps/guard-filter.js",
+            "src/api/routes/alerts.js"
+          ],
+          "reviews": [
+            {
+              "author": "dev-junior",
+              "state": "APPROVED"
+            }
+          ],
+          "coverage": {
+            "total": {
+              "lines": {
+                "pct": 72
+              }
+            }
+          },
+          "base_coverage": {
+            "total": {
+              "lines": {
+                "pct": 83.1
+              }
+            }
+          }
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "output",
+          "pattern": "^\\[MODO LOCAL\\] Lendo PR: fix: corrige bug de conexao GPS\nArquivos alterados: 3 \\| Aprovadores: 1 \\| Linhas: 635\n\n------------------------------------------------------------\nGOVERNANCE CHECK -- RESULTADO\n------------------------------------------------------------\n\nFALHAS \\(2\\) -- bloqueiam o merge:\n\n  1\\. Card do Jira nao encontrado\\. O titulo ou a descricao deve conter o identificador do card \\(ex: ROUTEWISE-123\\)\\. Isso garante rastreabilidade entre o PR e o trabalho planejado\\.\n  2\\. Arquivo critico modificado com aprovadores insuficientes\\. Este PR toca modulos de integracao ou arquivos sensiveis\\. Necessario pelo menos 2 aprovadores \\(atual: 1\\)\\. Arquivos criticos: src/integrations/gps/tracker-client\\.js, src/integrations/gps/guard-filter\\.js, src/api/routes/alerts\\.js\n\nAVISOS \\(3\\) -- nao bloqueiam:\n\n  1\\. PR grande detectado \\(635 linhas alteradas\\)\\. PRs acima de 500 linhas aumentam o risco de bugs\\. Considere dividir em PRs menores ou agendar revisao dedicada\\.\n  2\\. Cobertura de testes caiu 11\\.1 pontos \\(de 83\\.1% para 72\\.0%\\)\\. Queda acima de 5% indica codigo novo sem cobertura\\. Adicione testes ou justifique na descricao\\.\n  3\\. Descricao do PR muito curta ou ausente\\. Uma boa descricao explica o que muda e por que -- nao apenas lista arquivos\\. Isso facilita revisao, rollback e historico do projeto\\.\n\n------------------------------------------------------------\nStatus final: FALHOU\nRegras verificadas: referencia Jira, aprovadores para arquivos criticos,\ntamanho do PR, cobertura de testes e qualidade da descricao\\.\n------------------------------------------------------------\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        }
+      ]
+    },
+    {
+      "name": "the local check finds the card in the description in any case, ignores reviews that are not approvals, accepts exactly 500 lines, and reports coverage without a base",
+      "program": "danger-config-routewise",
+      "args": ["--local", "--mock", "pr-mock-docs.json"],
+      "files": {
+        "pr-mock-docs.json": {
+          "pr": {
+            "title": "docs: atualiza o changelog da release",
+            "body": "Atualiza o CHANGELOG com as notas de rollback da release (routewise-44).",
+            "additions": 450,
+            "deletions": 50
+          },
+          "changed_files": ["CHANGELOG.md", "docs/rollback.md"],
+          "reviews": [
+            {
+              "author": "priya-ti",
+              "state": "CHANGES_REQUESTED"
+            },
+            {
+              "author": "carlos-ops",
+              "state": "COMMENTED"
+            }
+          ],
+          "coverage": {
+            "total": {
+              "lines": {
+                "pct": 79
+              }
+            }
+          }
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^\\[MODO LOCAL\\] Lendo PR: docs: atualiza o changelog da release\nArquivos alterados: 2 \\| Aprovadores: 0 \\| Linhas: 500\n\n------------------------------------------------------------\nGOVERNANCE CHECK -- RESULTADO\n------------------------------------------------------------\n\nINFORMACAO \\(1\\):\n\n  1\\. Cobertura atual: 79\\.0%\\. Cobertura base nao disponivel -- comparacao nao realizada\\.\n\n------------------------------------------------------------\nStatus final: OK\nRegras verificadas: referencia Jira, aprovadores para arquivos criticos,\ntamanho do PR, cobertura de testes e qualidade da descricao\\.\n------------------------------------------------------------\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        }
+      ]
+    },
+    {
+      "name": "the local check warns about coverage without line percentages and a missing description, treating absent line counts as zero",
+      "program": "danger-config-routewise",
+      "args": ["--local", "--mock", "pr-mock-cobertura-invalida.json"],
+      "files": {
+        "pr-mock-cobertura-invalida.json": {
+          "pr": {
+            "title": "ROUTEWISE-47: indice para consultas de posicao",
+            "body": null
+          },
+          "changed_files": ["db/migrations/005_add_position_index.sql"],
+          "reviews": [
+            {
+              "author": "priya-ti",
+              "state": "APPROVED"
+            },
+            {
+              "author": "dev-junior",
+              "state": "COMMENTED"
+            },
+            {
+              "author": "carlos-ops",
+              "state": "APPROVED"
+            }
+          ],
+          "coverage": {
+            "total": {
+              "branches": {
+                "pct": 70
+              }
+            }
+          },
+          "base_coverage": {
+            "total": {
+              "lines": {
+                "pct": 83.1
+              }
+            }
+          }
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^\\[MODO LOCAL\\] Lendo PR: ROUTEWISE-47: indice para consultas de posicao\nArquivos alterados: 1 \\| Aprovadores: 2 \\| Linhas: 0\n\n------------------------------------------------------------\nGOVERNANCE CHECK -- RESULTADO\n------------------------------------------------------------\n\nAVISOS \\(2\\) -- nao bloqueiam:\n\n  1\\. Formato do arquivo de cobertura invalido\\. Esperado: \\{'total': \\{'lines': \\{'pct': valor\\}\\}\\}\\.\n  2\\. Descricao do PR muito curta ou ausente\\. Uma boa descricao explica o que muda e por que -- nao apenas lista arquivos\\. Isso facilita revisao, rollback e historico do projeto\\.\n\nINFORMACAO \\(1\\):\n\n  1\\. Arquivo critico com 2 aprovadores -- requisito de revisao atendido\\. \\(db/migrations/005_add_position_index\\.sql\\)\n\n------------------------------------------------------------\nStatus final: OK\nRegras verificadas: referencia Jira, aprovadores para arquivos criticos,\ntamanho do PR, cobertura de testes e qualidade da descricao\\.\n------------------------------------------------------------\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        }
+      ]
+    },
+    {
+      "name": "the local check explains a missing mock on standard output and exits with 1",
+      "program": "danger-config-routewise",
+      "args": ["--local", "--mock", "pr-mock-inexistente.json"],
+      "files": {
+        "pr-mock-inexistente.json": null
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "output",
+          "pattern": "^Arquivo de mock nao encontrado: pr-mock-inexistente\\.json\nExecute no mesmo diretorio dos materiais ou passe --mock <caminho>\\.\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        }
+      ]
+    },
+    {
+      "name": "the CI check refuses to run without a token and a pull request number, on standard output and with exit code 1",
+      "program": "danger-config-routewise",
+      "env": {
+        "GITHUB_TOKEN": "",
+        "PR_NUMBER": ""
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "output",
+          "pattern": "^Erro: variaveis GITHUB_TOKEN, GITHUB_REPOSITORY e PR_NUMBER sao obrigatorias\\.\\nPara rodar localmente use: [^\\n]*--local\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        }
+      ]
+    },
+    {
+      "name": "the CI check reads the pull request, its files, and its reviews from the GitHub API, compares the coverage files, and posts a passing comment",
+      "program": "danger-config-routewise",
+      "env": {
+        "PR_NUMBER": "42"
+      },
+      "files": {
+        "coverage/coverage-summary.json": {
+          "total": {
+            "lines": {
+              "pct": 81.4
+            }
+          }
+        },
+        "coverage/base-coverage.json": {
+          "total": {
+            "lines": {
+              "pct": 83.1
+            }
+          }
+        }
+      },
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/42",
+          "synthesized": true,
+          "json": {
+            "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/42",
+            "id": 2500000042,
+            "number": 42,
+            "state": "open",
+            "title": "ROUTEWISE-42: módulo de alertas de velocidade - integração GPS em produção",
+            "user": {
+              "login": "marcus-dev",
+              "id": 190000042,
+              "type": "User"
+            },
+            "body": "Implementa o módulo de Alertas de Velocidade em tempo real para a release inicial do RouteWise.\n\nModifica a integração com a API de GPS (src/integrations/gps) para ingestão contínua de dados dos 97 rastreadores ativos. O BUG-S4-10 (43 rastreadores v1 sem suporte ao guard de hardware) está isolado: a falha não afeta a API dos 97 funcionais.\n\nTestado em staging com carga de 97 conexões simultâneas.\n\nRelacionado: ROUTEWISE-40 (LGPD - consentimento motoristas), ROUTEWISE-41 (runbook de rollback).",
+            "labels": [],
+            "created_at": "2026-10-27T12:00:00Z",
+            "updated_at": "2026-10-27T12:00:00Z",
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/42",
+            "head": {
+              "ref": "feat/ROUTEWISE-42-alertas-de-velocidade",
+              "sha": "a42c9e1f7b3d5a8c2e6f4b1d9a7c3e5f8b2d4a6c",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "draft": false,
+            "merged": false,
+            "commits": 1,
+            "additions": 312,
+            "deletions": 47,
+            "changed_files": 7
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/42/files",
+          "synthesized": true,
+          "json": [
+            {
+              "filename": "src/integrations/gps/tracker-client.js",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "src/integrations/gps/guard-filter.js",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "src/services/notifications/push-service.js",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "src/api/routes/alerts.js",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "tests/integrations/gps.test.js",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "tests/services/push.test.js",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "CHANGELOG.md",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            }
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/42/reviews",
+          "synthesized": true,
+          "json": [
+            {
+              "id": 3100000420,
+              "user": {
+                "login": "priya-ti",
+                "id": 180000001,
+                "type": "User"
+              },
+              "body": "",
+              "state": "APPROVED",
+              "submitted_at": "2026-10-27T12:00:00Z",
+              "commit_id": "a42c9e1f7b3d5a8c2e6f4b1d9a7c3e5f8b2d4a6c"
+            },
+            {
+              "id": 3100000421,
+              "user": {
+                "login": "carlos-ops",
+                "id": 180000002,
+                "type": "User"
+              },
+              "body": "",
+              "state": "APPROVED",
+              "submitted_at": "2026-10-27T12:00:00Z",
+              "commit_id": "a42c9e1f7b3d5a8c2e6f4b1d9a7c3e5f8b2d4a6c"
+            }
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/issues/42/comments",
+          "synthesized": true,
+          "status": 201,
+          "json": {
+            "id": 7100000042,
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/42#issuecomment-7100000042",
+            "user": {
+              "login": "github-actions[bot]",
+              "id": 41898282,
+              "type": "Bot"
+            },
+            "created_at": "2026-10-27T12:00:00Z"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^------------------------------------------------------------\nGOVERNANCE CHECK -- RESULTADO\n------------------------------------------------------------\n\nINFORMACAO \\(2\\):\n\n  1\\. Arquivo critico com 2 aprovadores -- requisito de revisao atendido\\. \\(src/integrations/gps/tracker-client\\.js, src/integrations/gps/guard-filter\\.js, src/services/notifications/push-service\\.js, src/api/routes/alerts\\.js\\)\n  2\\. Cobertura de testes: 81\\.4% \\(queda de 1\\.7p em relacao a base 83\\.1%\\) -- dentro do limite aceitavel\\.\n\n------------------------------------------------------------\nStatus final: OK\nRegras verificadas: referencia Jira, aprovadores para arquivos criticos,\ntamanho do PR, cobertura de testes e qualidade da descricao\\.\n------------------------------------------------------------\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/42"
+            },
+            {
+              "method": "GET",
+              "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/42/files"
+            },
+            {
+              "method": "GET",
+              "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/42/reviews"
+            },
+            {
+              "method": "POST",
+              "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/issues/42/comments",
+              "body": {
+                "body": "**Governance Check (Python) -- Resultado**\n\n**Informacoes:**\n- Arquivo critico com 2 aprovadores -- requisito de revisao atendido. (src/integrations/gps/tracker-client.js, src/integrations/gps/guard-filter.js, src/services/notifications/push-service.js, src/api/routes/alerts.js)\n- Cobertura de testes: 81.4% (queda de 1.7p em relacao a base 83.1%) -- dentro do limite aceitavel.\n\nStatus final: **OK**"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "the CI check posts the failures and warnings of a pull request without coverage files and exits with 1",
+      "program": "danger-config-routewise",
+      "env": {
+        "PR_NUMBER": "43"
+      },
+      "files": {
+        "coverage/coverage-summary.json": null,
+        "coverage/base-coverage.json": null
+      },
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/43",
+          "synthesized": true,
+          "json": {
+            "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/43",
+            "id": 2500000043,
+            "number": 43,
+            "state": "open",
+            "title": "fix: corrige bug de conexao GPS",
+            "user": {
+              "login": "dev-junior",
+              "id": 190000043,
+              "type": "User"
+            },
+            "body": "corrigido",
+            "labels": [],
+            "created_at": "2026-10-27T12:00:00Z",
+            "updated_at": "2026-10-27T12:00:00Z",
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/43",
+            "head": {
+              "ref": "fix/corrige-bug-conexao",
+              "sha": "b43d0f2a8c4e6b9d3f7a5c2e0b8d4f6a9c3e5b7d",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "draft": false,
+            "merged": false,
+            "commits": 1,
+            "additions": 620,
+            "deletions": 15,
+            "changed_files": 3
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/43/files",
+          "synthesized": true,
+          "json": [
+            {
+              "filename": "src/integrations/gps/tracker-client.js",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "src/integrations/gps/guard-filter.js",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "src/api/routes/alerts.js",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            }
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/43/reviews",
+          "synthesized": true,
+          "json": [
+            {
+              "id": 3100000430,
+              "user": {
+                "login": "dev-junior",
+                "id": 180000003,
+                "type": "User"
+              },
+              "body": "",
+              "state": "APPROVED",
+              "submitted_at": "2026-10-27T12:00:00Z",
+              "commit_id": "b43d0f2a8c4e6b9d3f7a5c2e0b8d4f6a9c3e5b7d"
+            }
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/issues/43/comments",
+          "synthesized": true,
+          "status": 201,
+          "json": {
+            "id": 7100000043,
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/43#issuecomment-7100000043",
+            "user": {
+              "login": "github-actions[bot]",
+              "id": 41898282,
+              "type": "Bot"
+            },
+            "created_at": "2026-10-27T12:00:00Z"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "output",
+          "pattern": "^------------------------------------------------------------\nGOVERNANCE CHECK -- RESULTADO\n------------------------------------------------------------\n\nFALHAS \\(2\\) -- bloqueiam o merge:\n\n  1\\. Card do Jira nao encontrado\\. O titulo ou a descricao deve conter o identificador do card \\(ex: ROUTEWISE-123\\)\\. Isso garante rastreabilidade entre o PR e o trabalho planejado\\.\n  2\\. Arquivo critico modificado com aprovadores insuficientes\\. Este PR toca modulos de integracao ou arquivos sensiveis\\. Necessario pelo menos 2 aprovadores \\(atual: 1\\)\\. Arquivos criticos: src/integrations/gps/tracker-client\\.js, src/integrations/gps/guard-filter\\.js, src/api/routes/alerts\\.js\n\nAVISOS \\(2\\) -- nao bloqueiam:\n\n  1\\. PR grande detectado \\(635 linhas alteradas\\)\\. PRs acima de 500 linhas aumentam o risco de bugs\\. Considere dividir em PRs menores ou agendar revisao dedicada\\.\n  2\\. Descricao do PR muito curta ou ausente\\. Uma boa descricao explica o que muda e por que -- nao apenas lista arquivos\\. Isso facilita revisao, rollback e historico do projeto\\.\n\nINFORMACAO \\(1\\):\n\n  1\\. Dados de cobertura nao encontrados\\. Para ativar esta regra, gere coverage-summary\\.json no pipeline antes deste step\\.\n\n------------------------------------------------------------\nStatus final: FALHOU\nRegras verificadas: referencia Jira, aprovadores para arquivos criticos,\ntamanho do PR, cobertura de testes e qualidade da descricao\\.\n------------------------------------------------------------\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/43"
+            },
+            {
+              "method": "GET",
+              "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/43/files"
+            },
+            {
+              "method": "GET",
+              "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/43/reviews"
+            },
+            {
+              "method": "POST",
+              "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/issues/43/comments",
+              "body": {
+                "body": "**Governance Check (Python) -- Resultado**\n\n**FALHAS (2) -- bloqueiam o merge:**\n- FALHA: Card do Jira nao encontrado. O titulo ou a descricao deve conter o identificador do card (ex: ROUTEWISE-123). Isso garante rastreabilidade entre o PR e o trabalho planejado.\n- FALHA: Arquivo critico modificado com aprovadores insuficientes. Este PR toca modulos de integracao ou arquivos sensiveis. Necessario pelo menos 2 aprovadores (atual: 1). Arquivos criticos: src/integrations/gps/tracker-client.js, src/integrations/gps/guard-filter.js, src/api/routes/alerts.js\n\n**AVISOS (2) -- nao bloqueiam:**\n- AVISO: PR grande detectado (635 linhas alteradas). PRs acima de 500 linhas aumentam o risco de bugs. Considere dividir em PRs menores ou agendar revisao dedicada.\n- AVISO: Descricao do PR muito curta ou ausente. Uma boa descricao explica o que muda e por que -- nao apenas lista arquivos. Isso facilita revisao, rollback e historico do projeto.\n\n**Informacoes:**\n- Dados de cobertura nao encontrados. Para ativar esta regra, gere coverage-summary.json no pipeline antes deste step.\n\nStatus final: **FALHOU**"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "the CI check counts deleted critical files, keeps the order of the files API, and rounds the coverage it reports without a base half to even",
+      "program": "danger-config-routewise",
+      "env": {
+        "PR_NUMBER": "45"
+      },
+      "files": {
+        "coverage/coverage-summary.json": {
+          "total": {
+            "lines": {
+              "pct": 79.25
+            }
+          }
+        },
+        "coverage/base-coverage.json": null
+      },
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/45",
+          "synthesized": true,
+          "json": {
+            "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/45",
+            "id": 2500000045,
+            "number": 45,
+            "state": "open",
+            "title": "ROUTEWISE-45: ajusta a configuracao de deploy",
+            "user": {
+              "login": "carlos-ops",
+              "id": 190000045,
+              "type": "User"
+            },
+            "body": "Atualiza o docker-compose para o novo servico de notificacoes, adiciona o exemplo de variaveis de ambiente e remove a migration antiga ja aplicada.",
+            "labels": [],
+            "created_at": "2026-10-27T12:00:00Z",
+            "updated_at": "2026-10-27T12:00:00Z",
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/45",
+            "head": {
+              "ref": "chore/ROUTEWISE-45-deploy",
+              "sha": "d45f2b4c0e6a8d1f5b9c7e4a2d0f6b8c1e5a7d9f",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "draft": false,
+            "merged": false,
+            "commits": 1,
+            "additions": 120,
+            "deletions": 260,
+            "changed_files": 3
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/45/files",
+          "synthesized": true,
+          "json": [
+            {
+              "filename": "docker-compose.yml",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "config/.env.example",
+              "status": "added",
+              "additions": 1,
+              "deletions": 0,
+              "changes": 1
+            },
+            {
+              "filename": "migrations/004_drop_legacy_alerts.sql",
+              "status": "removed",
+              "additions": 0,
+              "deletions": 1,
+              "changes": 1
+            }
+          ]
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/45/reviews",
+          "synthesized": true,
+          "json": [
+            {
+              "id": 3100000450,
+              "user": {
+                "login": "carlos-ops",
+                "id": 180000002,
+                "type": "User"
+              },
+              "body": "",
+              "state": "APPROVED",
+              "submitted_at": "2026-10-27T12:00:00Z",
+              "commit_id": "d45f2b4c0e6a8d1f5b9c7e4a2d0f6b8c1e5a7d9f"
+            },
+            {
+              "id": 3100000451,
+              "user": {
+                "login": "priya-ti",
+                "id": 180000001,
+                "type": "User"
+              },
+              "body": "",
+              "state": "CHANGES_REQUESTED",
+              "submitted_at": "2026-10-27T12:00:00Z",
+              "commit_id": "d45f2b4c0e6a8d1f5b9c7e4a2d0f6b8c1e5a7d9f"
+            }
+          ]
+        },
+        {
+          "method": "POST",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/issues/45/comments",
+          "synthesized": true,
+          "status": 201,
+          "json": {
+            "id": 7100000045,
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/45#issuecomment-7100000045",
+            "user": {
+              "login": "github-actions[bot]",
+              "id": 41898282,
+              "type": "Bot"
+            },
+            "created_at": "2026-10-27T12:00:00Z"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "output",
+          "pattern": "^------------------------------------------------------------\nGOVERNANCE CHECK -- RESULTADO\n------------------------------------------------------------\n\nFALHAS \\(1\\) -- bloqueiam o merge:\n\n  1\\. Arquivo critico modificado com aprovadores insuficientes\\. Este PR toca modulos de integracao ou arquivos sensiveis\\. Necessario pelo menos 2 aprovadores \\(atual: 1\\)\\. Arquivos criticos: docker-compose\\.yml, config/\\.env\\.example, migrations/004_drop_legacy_alerts\\.sql\n\nINFORMACAO \\(1\\):\n\n  1\\. Cobertura atual: 79\\.2%\\. Cobertura base nao disponivel -- comparacao nao realizada\\.\n\n------------------------------------------------------------\nStatus final: FALHOU\nRegras verificadas: referencia Jira, aprovadores para arquivos criticos,\ntamanho do PR, cobertura de testes e qualidade da descricao\\.\n------------------------------------------------------------\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/45"
+            },
+            {
+              "method": "GET",
+              "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/45/files"
+            },
+            {
+              "method": "GET",
+              "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/45/reviews"
+            },
+            {
+              "method": "POST",
+              "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/issues/45/comments",
+              "body": {
+                "body": "**Governance Check (Python) -- Resultado**\n\n**FALHAS (1) -- bloqueiam o merge:**\n- FALHA: Arquivo critico modificado com aprovadores insuficientes. Este PR toca modulos de integracao ou arquivos sensiveis. Necessario pelo menos 2 aprovadores (atual: 1). Arquivos criticos: docker-compose.yml, config/.env.example, migrations/004_drop_legacy_alerts.sql\n\n**Informacoes:**\n- Cobertura atual: 79.2%. Cobertura base nao disponivel -- comparacao nao realizada.\n\nStatus final: **FALHOU**"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "the CI check stops with an error, without commenting, when the pull request does not exist",
+      "program": "danger-config-routewise",
+      "env": {
+        "PR_NUMBER": "99"
+      },
+      "files": {
+        "coverage/coverage-summary.json": null,
+        "coverage/base-coverage.json": null
+      },
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/99",
+          "synthesized": true,
+          "status": 404,
+          "json": {
+            "message": "Not Found",
+            "documentation_url": "https://docs.github.com/rest/pulls/pulls#get-a-pull-request",
+            "status": "404"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "output",
+          "pattern": "^$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/99"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "the Dangerfile passes a pull request that references its card, has two approvals for its critical files, and keeps coverage within five points",
+      "program": "danger-config-template",
+      "env": {
+        "GITHUB_EVENT_PATH": "github-event.json"
+      },
+      "files": {
+        "github-event.json": {
+          "action": "opened",
+          "number": 42,
+          "pull_request": {
+            "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/42",
+            "id": 2500000042,
+            "number": 42,
+            "state": "open",
+            "title": "ROUTEWISE-42: módulo de alertas de velocidade - integração GPS em produção",
+            "user": {
+              "login": "marcus-dev",
+              "id": 190000042,
+              "type": "User"
+            },
+            "body": "Implementa o módulo de Alertas de Velocidade em tempo real para a release inicial do RouteWise.\n\nModifica a integração com a API de GPS (src/integrations/gps) para ingestão contínua de dados dos 97 rastreadores ativos. O BUG-S4-10 (43 rastreadores v1 sem suporte ao guard de hardware) está isolado: a falha não afeta a API dos 97 funcionais.\n\nTestado em staging com carga de 97 conexões simultâneas.\n\nRelacionado: ROUTEWISE-40 (LGPD - consentimento motoristas), ROUTEWISE-41 (runbook de rollback).",
+            "labels": [],
+            "created_at": "2026-10-27T12:00:00Z",
+            "updated_at": "2026-10-27T12:00:00Z",
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/42",
+            "head": {
+              "ref": "feat/ROUTEWISE-42-alertas-de-velocidade",
+              "sha": "a42c9e1f7b3d5a8c2e6f4b1d9a7c3e5f8b2d4a6c",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "draft": false,
+            "merged": false,
+            "commits": 1,
+            "additions": 312,
+            "deletions": 47,
+            "changed_files": 7
+          },
+          "repository": {
+            "id": 1029384756,
+            "name": "routewise-danger-demo",
+            "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+            "owner": {
+              "login": "unipds-engenharia-de-ia-aplicada",
+              "id": 228173645,
+              "type": "Organization"
+            },
+            "private": false,
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+            "default_branch": "main"
+          },
+          "sender": {
+            "login": "marcus-dev",
+            "id": 190000042,
+            "type": "User"
+          }
+        },
+        "coverage/coverage-summary.json": {
+          "total": {
+            "lines": {
+              "pct": 81.4
+            }
+          }
+        },
+        "coverage/base-coverage.json": {
+          "total": {
+            "lines": {
+              "pct": 83.1
+            }
+          }
+        }
+      },
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/42",
+          "synthesized": true,
+          "matchHeaders": {
+            "accept": "diff"
+          },
+          "headers": {
+            "content-type": "text/plain; charset=utf-8"
+          },
+          "text": "diff --git a/src/integrations/gps/tracker-client.js b/src/integrations/gps/tracker-client.js\nindex 3f2a1c4..8b7e6d5 100644\n--- a/src/integrations/gps/tracker-client.js\n+++ b/src/integrations/gps/tracker-client.js\n@@ -1 +1,2 @@\n line\n+change\ndiff --git a/src/integrations/gps/guard-filter.js b/src/integrations/gps/guard-filter.js\nindex 3f2a1c4..8b7e6d5 100644\n--- a/src/integrations/gps/guard-filter.js\n+++ b/src/integrations/gps/guard-filter.js\n@@ -1 +1,2 @@\n line\n+change\ndiff --git a/src/services/notifications/push-service.js b/src/services/notifications/push-service.js\nindex 3f2a1c4..8b7e6d5 100644\n--- a/src/services/notifications/push-service.js\n+++ b/src/services/notifications/push-service.js\n@@ -1 +1,2 @@\n line\n+change\ndiff --git a/src/api/routes/alerts.js b/src/api/routes/alerts.js\nindex 3f2a1c4..8b7e6d5 100644\n--- a/src/api/routes/alerts.js\n+++ b/src/api/routes/alerts.js\n@@ -1 +1,2 @@\n line\n+change\ndiff --git a/tests/integrations/gps.test.js b/tests/integrations/gps.test.js\nindex 3f2a1c4..8b7e6d5 100644\n--- a/tests/integrations/gps.test.js\n+++ b/tests/integrations/gps.test.js\n@@ -1 +1,2 @@\n line\n+change\ndiff --git a/tests/services/push.test.js b/tests/services/push.test.js\nindex 3f2a1c4..8b7e6d5 100644\n--- a/tests/services/push.test.js\n+++ b/tests/services/push.test.js\n@@ -1 +1,2 @@\n line\n+change\ndiff --git a/CHANGELOG.md b/CHANGELOG.md\nindex 3f2a1c4..8b7e6d5 100644\n--- a/CHANGELOG.md\n+++ b/CHANGELOG.md\n@@ -1 +1,2 @@\n line\n+change\n",
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/42",
+          "synthesized": true,
+          "json": {
+            "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/42",
+            "id": 2500000042,
+            "number": 42,
+            "state": "open",
+            "title": "ROUTEWISE-42: módulo de alertas de velocidade - integração GPS em produção",
+            "user": {
+              "login": "marcus-dev",
+              "id": 190000042,
+              "type": "User"
+            },
+            "body": "Implementa o módulo de Alertas de Velocidade em tempo real para a release inicial do RouteWise.\n\nModifica a integração com a API de GPS (src/integrations/gps) para ingestão contínua de dados dos 97 rastreadores ativos. O BUG-S4-10 (43 rastreadores v1 sem suporte ao guard de hardware) está isolado: a falha não afeta a API dos 97 funcionais.\n\nTestado em staging com carga de 97 conexões simultâneas.\n\nRelacionado: ROUTEWISE-40 (LGPD - consentimento motoristas), ROUTEWISE-41 (runbook de rollback).",
+            "labels": [],
+            "created_at": "2026-10-27T12:00:00Z",
+            "updated_at": "2026-10-27T12:00:00Z",
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/42",
+            "head": {
+              "ref": "feat/ROUTEWISE-42-alertas-de-velocidade",
+              "sha": "a42c9e1f7b3d5a8c2e6f4b1d9a7c3e5f8b2d4a6c",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "draft": false,
+            "merged": false,
+            "commits": 1,
+            "additions": 312,
+            "deletions": 47,
+            "changed_files": 7
+          },
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/42/files",
+          "synthesized": true,
+          "json": [
+            {
+              "filename": "src/integrations/gps/tracker-client.js",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "src/integrations/gps/guard-filter.js",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "src/services/notifications/push-service.js",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "src/api/routes/alerts.js",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "tests/integrations/gps.test.js",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "tests/services/push.test.js",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "CHANGELOG.md",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            }
+          ],
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/42/reviews",
+          "synthesized": true,
+          "json": [
+            {
+              "id": 3100000420,
+              "user": {
+                "login": "priya-ti",
+                "id": 180000001,
+                "type": "User"
+              },
+              "body": "",
+              "state": "APPROVED",
+              "submitted_at": "2026-10-27T12:00:00Z",
+              "commit_id": "a42c9e1f7b3d5a8c2e6f4b1d9a7c3e5f8b2d4a6c"
+            },
+            {
+              "id": 3100000421,
+              "user": {
+                "login": "carlos-ops",
+                "id": 180000002,
+                "type": "User"
+              },
+              "body": "",
+              "state": "APPROVED",
+              "submitted_at": "2026-10-27T12:00:00Z",
+              "commit_id": "a42c9e1f7b3d5a8c2e6f4b1d9a7c3e5f8b2d4a6c"
+            }
+          ],
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/42/commits",
+          "synthesized": true,
+          "json": [
+            {
+              "sha": "a42c9e1f7b3d5a8c2e6f4b1d9a7c3e5f8b2d4a6c",
+              "commit": {
+                "author": {
+                  "name": "marcus-dev",
+                  "email": "marcus-dev@users.noreply.github.com",
+                  "date": "2026-10-27T12:00:00Z"
+                },
+                "committer": {
+                  "name": "marcus-dev",
+                  "email": "marcus-dev@users.noreply.github.com",
+                  "date": "2026-10-27T12:00:00Z"
+                },
+                "message": "ROUTEWISE-42: módulo de alertas de velocidade - integração GPS em produção",
+                "tree": {
+                  "sha": "c6a4d2b8f5e3c7a9d1b4f6e2c8a5d3b7f1e9c24a"
+                }
+              },
+              "author": {
+                "login": "marcus-dev",
+                "id": 190000042,
+                "type": "User"
+              },
+              "committer": {
+                "login": "marcus-dev",
+                "id": 190000042,
+                "type": "User"
+              },
+              "parents": [
+                {
+                  "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c"
+                }
+              ]
+            }
+          ],
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/42/requested_reviewers",
+          "synthesized": true,
+          "json": {
+            "users": [],
+            "teams": []
+          },
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/issues/42",
+          "synthesized": true,
+          "json": {
+            "number": 42,
+            "title": "ROUTEWISE-42: módulo de alertas de velocidade - integração GPS em produção",
+            "user": {
+              "login": "marcus-dev",
+              "id": 190000042,
+              "type": "User"
+            },
+            "labels": [],
+            "state": "open",
+            "body": "Implementa o módulo de Alertas de Velocidade em tempo real para a release inicial do RouteWise.\n\nModifica a integração com a API de GPS (src/integrations/gps) para ingestão contínua de dados dos 97 rastreadores ativos. O BUG-S4-10 (43 rastreadores v1 sem suporte ao guard de hardware) está isolado: a falha não afeta a API dos 97 funcionais.\n\nTestado em staging com carga de 97 conexões simultâneas.\n\nRelacionado: ROUTEWISE-40 (LGPD - consentimento motoristas), ROUTEWISE-41 (runbook de rollback).",
+            "pull_request": {
+              "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/42",
+              "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/42"
+            }
+          },
+          "incidental": true
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^\\s*Danger: [^\\n]*\\n## Messages\\nArquivo critico com 2 aprovadores -- requisito de revisao atendido\\.\\n-\\nCobertura de testes: 81\\.4% -- dentro do limite aceitavel\\.\\n-\\nDanger check concluido\\. Regras verificadas: referencia Jira, aprovadores para arquivos criticos, tamanho do PR, cobertura de testes e qualidade da descricao\\. Itens marcados como falha bloqueiam o merge\\. Avisos nao bloqueiam\\.\\n\\s*$"
+        }
+      ]
+    },
+    {
+      "name": "the Dangerfile fails a pull request without a card and with one approval for critical files, and warns about its size, its coverage drop, and its short description",
+      "program": "danger-config-template",
+      "env": {
+        "GITHUB_EVENT_PATH": "github-event.json"
+      },
+      "files": {
+        "github-event.json": {
+          "action": "opened",
+          "number": 43,
+          "pull_request": {
+            "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/43",
+            "id": 2500000043,
+            "number": 43,
+            "state": "open",
+            "title": "fix: corrige bug de conexao GPS",
+            "user": {
+              "login": "dev-junior",
+              "id": 190000043,
+              "type": "User"
+            },
+            "body": "corrigido",
+            "labels": [],
+            "created_at": "2026-10-27T12:00:00Z",
+            "updated_at": "2026-10-27T12:00:00Z",
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/43",
+            "head": {
+              "ref": "fix/corrige-bug-conexao",
+              "sha": "b43d0f2a8c4e6b9d3f7a5c2e0b8d4f6a9c3e5b7d",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "draft": false,
+            "merged": false,
+            "commits": 1,
+            "additions": 620,
+            "deletions": 15,
+            "changed_files": 3
+          },
+          "repository": {
+            "id": 1029384756,
+            "name": "routewise-danger-demo",
+            "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+            "owner": {
+              "login": "unipds-engenharia-de-ia-aplicada",
+              "id": 228173645,
+              "type": "Organization"
+            },
+            "private": false,
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+            "default_branch": "main"
+          },
+          "sender": {
+            "login": "dev-junior",
+            "id": 190000043,
+            "type": "User"
+          }
+        },
+        "coverage/coverage-summary.json": {
+          "total": {
+            "lines": {
+              "pct": 72
+            }
+          }
+        },
+        "coverage/base-coverage.json": {
+          "total": {
+            "lines": {
+              "pct": 83.1
+            }
+          }
+        }
+      },
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/43",
+          "synthesized": true,
+          "matchHeaders": {
+            "accept": "diff"
+          },
+          "headers": {
+            "content-type": "text/plain; charset=utf-8"
+          },
+          "text": "diff --git a/src/integrations/gps/tracker-client.js b/src/integrations/gps/tracker-client.js\nindex 3f2a1c4..8b7e6d5 100644\n--- a/src/integrations/gps/tracker-client.js\n+++ b/src/integrations/gps/tracker-client.js\n@@ -1 +1,2 @@\n line\n+change\ndiff --git a/src/integrations/gps/guard-filter.js b/src/integrations/gps/guard-filter.js\nindex 3f2a1c4..8b7e6d5 100644\n--- a/src/integrations/gps/guard-filter.js\n+++ b/src/integrations/gps/guard-filter.js\n@@ -1 +1,2 @@\n line\n+change\ndiff --git a/src/api/routes/alerts.js b/src/api/routes/alerts.js\nindex 3f2a1c4..8b7e6d5 100644\n--- a/src/api/routes/alerts.js\n+++ b/src/api/routes/alerts.js\n@@ -1 +1,2 @@\n line\n+change\n",
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/43",
+          "synthesized": true,
+          "json": {
+            "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/43",
+            "id": 2500000043,
+            "number": 43,
+            "state": "open",
+            "title": "fix: corrige bug de conexao GPS",
+            "user": {
+              "login": "dev-junior",
+              "id": 190000043,
+              "type": "User"
+            },
+            "body": "corrigido",
+            "labels": [],
+            "created_at": "2026-10-27T12:00:00Z",
+            "updated_at": "2026-10-27T12:00:00Z",
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/43",
+            "head": {
+              "ref": "fix/corrige-bug-conexao",
+              "sha": "b43d0f2a8c4e6b9d3f7a5c2e0b8d4f6a9c3e5b7d",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "draft": false,
+            "merged": false,
+            "commits": 1,
+            "additions": 620,
+            "deletions": 15,
+            "changed_files": 3
+          },
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/43/files",
+          "synthesized": true,
+          "json": [
+            {
+              "filename": "src/integrations/gps/tracker-client.js",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "src/integrations/gps/guard-filter.js",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "src/api/routes/alerts.js",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            }
+          ],
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/43/reviews",
+          "synthesized": true,
+          "json": [
+            {
+              "id": 3100000430,
+              "user": {
+                "login": "dev-junior",
+                "id": 180000003,
+                "type": "User"
+              },
+              "body": "",
+              "state": "APPROVED",
+              "submitted_at": "2026-10-27T12:00:00Z",
+              "commit_id": "b43d0f2a8c4e6b9d3f7a5c2e0b8d4f6a9c3e5b7d"
+            }
+          ],
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/43/commits",
+          "synthesized": true,
+          "json": [
+            {
+              "sha": "b43d0f2a8c4e6b9d3f7a5c2e0b8d4f6a9c3e5b7d",
+              "commit": {
+                "author": {
+                  "name": "dev-junior",
+                  "email": "dev-junior@users.noreply.github.com",
+                  "date": "2026-10-27T12:00:00Z"
+                },
+                "committer": {
+                  "name": "dev-junior",
+                  "email": "dev-junior@users.noreply.github.com",
+                  "date": "2026-10-27T12:00:00Z"
+                },
+                "message": "fix: corrige bug de conexao GPS",
+                "tree": {
+                  "sha": "d7b5e3c9a6f4d8b0e2c5a7f3d9b6e4c8a2f0d34b"
+                }
+              },
+              "author": {
+                "login": "dev-junior",
+                "id": 190000043,
+                "type": "User"
+              },
+              "committer": {
+                "login": "dev-junior",
+                "id": 190000043,
+                "type": "User"
+              },
+              "parents": [
+                {
+                  "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c"
+                }
+              ]
+            }
+          ],
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/43/requested_reviewers",
+          "synthesized": true,
+          "json": {
+            "users": [],
+            "teams": []
+          },
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/issues/43",
+          "synthesized": true,
+          "json": {
+            "number": 43,
+            "title": "fix: corrige bug de conexao GPS",
+            "user": {
+              "login": "dev-junior",
+              "id": 190000043,
+              "type": "User"
+            },
+            "labels": [],
+            "state": "open",
+            "body": "corrigido",
+            "pull_request": {
+              "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/43",
+              "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/43"
+            }
+          },
+          "incidental": true
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "output",
+          "pattern": "^\\s*Danger: [^\\n]*\\n## Failures\\nCard do Jira nao encontrado\\. O titulo ou a descricao do PR deve conter o identificador do card \\(ex: `ROUTEWISE-123`\\)\\. Isso garante rastreabilidade entre o PR e o trabalho planejado\\.\\n-\\nArquivo critico modificado com aprovadores insuficientes\\. Este PR toca modulos de integracao ou arquivos sensiveis\\. Necessario pelo menos 2 aprovadores \\(atual: 1\\)\\. Arquivos criticos detectados: src/integrations/gps/tracker-client\\.js, src/integrations/gps/guard-filter\\.js, src/api/routes/alerts\\.js\\n## Warnings\\nPR grande detectado \\(635 linhas alteradas\\)\\. PRs acima de 500 linhas aumentam o risco de bugs passarem despercebidos\\. Considere dividir em PRs menores ou agendar uma sessao de revisao dedicada\\.\\n-\\nCobertura de testes caiu 11\\.1 pontos \\(de 83\\.1% para 72\\.0%\\)\\. Queda acima de 5% indica codigo novo sem cobertura\\. Adicione testes ou justifique na descricao do PR\\.\\n-\\nDescricao do PR muito curta ou ausente\\. Uma boa descricao explica o que muda e por que -- nao apenas lista arquivos alterados\\. Isso facilita revisao, facilita rollback e fica no historico do projeto\\.\\n## Messages\\nDanger check concluido\\. Regras verificadas: referencia Jira, aprovadores para arquivos criticos, tamanho do PR, cobertura de testes e qualidade da descricao\\. Itens marcados como falha bloqueiam o merge\\. Avisos nao bloqueiam\\.\\n\\s*$"
+        }
+      ]
+    },
+    {
+      "name": "the Dangerfile finds the card in the description in any case, ignores reviews that are not approvals when no critical file changed, accepts exactly 500 lines, and reports missing coverage",
+      "program": "danger-config-template",
+      "env": {
+        "GITHUB_EVENT_PATH": "github-event.json"
+      },
+      "files": {
+        "github-event.json": {
+          "action": "opened",
+          "number": 44,
+          "pull_request": {
+            "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/44",
+            "id": 2500000044,
+            "number": 44,
+            "state": "open",
+            "title": "docs: atualiza o changelog da release",
+            "user": {
+              "login": "marcus-dev",
+              "id": 190000044,
+              "type": "User"
+            },
+            "body": "Atualiza o CHANGELOG com as notas de rollback da release (routewise-44).",
+            "labels": [],
+            "created_at": "2026-10-27T12:00:00Z",
+            "updated_at": "2026-10-27T12:00:00Z",
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/44",
+            "head": {
+              "ref": "docs/changelog-release",
+              "sha": "c44e1a3b9d5f7c0e4a8b6d3f1c9e5a7b0d4f6c8e",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "draft": false,
+            "merged": false,
+            "commits": 1,
+            "additions": 450,
+            "deletions": 50,
+            "changed_files": 2
+          },
+          "repository": {
+            "id": 1029384756,
+            "name": "routewise-danger-demo",
+            "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+            "owner": {
+              "login": "unipds-engenharia-de-ia-aplicada",
+              "id": 228173645,
+              "type": "Organization"
+            },
+            "private": false,
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+            "default_branch": "main"
+          },
+          "sender": {
+            "login": "marcus-dev",
+            "id": 190000044,
+            "type": "User"
+          }
+        },
+        "coverage/coverage-summary.json": null,
+        "coverage/base-coverage.json": null
+      },
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/44",
+          "synthesized": true,
+          "matchHeaders": {
+            "accept": "diff"
+          },
+          "headers": {
+            "content-type": "text/plain; charset=utf-8"
+          },
+          "text": "diff --git a/CHANGELOG.md b/CHANGELOG.md\nindex 3f2a1c4..8b7e6d5 100644\n--- a/CHANGELOG.md\n+++ b/CHANGELOG.md\n@@ -1 +1,2 @@\n line\n+change\ndiff --git a/docs/rollback.md b/docs/rollback.md\nnew file mode 100644\nindex 0000000..8b7e6d5\n--- /dev/null\n+++ b/docs/rollback.md\n@@ -0,0 +1 @@\n+change\n",
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/44",
+          "synthesized": true,
+          "json": {
+            "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/44",
+            "id": 2500000044,
+            "number": 44,
+            "state": "open",
+            "title": "docs: atualiza o changelog da release",
+            "user": {
+              "login": "marcus-dev",
+              "id": 190000044,
+              "type": "User"
+            },
+            "body": "Atualiza o CHANGELOG com as notas de rollback da release (routewise-44).",
+            "labels": [],
+            "created_at": "2026-10-27T12:00:00Z",
+            "updated_at": "2026-10-27T12:00:00Z",
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/44",
+            "head": {
+              "ref": "docs/changelog-release",
+              "sha": "c44e1a3b9d5f7c0e4a8b6d3f1c9e5a7b0d4f6c8e",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "draft": false,
+            "merged": false,
+            "commits": 1,
+            "additions": 450,
+            "deletions": 50,
+            "changed_files": 2
+          },
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/44/files",
+          "synthesized": true,
+          "json": [
+            {
+              "filename": "CHANGELOG.md",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "docs/rollback.md",
+              "status": "added",
+              "additions": 1,
+              "deletions": 0,
+              "changes": 1
+            }
+          ],
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/44/reviews",
+          "synthesized": true,
+          "json": [
+            {
+              "id": 3100000440,
+              "user": {
+                "login": "priya-ti",
+                "id": 180000001,
+                "type": "User"
+              },
+              "body": "",
+              "state": "CHANGES_REQUESTED",
+              "submitted_at": "2026-10-27T12:00:00Z",
+              "commit_id": "c44e1a3b9d5f7c0e4a8b6d3f1c9e5a7b0d4f6c8e"
+            },
+            {
+              "id": 3100000441,
+              "user": {
+                "login": "carlos-ops",
+                "id": 180000002,
+                "type": "User"
+              },
+              "body": "",
+              "state": "COMMENTED",
+              "submitted_at": "2026-10-27T12:00:00Z",
+              "commit_id": "c44e1a3b9d5f7c0e4a8b6d3f1c9e5a7b0d4f6c8e"
+            }
+          ],
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/44/commits",
+          "synthesized": true,
+          "json": [
+            {
+              "sha": "c44e1a3b9d5f7c0e4a8b6d3f1c9e5a7b0d4f6c8e",
+              "commit": {
+                "author": {
+                  "name": "marcus-dev",
+                  "email": "marcus-dev@users.noreply.github.com",
+                  "date": "2026-10-27T12:00:00Z"
+                },
+                "committer": {
+                  "name": "marcus-dev",
+                  "email": "marcus-dev@users.noreply.github.com",
+                  "date": "2026-10-27T12:00:00Z"
+                },
+                "message": "docs: atualiza o changelog da release",
+                "tree": {
+                  "sha": "e8c6f4d0b7a5e9c1f3d6b8a4e0c7f5d9b3a1e44c"
+                }
+              },
+              "author": {
+                "login": "marcus-dev",
+                "id": 190000044,
+                "type": "User"
+              },
+              "committer": {
+                "login": "marcus-dev",
+                "id": 190000044,
+                "type": "User"
+              },
+              "parents": [
+                {
+                  "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c"
+                }
+              ]
+            }
+          ],
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/44/requested_reviewers",
+          "synthesized": true,
+          "json": {
+            "users": [],
+            "teams": []
+          },
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/issues/44",
+          "synthesized": true,
+          "json": {
+            "number": 44,
+            "title": "docs: atualiza o changelog da release",
+            "user": {
+              "login": "marcus-dev",
+              "id": 190000044,
+              "type": "User"
+            },
+            "labels": [],
+            "state": "open",
+            "body": "Atualiza o CHANGELOG com as notas de rollback da release (routewise-44).",
+            "pull_request": {
+              "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/44",
+              "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/44"
+            }
+          },
+          "incidental": true
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^\\s*Danger: [^\\n]*\\n## Messages\\nArquivo de cobertura nao encontrado em \\./coverage/coverage-summary\\.json\\. Para ativar esta regra: configure Jest com --coverage --coverageReporters=json-summary\\.\\n-\\nDanger check concluido\\. Regras verificadas: referencia Jira, aprovadores para arquivos criticos, tamanho do PR, cobertura de testes e qualidade da descricao\\. Itens marcados como falha bloqueiam o merge\\. Avisos nao bloqueiam\\.\\n\\s*$"
+        }
+      ]
+    },
+    {
+      "name": "the Dangerfile lists created critical files before modified ones, ignores deleted files, and rounds the coverage it reports without a base half up, as toFixed does",
+      "program": "danger-config-template",
+      "env": {
+        "GITHUB_EVENT_PATH": "github-event.json"
+      },
+      "files": {
+        "github-event.json": {
+          "action": "opened",
+          "number": 45,
+          "pull_request": {
+            "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/45",
+            "id": 2500000045,
+            "number": 45,
+            "state": "open",
+            "title": "ROUTEWISE-45: ajusta a configuracao de deploy",
+            "user": {
+              "login": "carlos-ops",
+              "id": 190000045,
+              "type": "User"
+            },
+            "body": "Atualiza o docker-compose para o novo servico de notificacoes, adiciona o exemplo de variaveis de ambiente e remove a migration antiga ja aplicada.",
+            "labels": [],
+            "created_at": "2026-10-27T12:00:00Z",
+            "updated_at": "2026-10-27T12:00:00Z",
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/45",
+            "head": {
+              "ref": "chore/ROUTEWISE-45-deploy",
+              "sha": "d45f2b4c0e6a8d1f5b9c7e4a2d0f6b8c1e5a7d9f",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "draft": false,
+            "merged": false,
+            "commits": 1,
+            "additions": 120,
+            "deletions": 260,
+            "changed_files": 3
+          },
+          "repository": {
+            "id": 1029384756,
+            "name": "routewise-danger-demo",
+            "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+            "owner": {
+              "login": "unipds-engenharia-de-ia-aplicada",
+              "id": 228173645,
+              "type": "Organization"
+            },
+            "private": false,
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+            "default_branch": "main"
+          },
+          "sender": {
+            "login": "carlos-ops",
+            "id": 190000045,
+            "type": "User"
+          }
+        },
+        "coverage/coverage-summary.json": {
+          "total": {
+            "lines": {
+              "pct": 79.25
+            }
+          }
+        },
+        "coverage/base-coverage.json": null
+      },
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/45",
+          "synthesized": true,
+          "matchHeaders": {
+            "accept": "diff"
+          },
+          "headers": {
+            "content-type": "text/plain; charset=utf-8"
+          },
+          "text": "diff --git a/docker-compose.yml b/docker-compose.yml\nindex 3f2a1c4..8b7e6d5 100644\n--- a/docker-compose.yml\n+++ b/docker-compose.yml\n@@ -1 +1,2 @@\n line\n+change\ndiff --git a/config/.env.example b/config/.env.example\nnew file mode 100644\nindex 0000000..8b7e6d5\n--- /dev/null\n+++ b/config/.env.example\n@@ -0,0 +1 @@\n+change\ndiff --git a/migrations/004_drop_legacy_alerts.sql b/migrations/004_drop_legacy_alerts.sql\ndeleted file mode 100644\nindex 3f2a1c4..0000000\n--- a/migrations/004_drop_legacy_alerts.sql\n+++ /dev/null\n@@ -1 +0,0 @@\n-line\n",
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/45",
+          "synthesized": true,
+          "json": {
+            "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/45",
+            "id": 2500000045,
+            "number": 45,
+            "state": "open",
+            "title": "ROUTEWISE-45: ajusta a configuracao de deploy",
+            "user": {
+              "login": "carlos-ops",
+              "id": 190000045,
+              "type": "User"
+            },
+            "body": "Atualiza o docker-compose para o novo servico de notificacoes, adiciona o exemplo de variaveis de ambiente e remove a migration antiga ja aplicada.",
+            "labels": [],
+            "created_at": "2026-10-27T12:00:00Z",
+            "updated_at": "2026-10-27T12:00:00Z",
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/45",
+            "head": {
+              "ref": "chore/ROUTEWISE-45-deploy",
+              "sha": "d45f2b4c0e6a8d1f5b9c7e4a2d0f6b8c1e5a7d9f",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "draft": false,
+            "merged": false,
+            "commits": 1,
+            "additions": 120,
+            "deletions": 260,
+            "changed_files": 3
+          },
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/45/files",
+          "synthesized": true,
+          "json": [
+            {
+              "filename": "docker-compose.yml",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "config/.env.example",
+              "status": "added",
+              "additions": 1,
+              "deletions": 0,
+              "changes": 1
+            },
+            {
+              "filename": "migrations/004_drop_legacy_alerts.sql",
+              "status": "removed",
+              "additions": 0,
+              "deletions": 1,
+              "changes": 1
+            }
+          ],
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/45/reviews",
+          "synthesized": true,
+          "json": [
+            {
+              "id": 3100000450,
+              "user": {
+                "login": "carlos-ops",
+                "id": 180000002,
+                "type": "User"
+              },
+              "body": "",
+              "state": "APPROVED",
+              "submitted_at": "2026-10-27T12:00:00Z",
+              "commit_id": "d45f2b4c0e6a8d1f5b9c7e4a2d0f6b8c1e5a7d9f"
+            },
+            {
+              "id": 3100000451,
+              "user": {
+                "login": "priya-ti",
+                "id": 180000001,
+                "type": "User"
+              },
+              "body": "",
+              "state": "CHANGES_REQUESTED",
+              "submitted_at": "2026-10-27T12:00:00Z",
+              "commit_id": "d45f2b4c0e6a8d1f5b9c7e4a2d0f6b8c1e5a7d9f"
+            }
+          ],
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/45/commits",
+          "synthesized": true,
+          "json": [
+            {
+              "sha": "d45f2b4c0e6a8d1f5b9c7e4a2d0f6b8c1e5a7d9f",
+              "commit": {
+                "author": {
+                  "name": "carlos-ops",
+                  "email": "carlos-ops@users.noreply.github.com",
+                  "date": "2026-10-27T12:00:00Z"
+                },
+                "committer": {
+                  "name": "carlos-ops",
+                  "email": "carlos-ops@users.noreply.github.com",
+                  "date": "2026-10-27T12:00:00Z"
+                },
+                "message": "ROUTEWISE-45: ajusta a configuracao de deploy",
+                "tree": {
+                  "sha": "f9d7a5e1c8b6f0d2a4e7c9b5f1d8a6e0c4b2f54d"
+                }
+              },
+              "author": {
+                "login": "carlos-ops",
+                "id": 190000045,
+                "type": "User"
+              },
+              "committer": {
+                "login": "carlos-ops",
+                "id": 190000045,
+                "type": "User"
+              },
+              "parents": [
+                {
+                  "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c"
+                }
+              ]
+            }
+          ],
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/45/requested_reviewers",
+          "synthesized": true,
+          "json": {
+            "users": [],
+            "teams": []
+          },
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/issues/45",
+          "synthesized": true,
+          "json": {
+            "number": 45,
+            "title": "ROUTEWISE-45: ajusta a configuracao de deploy",
+            "user": {
+              "login": "carlos-ops",
+              "id": 190000045,
+              "type": "User"
+            },
+            "labels": [],
+            "state": "open",
+            "body": "Atualiza o docker-compose para o novo servico de notificacoes, adiciona o exemplo de variaveis de ambiente e remove a migration antiga ja aplicada.",
+            "pull_request": {
+              "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/45",
+              "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/45"
+            }
+          },
+          "incidental": true
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "output",
+          "pattern": "^\\s*Danger: [^\\n]*\\n## Failures\\nArquivo critico modificado com aprovadores insuficientes\\. Este PR toca modulos de integracao ou arquivos sensiveis\\. Necessario pelo menos 2 aprovadores \\(atual: 1\\)\\. Arquivos criticos detectados: config/\\.env\\.example, docker-compose\\.yml\\n## Messages\\nCobertura atual: 79\\.3%\\. Arquivo de cobertura base nao encontrado -- comparacao nao realizada\\.\\n-\\nDanger check concluido\\. Regras verificadas: referencia Jira, aprovadores para arquivos criticos, tamanho do PR, cobertura de testes e qualidade da descricao\\. Itens marcados como falha bloqueiam o merge\\. Avisos nao bloqueiam\\.\\n\\s*$"
+        }
+      ]
+    },
+    {
+      "name": "the Dangerfile warns when the coverage file cannot be read and when the description is missing, without failing",
+      "program": "danger-config-template",
+      "env": {
+        "GITHUB_EVENT_PATH": "github-event.json"
+      },
+      "files": {
+        "github-event.json": {
+          "action": "opened",
+          "number": 46,
+          "pull_request": {
+            "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/46",
+            "id": 2500000046,
+            "number": 46,
+            "state": "open",
+            "title": "ROUTEWISE-46: corrige o calculo de velocidade media",
+            "user": {
+              "login": "marcus-dev",
+              "id": 190000046,
+              "type": "User"
+            },
+            "body": null,
+            "labels": [],
+            "created_at": "2026-10-27T12:00:00Z",
+            "updated_at": "2026-10-27T12:00:00Z",
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/46",
+            "head": {
+              "ref": "fix/ROUTEWISE-46-velocidade-media",
+              "sha": "e46a3c5d1f7b9e2a6c0d8f5b3e1a7c9d2f6b8e0a",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "draft": false,
+            "merged": false,
+            "commits": 1,
+            "additions": 40,
+            "deletions": 12,
+            "changed_files": 1
+          },
+          "repository": {
+            "id": 1029384756,
+            "name": "routewise-danger-demo",
+            "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+            "owner": {
+              "login": "unipds-engenharia-de-ia-aplicada",
+              "id": 228173645,
+              "type": "Organization"
+            },
+            "private": false,
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+            "default_branch": "main"
+          },
+          "sender": {
+            "login": "marcus-dev",
+            "id": 190000046,
+            "type": "User"
+          }
+        },
+        "coverage/coverage-summary.json": "{\"total\": {\"lines\": ",
+        "coverage/base-coverage.json": {
+          "total": {
+            "lines": {
+              "pct": 83.1
+            }
+          }
+        }
+      },
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/46",
+          "synthesized": true,
+          "matchHeaders": {
+            "accept": "diff"
+          },
+          "headers": {
+            "content-type": "text/plain; charset=utf-8"
+          },
+          "text": "diff --git a/src/services/speed/average.js b/src/services/speed/average.js\nindex 3f2a1c4..8b7e6d5 100644\n--- a/src/services/speed/average.js\n+++ b/src/services/speed/average.js\n@@ -1 +1,2 @@\n line\n+change\n",
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/46",
+          "synthesized": true,
+          "json": {
+            "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/46",
+            "id": 2500000046,
+            "number": 46,
+            "state": "open",
+            "title": "ROUTEWISE-46: corrige o calculo de velocidade media",
+            "user": {
+              "login": "marcus-dev",
+              "id": 190000046,
+              "type": "User"
+            },
+            "body": null,
+            "labels": [],
+            "created_at": "2026-10-27T12:00:00Z",
+            "updated_at": "2026-10-27T12:00:00Z",
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/46",
+            "head": {
+              "ref": "fix/ROUTEWISE-46-velocidade-media",
+              "sha": "e46a3c5d1f7b9e2a6c0d8f5b3e1a7c9d2f6b8e0a",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "draft": false,
+            "merged": false,
+            "commits": 1,
+            "additions": 40,
+            "deletions": 12,
+            "changed_files": 1
+          },
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/46/files",
+          "synthesized": true,
+          "json": [
+            {
+              "filename": "src/services/speed/average.js",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            }
+          ],
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/46/reviews",
+          "synthesized": true,
+          "json": [],
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/46/commits",
+          "synthesized": true,
+          "json": [
+            {
+              "sha": "e46a3c5d1f7b9e2a6c0d8f5b3e1a7c9d2f6b8e0a",
+              "commit": {
+                "author": {
+                  "name": "marcus-dev",
+                  "email": "marcus-dev@users.noreply.github.com",
+                  "date": "2026-10-27T12:00:00Z"
+                },
+                "committer": {
+                  "name": "marcus-dev",
+                  "email": "marcus-dev@users.noreply.github.com",
+                  "date": "2026-10-27T12:00:00Z"
+                },
+                "message": "ROUTEWISE-46: corrige o calculo de velocidade media",
+                "tree": {
+                  "sha": "a0e8b6f2d9c7a1e3b5f8d0c6a2e9b7f1d5c3a64e"
+                }
+              },
+              "author": {
+                "login": "marcus-dev",
+                "id": 190000046,
+                "type": "User"
+              },
+              "committer": {
+                "login": "marcus-dev",
+                "id": 190000046,
+                "type": "User"
+              },
+              "parents": [
+                {
+                  "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c"
+                }
+              ]
+            }
+          ],
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/46/requested_reviewers",
+          "synthesized": true,
+          "json": {
+            "users": [],
+            "teams": []
+          },
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/issues/46",
+          "synthesized": true,
+          "json": {
+            "number": 46,
+            "title": "ROUTEWISE-46: corrige o calculo de velocidade media",
+            "user": {
+              "login": "marcus-dev",
+              "id": 190000046,
+              "type": "User"
+            },
+            "labels": [],
+            "state": "open",
+            "body": null,
+            "pull_request": {
+              "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/46",
+              "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/46"
+            }
+          },
+          "incidental": true
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^\\s*Danger: [^\\n]*\\n## Warnings\\nNao foi possivel ler o arquivo de cobertura de testes\\. Verifique se o Jest esta configurado com coverageReporters: json-summary\\.\\n-\\nDescricao do PR muito curta ou ausente\\. Uma boa descricao explica o que muda e por que -- nao apenas lista arquivos alterados\\. Isso facilita revisao, facilita rollback e fica no historico do projeto\\.\\n## Messages\\nDanger check concluido\\. Regras verificadas: referencia Jira, aprovadores para arquivos criticos, tamanho do PR, cobertura de testes e qualidade da descricao\\. Itens marcados como falha bloqueiam o merge\\. Avisos nao bloqueiam\\.\\n\\s*$"
+        }
+      ]
+    },
+    {
+      "name": "the Dangerfile reports unavailable coverage when the coverage file has no line percentage, even with a base",
+      "program": "danger-config-template",
+      "env": {
+        "GITHUB_EVENT_PATH": "github-event.json"
+      },
+      "files": {
+        "github-event.json": {
+          "action": "opened",
+          "number": 44,
+          "pull_request": {
+            "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/44",
+            "id": 2500000044,
+            "number": 44,
+            "state": "open",
+            "title": "docs: atualiza o changelog da release",
+            "user": {
+              "login": "marcus-dev",
+              "id": 190000044,
+              "type": "User"
+            },
+            "body": "Atualiza o CHANGELOG com as notas de rollback da release (routewise-44).",
+            "labels": [],
+            "created_at": "2026-10-27T12:00:00Z",
+            "updated_at": "2026-10-27T12:00:00Z",
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/44",
+            "head": {
+              "ref": "docs/changelog-release",
+              "sha": "c44e1a3b9d5f7c0e4a8b6d3f1c9e5a7b0d4f6c8e",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "draft": false,
+            "merged": false,
+            "commits": 1,
+            "additions": 450,
+            "deletions": 50,
+            "changed_files": 2
+          },
+          "repository": {
+            "id": 1029384756,
+            "name": "routewise-danger-demo",
+            "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+            "owner": {
+              "login": "unipds-engenharia-de-ia-aplicada",
+              "id": 228173645,
+              "type": "Organization"
+            },
+            "private": false,
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+            "default_branch": "main"
+          },
+          "sender": {
+            "login": "marcus-dev",
+            "id": 190000044,
+            "type": "User"
+          }
+        },
+        "coverage/coverage-summary.json": {
+          "total": {
+            "statements": {
+              "pct": 80
+            }
+          }
+        },
+        "coverage/base-coverage.json": {
+          "total": {
+            "lines": {
+              "pct": 83.1
+            }
+          }
+        }
+      },
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/44",
+          "synthesized": true,
+          "matchHeaders": {
+            "accept": "diff"
+          },
+          "headers": {
+            "content-type": "text/plain; charset=utf-8"
+          },
+          "text": "diff --git a/CHANGELOG.md b/CHANGELOG.md\nindex 3f2a1c4..8b7e6d5 100644\n--- a/CHANGELOG.md\n+++ b/CHANGELOG.md\n@@ -1 +1,2 @@\n line\n+change\ndiff --git a/docs/rollback.md b/docs/rollback.md\nnew file mode 100644\nindex 0000000..8b7e6d5\n--- /dev/null\n+++ b/docs/rollback.md\n@@ -0,0 +1 @@\n+change\n",
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/44",
+          "synthesized": true,
+          "json": {
+            "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/44",
+            "id": 2500000044,
+            "number": 44,
+            "state": "open",
+            "title": "docs: atualiza o changelog da release",
+            "user": {
+              "login": "marcus-dev",
+              "id": 190000044,
+              "type": "User"
+            },
+            "body": "Atualiza o CHANGELOG com as notas de rollback da release (routewise-44).",
+            "labels": [],
+            "created_at": "2026-10-27T12:00:00Z",
+            "updated_at": "2026-10-27T12:00:00Z",
+            "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/44",
+            "head": {
+              "ref": "docs/changelog-release",
+              "sha": "c44e1a3b9d5f7c0e4a8b6d3f1c9e5a7b0d4f6c8e",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c",
+              "repo": {
+                "id": 1029384756,
+                "name": "routewise-danger-demo",
+                "full_name": "unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "owner": {
+                  "login": "unipds-engenharia-de-ia-aplicada",
+                  "id": 228173645,
+                  "type": "Organization"
+                },
+                "private": false,
+                "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo",
+                "default_branch": "main"
+              }
+            },
+            "draft": false,
+            "merged": false,
+            "commits": 1,
+            "additions": 450,
+            "deletions": 50,
+            "changed_files": 2
+          },
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/44/files",
+          "synthesized": true,
+          "json": [
+            {
+              "filename": "CHANGELOG.md",
+              "status": "modified",
+              "additions": 1,
+              "deletions": 1,
+              "changes": 2
+            },
+            {
+              "filename": "docs/rollback.md",
+              "status": "added",
+              "additions": 1,
+              "deletions": 0,
+              "changes": 1
+            }
+          ],
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/44/reviews",
+          "synthesized": true,
+          "json": [
+            {
+              "id": 3100000440,
+              "user": {
+                "login": "priya-ti",
+                "id": 180000001,
+                "type": "User"
+              },
+              "body": "",
+              "state": "CHANGES_REQUESTED",
+              "submitted_at": "2026-10-27T12:00:00Z",
+              "commit_id": "c44e1a3b9d5f7c0e4a8b6d3f1c9e5a7b0d4f6c8e"
+            },
+            {
+              "id": 3100000441,
+              "user": {
+                "login": "carlos-ops",
+                "id": 180000002,
+                "type": "User"
+              },
+              "body": "",
+              "state": "COMMENTED",
+              "submitted_at": "2026-10-27T12:00:00Z",
+              "commit_id": "c44e1a3b9d5f7c0e4a8b6d3f1c9e5a7b0d4f6c8e"
+            }
+          ],
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/44/commits",
+          "synthesized": true,
+          "json": [
+            {
+              "sha": "c44e1a3b9d5f7c0e4a8b6d3f1c9e5a7b0d4f6c8e",
+              "commit": {
+                "author": {
+                  "name": "marcus-dev",
+                  "email": "marcus-dev@users.noreply.github.com",
+                  "date": "2026-10-27T12:00:00Z"
+                },
+                "committer": {
+                  "name": "marcus-dev",
+                  "email": "marcus-dev@users.noreply.github.com",
+                  "date": "2026-10-27T12:00:00Z"
+                },
+                "message": "docs: atualiza o changelog da release",
+                "tree": {
+                  "sha": "e8c6f4d0b7a5e9c1f3d6b8a4e0c7f5d9b3a1e44c"
+                }
+              },
+              "author": {
+                "login": "marcus-dev",
+                "id": 190000044,
+                "type": "User"
+              },
+              "committer": {
+                "login": "marcus-dev",
+                "id": 190000044,
+                "type": "User"
+              },
+              "parents": [
+                {
+                  "sha": "7c52d76e1f0b8a9c3d2e4f5a6b7c8d9e0f1a2b3c"
+                }
+              ]
+            }
+          ],
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/44/requested_reviewers",
+          "synthesized": true,
+          "json": {
+            "users": [],
+            "teams": []
+          },
+          "incidental": true
+        },
+        {
+          "method": "GET",
+          "path": "/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/issues/44",
+          "synthesized": true,
+          "json": {
+            "number": 44,
+            "title": "docs: atualiza o changelog da release",
+            "user": {
+              "login": "marcus-dev",
+              "id": 190000044,
+              "type": "User"
+            },
+            "labels": [],
+            "state": "open",
+            "body": "Atualiza o CHANGELOG com as notas de rollback da release (routewise-44).",
+            "pull_request": {
+              "url": "https://api.github.com/repos/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pulls/44",
+              "html_url": "https://github.com/unipds-engenharia-de-ia-aplicada/routewise-danger-demo/pull/44"
+            }
+          },
+          "incidental": true
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^\\s*Danger: [^\\n]*\\n## Messages\\nCobertura atual: indisponivel%\\. Arquivo de cobertura base nao encontrado -- comparacao nao realizada\\.\\n-\\nDanger check concluido\\. Regras verificadas: referencia Jira, aprovadores para arquivos criticos, tamanho do PR, cobertura de testes e qualidade da descricao\\. Itens marcados como falha bloqueiam o merge\\. Avisos nao bloqueiam\\.\\n\\s*$"
+        }
+      ]
+    }
+  ]
+}

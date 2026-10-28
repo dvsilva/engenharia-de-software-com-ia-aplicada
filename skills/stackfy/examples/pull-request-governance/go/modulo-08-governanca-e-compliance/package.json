@@ -1,0 +1,8 @@
+{
+  "name": "routewise-governance",
+  "private": true,
+  "description": "Danger JS, which runs the Go rules of danger-config-template as a Danger process.",
+  "devDependencies": {
+    "danger": "11.3.1"
+  }
+}

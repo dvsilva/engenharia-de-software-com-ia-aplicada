@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nexus AI-Ops Platform</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>"
+    />
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        display: flex;
+        min-height: 100vh;
+        font-family: 'Outfit', sans-serif;
+        background: linear-gradient(135deg, #0f111a 0%, #15192e 100%);
+        color: #e2e8f0;
+      }
+
+      aside {
+        width: 300px;
+        flex-shrink: 0;
+        padding: 24px;
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      main {
+        flex: 1;
+        min-width: 0;
+        padding: 48px 64px;
+      }
+
+      .title-gradient {
+        font-weight: 800;
+        background: linear-gradient(to right, #00c6ff, #0072ff, #7f00ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 3rem;
+        margin-bottom: 0.2rem;
+      }
+
+      [role='tablist'] {
+        display: flex;
+        gap: 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      [role='tab'],
+      main button {
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+      }
+
+      [role='tab'] {
+        padding: 8px 0;
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+      }
+
+      [role='tab'][aria-selected='true'] {
+        color: #00c6ff;
+        border-bottom-color: #00c6ff;
+      }
+
+      main button {
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      main button.wide {
+        width: 100%;
+      }
+
+      main button.primary {
+        background: #ff4b4b;
+        border-color: #ff4b4b;
+      }
+
+      .columns {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+      }
+
+      .glass-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+
+      .glass-card p {
+        font-size: 0.85rem;
+        color: #94a3b8;
+        min-height: 60px;
+      }
+
+      .glass-card h4 {
+        margin: 0 0 10px 0;
+      }
+
+      .agent-badge {
+        background: linear-gradient(90deg, #7f00ff 0%, #ff007f 100%);
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 8px;
+      }
+
+      .status-dot {
+        height: 10px;
+        width: 10px;
+        background-color: #00c853;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+        box-shadow: 0 0 8px #00c853;
+      }
+
+      details {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 8px 16px;
+      }
+
+      label {
+        display: block;
+        margin: 12px 0 4px;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        font: inherit;
+        color: inherit;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 8px;
+      }
+
+      textarea {
+        height: 250px;
+        font-family: monospace;
+      }
+
+      .notice {
+        margin: 12px 0;
+        padding: 12px 16px;
+        border-radius: 8px;
+      }
+
+      .success {
+        background: rgba(0, 200, 83, 0.15);
+      }
+
+      .info {
+        background: rgba(0, 114, 255, 0.15);
+      }
+
+      .warning {
+        background: rgba(255, 193, 7, 0.15);
+      }
+
+      .error {
+        background: rgba(255, 75, 75, 0.15);
+      }
+
+      .bucket {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 10px;
+      }
+
+      .bucket strong {
+        font-size: 1.1rem;
+        color: #00c6ff;
+      }
+
+      .bucket small {
+        color: #64748b;
+      }
+
+      .bucket span {
+        color: #00e676;
+        border: 1px solid rgba(0, 200, 83, 0.2);
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+      }
+
+      #toast {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        background: #262730;
+      }
+
+      @media (max-width: 640px) {
+        body {
+          flex-direction: column;
+        }
+
+        aside {
+          width: auto;
+        }
+
+        main {
+          padding: 24px 16px;
+        }
+
+        .columns {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <aside>
+      <img src="https://img.icons8.com/nolan/96/shield.png" width="70" alt="" />
+      <h2 style="font-weight: 800; margin-top: 0">NEXUS CONTROL</h2>
+      <p style="font-size: 0.9rem; color: #8a99ad">
+        Advanced Agentic AI-Ops &amp; Infrastructure Control Room
+      </p>
+      <hr />
+      <h3>🟢 System Status</h3>
+      <ul>
+        <li><strong>Engine</strong>: CrewAI Orchestrator</li>
+        <li><strong>Platform</strong>: LocalStack Cloud</li>
+        <li><strong>LLM Engine</strong>: Groq (Llama-3.1-8B)</li>
+        <li><strong>Active Agents</strong>: 11 Specialists</li>
+      </ul>
+      <hr />
+      <p style="font-size: 0.8rem; color: #6b7280; text-align: center">
+        Powered by CrewAI &amp; Streamlit
+      </p>
+    </aside>
+    <main>
+      <h1 class="title-gradient">Nexus AI-Ops Platform 🛡️</h1>
+      <p
+        style="
+          font-size: 1.2rem;
+          color: #94a3b8;
+          margin-top: -10px;
+          margin-bottom: 30px;
+        "
+      >
+        Automação, Segurança e Resiliência em Nuvem sob Governança Inteligente
+      </p>
+
+      <div role="tablist">
+        <button role="tab" aria-selected="true" aria-controls="overview">
+          📊 Orchestrator Overview
+        </button>
+        <button role="tab" aria-selected="false" aria-controls="storage">
+          📁 S3 Local Storage Explorer
+        </button>
+        <button role="tab" aria-selected="false" aria-controls="governance">
+          🛡️ OPA Governance Sandbox
+        </button>
+      </div>
+
+      <section id="overview" role="tabpanel">
+        <h3>🤖 Active Agent Swarm</h3>
+        <p>
+          Conheça os agentes especialistas ativos prontos para receber ordens do
+          Nexus Manager:
+        </p>
+        <div class="columns">
+          <div>
+            <div class="glass-card">
+              <span class="agent-badge">DESIGN</span>
+              <h4>Cloud Architect</h4>
+              <p>
+                Projeta topologias de infraestrutura segura usando código
+                declarativo Terraform HCL.
+              </p>
+              <div><span class="status-dot"></span>Online</div>
+            </div>
+            <div class="glass-card">
+              <span
+                class="agent-badge"
+                style="background: linear-gradient(90deg, #3f51b5, #00bcd4)"
+                >CI/CD</span
+              >
+              <h4>CI/CD Platform Engineer</h4>
+              <p>
+                Otimiza pipelines de entrega contínua, configurando cache e
+                canary deployments.
+              </p>
+              <div><span class="status-dot"></span>Online</div>
+            </div>
+          </div>
+          <div>
+            <div class="glass-card" style="border-left: 2px solid #00e676">
+              <span
+                class="agent-badge"
+                style="background: linear-gradient(90deg, #4caf50, #8bc34a)"
+                >OPERATIONS</span
+              >
+              <h4>K8s SRE Specialist</h4>
+              <p>
+                Gerencia orquestração Kubernetes, monitorando métricas de
+                tráfego e rollouts.
+              </p>
+              <div><span class="status-dot"></span>Online</div>
+            </div>
+            <div class="glass-card">
+              <span
+                class="agent-badge"
+                style="background: linear-gradient(90deg, #ff9800, #ffc107)"
+                >COSTS</span
+              >
+              <h4>FinOps Consultant</h4>
+              <p>
+                Audita desperdício financeiro de nuvem, aplicando rightsizing e
+                caçando recursos zumbis.
+              </p>
+              <div><span class="status-dot"></span>Online</div>
+            </div>
+          </div>
+          <div>
+            <div class="glass-card" style="border-left: 2px solid #d500f9">
+              <span
+                class="agent-badge"
+                style="background: linear-gradient(90deg, #9c27b0, #e91e63)"
+                >SECURITY</span
+              >
+              <h4>DevSecOps Auditor</h4>
+              <p>
+                Garante compliance total, varrendo códigos por brechas e
+                auditando políticas organizacionais.
+              </p>
+              <div><span class="status-dot"></span>Online</div>
+            </div>
+            <div class="glass-card">
+              <span
+                class="agent-badge"
+                style="background: linear-gradient(90deg, #00796b, #009688)"
+                >KNOWLEDGE</span
+              >
+              <h4>Incident SRE Veteran</h4>
+              <p>
+                Consulta runbooks oficiais e base histórica de incidentes para
+                remediação ágil.
+              </p>
+              <div><span class="status-dot"></span>Online</div>
+            </div>
+          </div>
+          <div>
+            <div
+              class="glass-card"
+              style="
+                border: 1px solid rgba(0, 198, 255, 0.4);
+                background: rgba(0, 198, 255, 0.05);
+              "
+            >
+              <span
+                class="agent-badge"
+                style="background: linear-gradient(90deg, #00c6ff, #0072ff)"
+                >BRAIN</span
+              >
+              <h4>Nexus Manager</h4>
+              <p>
+                Cérebro orquestrador. Coordena os especialistas e consolida
+                relatórios sob demanda.
+              </p>
+              <div>
+                <span
+                  class="status-dot"
+                  style="background-color: #00e5ff; box-shadow: 0 0 8px #00e5ff"
+                ></span
+                >Master
+              </div>
+            </div>
+            <div class="glass-card">
+              <span
+                class="agent-badge"
+                style="background: linear-gradient(90deg, #e65100, #ff5722)"
+                >AIOPS</span
+              >
+              <h4>AIOps Engine</h4>
+              <p>
+                Analisa séries temporais de métricas de disco e CPU para prever
+                e alertar falhas precocemente.
+              </p>
+              <div><span class="status-dot"></span>Online</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="storage" role="tabpanel" hidden>
+        <h3>📁 Buckets da Nuvem Local (LocalStack)</h3>
+        <details>
+          <summary>➕ Criar Novo Bucket S3</summary>
+          <label for="bucket-name">Nome do Bucket</label>
+          <input id="bucket-name" placeholder="Ex: nexus-finance-data" />
+          <p>
+            <button id="create-bucket" class="wide">Criar Bucket</button>
+          </p>
+          <div id="bucket-notice"></div>
+        </details>
+        <h3>Buckets Existentes:</h3>
+        <button id="refresh-buckets" class="primary">🔄 Atualizar Lista</button>
+        <div id="bucket-list"></div>
+      </section>
+
+      <section id="governance" role="tabpanel" hidden>
+        <h3>🛡️ OPA Corporate Policy Sandbox</h3>
+        <p>
+          Submeta código de infraestrutura para validação em tempo real contra
+          as políticas corporativas da Nexus:
+        </p>
+        <label for="code-input">Insira seu código Terraform HCL ou YAML</label>
+        <textarea id="code-input"></textarea>
+        <p>
+          <button id="run-audit" class="wide">🔬 Executar Auditoria OPA</button>
+        </p>
+        <div id="report"></div>
+      </section>
+    </main>
+
+    <script>
+      const EXAMPLE_CODE = `provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_instance" "app_server" {
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = "t3.large" # Isso violará a regra de controle de custos!
+
+  tags = {
+    Name = "nexus-api-server"
+  }
+}`;
+      const TOAST_DURATION = 4000;
+
+      const tabs = [...document.querySelectorAll('[role="tab"]')];
+      const bucketName = document.querySelector('#bucket-name');
+      const bucketNotice = document.querySelector('#bucket-notice');
+      const bucketList = document.querySelector('#bucket-list');
+      const report = document.querySelector('#report');
+
+      const elementOf = (tag, properties) =>
+        Object.assign(document.createElement(tag), properties);
+
+      const noticeOf = ({ kind, text }) =>
+        elementOf('div', { className: `notice ${kind}`, textContent: text });
+
+      const bucketOf = ({ name, createdAt }) => {
+        const bucket = elementOf('div', { className: 'bucket' });
+        const details = elementOf('div');
+
+        details.append(
+          elementOf('strong', { textContent: `📁 ${name}` }),
+          elementOf('br'),
+          elementOf('small', { textContent: `Criado em: ${createdAt}` })
+        );
+        bucket.append(
+          details,
+          elementOf('span', { textContent: 'Ativo (LocalStack)' })
+        );
+
+        return bucket;
+      };
+
+      const showToast = (text) => {
+        const toast = elementOf('div', { id: 'toast', textContent: text });
+
+        document.body.append(toast);
+        setTimeout(() => toast.remove(), TOAST_DURATION);
+      };
+
+      const render = (run) => {
+        const notices = (notice) => (notice ? [noticeOf(notice)] : []);
+
+        bucketNotice.replaceChildren(...notices(run.bucketNotice));
+        bucketList.replaceChildren(
+          ...(run.buckets ?? []).map(bucketOf),
+          ...notices(run.listingNotice)
+        );
+        report.replaceChildren(
+          ...(run.governanceFailure
+            ? [
+                elementOf('h3', { textContent: '📋 Relatório de Governança' }),
+                noticeOf({ kind: 'error', text: run.governanceFailure }),
+              ]
+            : [])
+        );
+        if (run.toast) showToast(run.toast);
+      };
+
+      const rerun = async (clicked) => {
+        const response = await fetch('/run', {
+          method: 'POST',
+          body: new URLSearchParams({
+            clicked: clicked ?? '',
+            bucketName: bucketName.value,
+          }),
+        });
+
+        render(await response.json());
+      };
+
+      const selectTab = (selected) => {
+        for (const tab of tabs) {
+          const isSelected = tab === selected;
+
+          tab.setAttribute('aria-selected', String(isSelected));
+          document.getElementById(tab.getAttribute('aria-controls')).hidden =
+            !isSelected;
+        }
+      };
+
+      document.querySelector('#code-input').value = EXAMPLE_CODE;
+
+      for (const tab of tabs)
+        tab.addEventListener('click', () => selectTab(tab));
+
+      document
+        .querySelector('#create-bucket')
+        .addEventListener('click', () => rerun('create'));
+      document
+        .querySelector('#refresh-buckets')
+        .addEventListener('click', () => rerun('refresh'));
+      document
+        .querySelector('#run-audit')
+        .addEventListener('click', () => rerun('audit'));
+
+      rerun();
+    </script>
+  </body>
+</html>

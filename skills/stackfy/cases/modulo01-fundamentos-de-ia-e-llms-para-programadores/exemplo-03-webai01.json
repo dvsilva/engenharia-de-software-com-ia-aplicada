@@ -1,0 +1,99 @@
+{
+  "module": "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-03-webai01",
+  "concepts": ["browser-built-in-ai", "browser-app"],
+  "recorded": "Original served by http-server 14.1.1 with npx http-server@14.1.1 . -p $PORT, the start script of the next Web AI lesson, since this one has no package, and opened in headless Google Chrome 152 with no file patched. markdown 0.5.0 loads from jsDelivr, so the page needs network access. Chrome 152 exposes LanguageModel to pages, but a fresh headless profile reports the model unavailable and pages no longer get params(), so a script that runs before the page's own replaces LanguageModel with a stand-in. The stand-in records every call, answers params() with the values Chrome documents and the next lesson's code notes, and streams 28 chunks 30 ms apart. They are the answer gemma4:12b-mlx gave through Ollama 0.40.11, recorded with record.mjs as a stand-in for Gemini Nano, for the same system prompt, question, temperature 1, and top-k 3, without its thinking. A MutationObserver keeps each distinct text the output shows, with whitespace collapsed. The case passed in each of 20 runs.",
+  "originals": ["npx http-server@14.1.1 . -p $PORT"],
+  "cases": [
+    {
+      "name": "streams the answer to its question from the built-in model and renders it as Markdown",
+      "serve": {
+        "port": 47340,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const answer = [\"O\",\" JavaScript\",\" foi\",\" criado\",\" por\",\" **\",\"Brend\",\"an\",\" Eich\",\"**\",\" em\",\" \",\"1\",\"9\",\"9\",\"5\",\",\",\" enquanto\",\" ele\",\" trabalh\",\"ava\",\" na\",\" empresa\",\" **\",\"Net\",\"scape\",\" Communications\",\"**.\"]; const clone = (value) => JSON.parse(JSON.stringify(value ?? null)); const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)); globalThis.languageModelCalls = []; globalThis.languageModelStreamsDone = 0; const record = (call) => languageModelCalls.push(call); const session = { prompt: async (input) => { record({ method: 'prompt', input: clone(input) }); await pause(50); return answer.join(''); }, promptStreaming: (input) => { record({ method: 'promptStreaming', input: clone(input) }); const pending = [...answer]; return new ReadableStream({ pull: async (controller) => { await pause(30); if (pending.length > 0) return controller.enqueue(pending.shift()); controller.close(); languageModelStreamsDone++; } }); }, destroy: () => record({ method: 'destroy' }) }; const LanguageModel = { availability: async (options) => { record({ method: 'availability', options: clone(options) }); return 'available'; }, params: async () => { record({ method: 'params' }); return { defaultTopK: 3, maxTopK: 128, defaultTemperature: 1, maxTemperature: 2 }; }, create: async (options) => { record({ method: 'create', options: clone(options) }); await pause(50); return session; } }; Object.defineProperty(globalThis, 'LanguageModel', { value: LanguageModel, writable: true, configurable: true }); globalThis.outputStates = []; const capture = () => { const text = document.getElementById('output')?.innerText.replace(/\\s+/g, ' ').trim(); if (text !== undefined && text !== outputStates.at(-1)) outputStates.push(text); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true }); })()",
+          "steps": [
+            {
+              "wait": "languageModelStreamsDone === 1"
+            },
+            {
+              "read": "languageModelCalls"
+            },
+            {
+              "read": "outputStates.filter((state) => state !== '')"
+            },
+            {
+              "read": "[...document.querySelectorAll('#output strong')].map((element) => element.textContent)"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              {
+                "method": "params"
+              },
+              {
+                "method": "create",
+                "options": {
+                  "expectedInputLanguages": ["pt"],
+                  "temperature": 1,
+                  "topK": 3,
+                  "initialPrompts": [
+                    {
+                      "role": "system",
+                      "content": "Você é um assistente de IA que responde de forma clara e objetiva."
+                    }
+                  ]
+                }
+              },
+              {
+                "method": "promptStreaming",
+                "input": [
+                  {
+                    "role": "user",
+                    "content": "Quem inventou o JavaScript?"
+                  }
+                ]
+              }
+            ],
+            [
+              "Gerando resposta...",
+              "O",
+              "O JavaScript",
+              "O JavaScript foi",
+              "O JavaScript foi criado",
+              "O JavaScript foi criado por",
+              "O JavaScript foi criado por **",
+              "O JavaScript foi criado por **Brend",
+              "O JavaScript foi criado por **Brendan",
+              "O JavaScript foi criado por **Brendan Eich",
+              "O JavaScript foi criado por Brendan Eich",
+              "O JavaScript foi criado por Brendan Eich em",
+              "O JavaScript foi criado por Brendan Eich em 1",
+              "O JavaScript foi criado por Brendan Eich em 19",
+              "O JavaScript foi criado por Brendan Eich em 199",
+              "O JavaScript foi criado por Brendan Eich em 1995",
+              "O JavaScript foi criado por Brendan Eich em 1995,",
+              "O JavaScript foi criado por Brendan Eich em 1995, enquanto",
+              "O JavaScript foi criado por Brendan Eich em 1995, enquanto ele",
+              "O JavaScript foi criado por Brendan Eich em 1995, enquanto ele trabalh",
+              "O JavaScript foi criado por Brendan Eich em 1995, enquanto ele trabalhava",
+              "O JavaScript foi criado por Brendan Eich em 1995, enquanto ele trabalhava na",
+              "O JavaScript foi criado por Brendan Eich em 1995, enquanto ele trabalhava na empresa",
+              "O JavaScript foi criado por Brendan Eich em 1995, enquanto ele trabalhava na empresa **",
+              "O JavaScript foi criado por Brendan Eich em 1995, enquanto ele trabalhava na empresa **Net",
+              "O JavaScript foi criado por Brendan Eich em 1995, enquanto ele trabalhava na empresa **Netscape",
+              "O JavaScript foi criado por Brendan Eich em 1995, enquanto ele trabalhava na empresa **Netscape Communications",
+              "O JavaScript foi criado por Brendan Eich em 1995, enquanto ele trabalhava na empresa Netscape Communications."
+            ],
+            ["Brendan Eich", "Netscape Communications"]
+          ]
+        }
+      ]
+    }
+  ]
+}

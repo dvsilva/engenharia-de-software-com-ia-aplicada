@@ -1,0 +1,4 @@
+mcp==2.3.0
+jsonschema==4.26.0
+mypy==2.4.0
+types-jsonschema==4.26.0.20261006

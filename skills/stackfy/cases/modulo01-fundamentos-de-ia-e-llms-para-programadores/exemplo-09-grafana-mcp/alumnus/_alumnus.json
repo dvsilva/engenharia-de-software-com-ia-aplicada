@@ -1,0 +1,332 @@
+{
+  "module": "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-09-grafana-mcp/alumnus/_alumnus",
+  "concepts": ["telemetry", "rest-api", "sql-database"],
+  "recorded": "Every case passed against the original in each of 4 runs, with Node.js 26.12.1, Fastify 5.6.2, @fastify/otel 0.14.0, the OpenTelemetry Node SDK 0.208.0 with auto-instrumentations-node 0.67.3, knex 3.1.0, pg 8.16.3, and pino 10.1.0 after npm ci in a copy, run as npm start. The module never calls an LLM. Every address it uses comes from the environment, so the copy is unchanged. The services come from alumnus/infra/docker-compose-infra.yaml with an override passed on standard input, which gives PostgreSQL 16, the OpenTelemetry Collector 0.140.0, Loki 3.5.8, Tempo, and Prometheus 3.7.3 container names of their own and host ports 48092 to 48096, and leaves out the storage bind mounts, so every run starts without telemetry and writes nothing in the course folder. The override needs Docker Compose 2.24.4 or later. Each case sets its own APPNAME and its own database in DATABASE_URL, because the seed fails on a database that already holds its tables, and runs in development, apart from the production case. The original's HTTP instrumentation takes effect only about 3 seconds after startup, once the gRPC exporter loads node:http, so the telemetry case waits until the app's metrics reach Prometheus before its requests. Telemetry arrives asynchronously, so each backend query repeats until it shows what the app sent, for up to two minutes. The 500 metric is matched under either generation of the HTTP semantic conventions, and the trace search goes by the span's route, because production traces start at fetch's client span. A reset in production may race with a self-request waiting for a connection, so only its cleanedCount is compared.",
+  "prepare": {
+    "copy": "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-09-grafana-mcp/alumnus",
+    "setup": ["npm ci --no-audit --no-fund"]
+  },
+  "originals": ["npm start"],
+  "env": {
+    "OTEL_EXPORTER_OTLP_ENDPOINT": "http://127.0.0.1:48093",
+    "LOG_LEVEL": "info"
+  },
+  "services": {
+    "up": "docker compose -f ../infra/docker-compose-infra.yaml -f - -p stackfy-exemplo-09-grafana-mcp up -d --wait alumnus-postgres opentelemetry-collector loki tempo prometheus <<'EOF'\nservices:\n  alumnus-postgres:\n    container_name: stackfy-exemplo-09-grafana-mcp-postgres\n    ports: !override ['48092:5432']\n    volumes: !reset []\n  opentelemetry-collector:\n    container_name: stackfy-exemplo-09-grafana-mcp-collector\n    ports: !override ['48093:4317']\n  loki:\n    container_name: stackfy-exemplo-09-grafana-mcp-loki\n    ports: !override ['48094:3100']\n    volumes: !override ['./loki/loki-config.yaml:/etc/loki/local-config.yaml']\n  tempo:\n    container_name: stackfy-exemplo-09-grafana-mcp-tempo\n    ports: !override ['48095:3200']\n    volumes: !override ['./tempo/tempo-config.yaml:/etc/tempo.yaml']\n  prometheus:\n    container_name: stackfy-exemplo-09-grafana-mcp-prometheus\n    ports: !override ['48096:9090']\n    volumes: !override ['./prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml', './prometheus/alerts.yaml:/etc/prometheus/alerts.yaml']\nEOF",
+    "down": "docker compose -f ../infra/docker-compose-infra.yaml -p stackfy-exemplo-09-grafana-mcp down -v",
+    "ready": [
+      { "port": 48092 },
+      { "port": 48093 },
+      { "port": 48094 },
+      { "port": 48095 },
+      { "port": 48096 }
+    ]
+  },
+  "cases": [
+    {
+      "name": "answers the health check, serves the seeded student while the pool has connections, fails the third request after its one-second wait, and frees the leaked connections on reset",
+      "env": {
+        "NODE_ENV": "development",
+        "APPNAME": "stackfy-alumnus-leak",
+        "DATABASE_URL": "postgresql://alumnus:alumnus_dev_password@127.0.0.1:48092/alumnus_app_leak"
+      },
+      "serve": {
+        "port": 48091,
+        "ready": "/health",
+        "requests": [
+          { "method": "GET", "path": "/health" },
+          { "method": "GET", "path": "/students/db-leaky-connections" },
+          { "method": "GET", "path": "/students/db-leaky-connections" },
+          { "method": "GET", "path": "/students/db-leaky-connections" },
+          { "method": "POST", "path": "/students/db-leaky-connections/reset" },
+          { "method": "GET", "path": "/students/db-leaky-connections" },
+          { "method": "POST", "path": "/students/db-leaky-connections/reset" },
+          { "method": "POST", "path": "/students/db-leaky-connections/reset" },
+          { "method": "GET", "path": "/students" }
+        ]
+      },
+      "expect": [
+        {
+          "type": "output",
+          "pattern": "Server is running on http://\\S+:48091 \\(port: 48091\\)"
+        },
+        {
+          "type": "responses",
+          "responses": [
+            { "status": 200, "match": { "message": "ok" } },
+            {
+              "status": 200,
+              "match": {
+                "students": [
+                  { "id": 1, "name": "Nightcrawler", "courseId": 1 }
+                ],
+                "message": "Students retrieved successfully"
+              }
+            },
+            {
+              "status": 200,
+              "match": {
+                "students": [
+                  { "id": 1, "name": "Nightcrawler", "courseId": 1 }
+                ],
+                "message": "Students retrieved successfully"
+              }
+            },
+            {
+              "status": 500,
+              "match": {
+                "error": "Internal Server Error",
+                "message": "Failed to retrieve students data"
+              }
+            },
+            {
+              "status": 200,
+              "match": {
+                "message": "Leaked connections cleaned up",
+                "cleanedCount": 2,
+                "remainingConnections": 0
+              }
+            },
+            {
+              "status": 200,
+              "match": {
+                "students": [
+                  { "id": 1, "name": "Nightcrawler", "courseId": 1 }
+                ],
+                "message": "Students retrieved successfully"
+              }
+            },
+            {
+              "status": 200,
+              "match": {
+                "message": "Leaked connections cleaned up",
+                "cleanedCount": 1,
+                "remainingConnections": 0
+              }
+            },
+            {
+              "status": 200,
+              "match": {
+                "message": "Leaked connections cleaned up",
+                "cleanedCount": 0,
+                "remainingConnections": 0
+              }
+            },
+            {
+              "status": 404,
+              "match": {
+                "statusCode": 404,
+                "error": "Not Found",
+                "message": "Route GET:/students not found"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "once its metrics reach Prometheus, exports a failed request as an error log, an error trace, and a 500 in the request duration metric, which Loki, Tempo, and Prometheus show under the service name, and the log's trace id leads to that trace",
+      "env": {
+        "NODE_ENV": "development",
+        "APPNAME": "stackfy-alumnus-telemetry",
+        "DATABASE_URL": "postgresql://alumnus:alumnus_dev_password@127.0.0.1:48092/alumnus_app_telemetry"
+      },
+      "serve": {
+        "port": 48091,
+        "ready": "/health",
+        "requests": [
+          {
+            "method": "GET",
+            "port": 48096,
+            "path": "/api/v1/query?query=group by (exported_job) ({exported_job=\"stackfy-alumnus-telemetry\"})",
+            "until": {
+              "status": 200,
+              "pattern": "stackfy-alumnus-telemetry",
+              "timeout": 120000
+            }
+          },
+          { "method": "GET", "path": "/students/db-leaky-connections" },
+          { "method": "GET", "path": "/students/db-leaky-connections" },
+          { "method": "GET", "path": "/students/db-leaky-connections" },
+          {
+            "method": "GET",
+            "port": 48094,
+            "path": "/loki/api/v1/query_range?query={service_name=\"stackfy-alumnus-telemetry\"} |= \"Error processing request\"&limit=10",
+            "until": {
+              "status": 200,
+              "pattern": "Error processing request",
+              "timeout": 120000
+            }
+          },
+          {
+            "method": "GET",
+            "port": 48095,
+            "path": "/api/search?q={resource.service.name=\"stackfy-alumnus-telemetry\" %26%26 span.http.route=\"/students/db-leaky-connections\" %26%26 status=error}",
+            "until": {
+              "status": 200,
+              "pattern": "GET /students/db-leaky-connections",
+              "timeout": 120000
+            }
+          },
+          {
+            "method": "GET",
+            "port": 48095,
+            "path": "/api/v2/traces/{responses.4.data.result.0.stream.trace_id}",
+            "headers": { "accept": "application/json" },
+            "until": { "status": 200, "timeout": 120000 }
+          },
+          {
+            "method": "GET",
+            "port": 48096,
+            "path": "/api/v1/query?query=sum by (exported_job, http_route) ({__name__=~\"http_server_(request_)?duration_(milliseconds|seconds)_count\", exported_job=\"stackfy-alumnus-telemetry\", http_route=\"/students/db-leaky-connections\", http_status_code=\"500\"} or {__name__=~\"http_server_(request_)?duration_(milliseconds|seconds)_count\", exported_job=\"stackfy-alumnus-telemetry\", http_route=\"/students/db-leaky-connections\", http_response_status_code=\"500\"})",
+            "until": {
+              "status": 200,
+              "pattern": "stackfy-alumnus-telemetry",
+              "timeout": 120000
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "status": "success",
+                "data": {
+                  "$like": {
+                    "result": [
+                      {
+                        "metric": {
+                          "exported_job": "stackfy-alumnus-telemetry"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            { "status": 200 },
+            { "status": 200 },
+            { "status": 500 },
+            {
+              "status": 200,
+              "match": {
+                "status": "success",
+                "data": {
+                  "$like": {
+                    "result": {
+                      "$includes": [
+                        {
+                          "stream": {
+                            "service_name": "stackfy-alumnus-telemetry",
+                            "severity_number": "17",
+                            "trace_id": { "$pattern": "^[0-9a-f]{32}$" }
+                          },
+                          "values": {
+                            "$includes": [
+                              [
+                                { "$pattern": "^[0-9]+$" },
+                                "Error processing request"
+                              ]
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "status": 200,
+              "match": {
+                "traces": {
+                  "$includes": [
+                    {
+                      "rootServiceName": "stackfy-alumnus-telemetry",
+                      "rootTraceName": "GET /students/db-leaky-connections"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "status": 200,
+              "pattern": "\"name\":\"GET /students/db-leaky-connections\""
+            },
+            {
+              "status": 200,
+              "match": {
+                "status": "success",
+                "data": {
+                  "$like": {
+                    "result": [
+                      {
+                        "metric": {
+                          "exported_job": "stackfy-alumnus-telemetry",
+                          "http_route": "/students/db-leaky-connections"
+                        },
+                        "value": { "$includes": ["1"] }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "in production it requests its own endpoint every two seconds, so the pool runs out without outside traffic, the error reaches Loki, later requests fail, and a reset frees the two leaked connections",
+      "env": {
+        "NODE_ENV": "production",
+        "APPNAME": "stackfy-alumnus-production",
+        "DATABASE_URL": "postgresql://alumnus:alumnus_dev_password@127.0.0.1:48092/alumnus_app_production"
+      },
+      "serve": {
+        "port": 48091,
+        "ready": "/health",
+        "requests": [
+          {
+            "method": "GET",
+            "port": 48094,
+            "path": "/loki/api/v1/query_range?query={service_name=\"stackfy-alumnus-production\"} |= \"Error processing request\"&limit=10",
+            "until": {
+              "status": 200,
+              "pattern": "Error processing request",
+              "timeout": 120000
+            }
+          },
+          { "method": "GET", "path": "/students/db-leaky-connections" },
+          { "method": "POST", "path": "/students/db-leaky-connections/reset" }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            { "status": 200, "pattern": "Error processing request" },
+            {
+              "status": 500,
+              "match": {
+                "error": "Internal Server Error",
+                "message": "Failed to retrieve students data"
+              }
+            },
+            {
+              "status": 200,
+              "match": {
+                "message": "Leaked connections cleaned up",
+                "cleanedCount": 2
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,615 @@
+{
+  "module": "modulo02-integracao-apis-llms/01-smart-model-router-gateway",
+  "concepts": ["model-routing", "rest-api"],
+  "recorded": "Every case passed against the original with Node.js 26.12.1, @openrouter/sdk 0.5.1, and fastify 5.7.4, run as \"node {program}.ts\", where the programs are the gateway, src/index, and the module's end-to-end tests, tests/router.e2e.test. The original always listens on port 3000 and always calls OpenRouter's address, so the copy that produced these cases listens on PORT and prints it, falling back to 3000, a two-line change in src/index.ts, and passes OPENAI_BASE_URL to the OpenRouter client as its server URL, a one-line change in src/openrouterService.ts. No OpenRouter key was available, so the answers were recorded from Ollama 0.40.11 with llama2-uncensored:7b standing in for the routed models and wrapped in OpenRouter's documented response format, the one exemplo-11-openrouter keeps, and the model in each answer is the one the module's tests expect OpenRouter to pick for that sorting, which is synthesized. The tests program is checked by its requests, in the order the original runs its tests, and by whether it succeeds or fails, never by its report, because every test runner prints its own and some fail with their own exit code. Fastify's error bodies are checked by status code, statusCode, and error, with any non-empty message, because the validation messages come from Ajv, except the unknown route, whose message is short and checked exactly. A provider failure is never checked, because the original sets status 500 without sending it, so the request never gets an answer.",
+  "prepare": {
+    "setup": ["npm ci --no-audit --no-fund"],
+    "patches": [
+      {
+        "file": "src/index.ts",
+        "find": "{ port: 3000, host",
+        "replace": "{ port: Number(process.env.PORT ?? 3000), host"
+      },
+      {
+        "file": "src/index.ts",
+        "find": "'server running at 3000'",
+        "replace": "`server running at ${process.env.PORT ?? 3000}`"
+      },
+      {
+        "file": "src/openrouterService.ts",
+        "find": "xTitle: config.xTitle\n",
+        "replace": "xTitle: config.xTitle,\n            serverURL: process.env.OPENAI_BASE_URL\n"
+      }
+    ]
+  },
+  "originals": ["node {program}.ts"],
+  "env": {
+    "OPENROUTER_API_KEY": "replay"
+  },
+  "cases": [
+    {
+      "name": "the gateway sends the question with the fallback models and throughput sorting and answers with the model OpenRouter picked",
+      "program": "src/index",
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with llama2-uncensored:7b standing in for OpenRouter, in OpenRouter's documented response format, with the model its routing picks synthesized",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793092022-Qm7aLk2PzX9vTn4RcW1e",
+            "model": "nvidia/nemotron-3-nano-30b-a3b:free",
+            "object": "chat.completion",
+            "created": 1793092022,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "Rate limiting is a technique used to control the rate at which requests are made to a server or API. It is typically used to prevent overloading the server or API with too many requests, which can cause performance issues and slow down the system. Rate limiting can be implemented in various ways, such as using a token system, IP address throttling, or time-based limits.",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 33,
+              "completion_tokens": 81,
+              "total_tokens": 114,
+              "cost": 0
+            }
+          }
+        }
+      ],
+      "serve": {
+        "port": 47821,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": {
+              "question": "What is rate limiting?"
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "model": "nvidia/nemotron-3-nano-30b-a3b:free",
+                "content": "Rate limiting is a technique used to control the rate at which requests are made to a server or API. It is typically used to prevent overloading the server or API with too many requests, which can cause performance issues and slow down the system. Rate limiting can be implemented in various ways, such as using a token system, IP address throttling, or time-based limits."
+              }
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^server running at 47821\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "models": [
+                  "arcee-ai/trinity-large-preview:free",
+                  "nvidia/nemotron-3-nano-30b-a3b:free"
+                ],
+                "messages": [
+                  {
+                    "role": "system",
+                    "content": "You are a helpful assistant."
+                  },
+                  {
+                    "role": "user",
+                    "content": "What is rate limiting?"
+                  }
+                ],
+                "temperature": 0.2,
+                "max_tokens": 100,
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "the gateway rejects a missing, short, or unparsable question and unknown routes without calling the model",
+      "program": "src/index",
+      "serve": {
+        "port": 47822,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": {}
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": {
+              "question": "oi"
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/chat"
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "headers": {
+              "content-type": "application/json"
+            },
+            "body": "{\"question\":"
+          },
+          {
+            "method": "POST",
+            "path": "/chat",
+            "headers": {
+              "content-type": "application/x-www-form-urlencoded"
+            },
+            "body": "question=What+is+rate+limiting%3F"
+          },
+          {
+            "method": "GET",
+            "path": "/chat"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 415,
+              "match": {
+                "statusCode": 415,
+                "error": "Unsupported Media Type"
+              },
+              "pattern": "\"message\"\\s*:\\s*\"[^\"]+\""
+            },
+            {
+              "status": 404,
+              "match": {
+                "statusCode": 404,
+                "error": "Not Found",
+                "message": "Route GET:/chat not found"
+              }
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^server running at 47822\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        },
+        {
+          "type": "requests",
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "the gateway only warns when the OpenRouter key is missing and starts anyway",
+      "program": "src/index",
+      "env": {
+        "OPENROUTER_API_KEY": ""
+      },
+      "serve": {
+        "port": 47823,
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/chat",
+            "json": {}
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 400,
+              "match": {
+                "statusCode": 400,
+                "error": "Bad Request"
+              }
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^server running at 47823\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Assertion failed: OPENROUTER_API_KEY is not set in env variables\\n$"
+        }
+      ]
+    },
+    {
+      "name": "the tests route the question to the cheapest model when sorting by price and to the fastest when sorting by throughput",
+      "program": "tests/router.e2e.test",
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with llama2-uncensored:7b standing in for OpenRouter, in OpenRouter's documented response format, with the model its routing picks synthesized",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "match": {
+            "provider": {
+              "$like": {
+                "sort": {
+                  "by": "price"
+                }
+              }
+            }
+          },
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793092041-Hs3dYp8NqB6uFx2JtV0k",
+            "model": "arcee-ai/trinity-large-preview:free",
+            "object": "chat.completion",
+            "created": 1793092030,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "Rate limiting is a technique used to limit the number of requests that can be made to a server within a specific time period. It is typically used to prevent overloading the server and to ensure that the server can handle the load without crashing.",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 33,
+              "completion_tokens": 51,
+              "total_tokens": 84,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with llama2-uncensored:7b standing in for OpenRouter, in OpenRouter's documented response format, with the model its routing picks synthesized",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "match": {
+            "provider": {
+              "$like": {
+                "sort": {
+                  "by": "throughput"
+                }
+              }
+            }
+          },
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793092043-Lw5gEr1MzC7oKa9SdU3y",
+            "model": "nvidia/nemotron-3-nano-30b-a3b:free",
+            "object": "chat.completion",
+            "created": 1793092031,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "Rate limiting is a technique used by web servers to limit the number of requests that can be made by a single user in a given period of time. This is done to prevent overloading the server and ensuring that all users have fair access to the service.",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 33,
+              "completion_tokens": 54,
+              "total_tokens": 87,
+              "cost": 0
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "models": [
+                  "arcee-ai/trinity-large-preview:free",
+                  "nvidia/nemotron-3-nano-30b-a3b:free"
+                ],
+                "messages": [
+                  {
+                    "role": "system",
+                    "content": "You are a helpful assistant."
+                  },
+                  {
+                    "role": "user",
+                    "content": "What is rate limiting?"
+                  }
+                ],
+                "temperature": 0.2,
+                "max_tokens": 100,
+                "provider": {
+                  "sort": {
+                    "by": "price",
+                    "partition": "none"
+                  }
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "models": [
+                  "arcee-ai/trinity-large-preview:free",
+                  "nvidia/nemotron-3-nano-30b-a3b:free"
+                ],
+                "messages": [
+                  {
+                    "role": "system",
+                    "content": "You are a helpful assistant."
+                  },
+                  {
+                    "role": "user",
+                    "content": "What is rate limiting?"
+                  }
+                ],
+                "temperature": 0.2,
+                "max_tokens": 100,
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "the tests fail when OpenRouter answers with another model than the sorting should pick",
+      "program": "tests/router.e2e.test",
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with llama2-uncensored:7b standing in for OpenRouter, in OpenRouter's documented response format, with the model its routing picks synthesized",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "match": {
+            "provider": {
+              "$like": {
+                "sort": {
+                  "by": "price"
+                }
+              }
+            }
+          },
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793092041-Hs3dYp8NqB6uFx2JtV0k",
+            "model": "nvidia/nemotron-3-nano-30b-a3b:free",
+            "object": "chat.completion",
+            "created": 1793092030,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "Rate limiting is a technique used to limit the number of requests that can be made to a server within a specific time period. It is typically used to prevent overloading the server and to ensure that the server can handle the load without crashing.",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 33,
+              "completion_tokens": 51,
+              "total_tokens": 84,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with llama2-uncensored:7b standing in for OpenRouter, in OpenRouter's documented response format, with the model its routing picks synthesized",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "match": {
+            "provider": {
+              "$like": {
+                "sort": {
+                  "by": "throughput"
+                }
+              }
+            }
+          },
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793092043-Lw5gEr1MzC7oKa9SdU3y",
+            "model": "nvidia/nemotron-3-nano-30b-a3b:free",
+            "object": "chat.completion",
+            "created": 1793092031,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "Rate limiting is a technique used by web servers to limit the number of requests that can be made by a single user in a given period of time. This is done to prevent overloading the server and ensuring that all users have fair access to the service.",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 33,
+              "completion_tokens": 54,
+              "total_tokens": 87,
+              "cost": 0
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "models": [
+                  "arcee-ai/trinity-large-preview:free",
+                  "nvidia/nemotron-3-nano-30b-a3b:free"
+                ],
+                "messages": [
+                  {
+                    "role": "system",
+                    "content": "You are a helpful assistant."
+                  },
+                  {
+                    "role": "user",
+                    "content": "What is rate limiting?"
+                  }
+                ],
+                "temperature": 0.2,
+                "max_tokens": 100,
+                "provider": {
+                  "sort": {
+                    "by": "price",
+                    "partition": "none"
+                  }
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "models": [
+                  "arcee-ai/trinity-large-preview:free",
+                  "nvidia/nemotron-3-nano-30b-a3b:free"
+                ],
+                "messages": [
+                  {
+                    "role": "system",
+                    "content": "You are a helpful assistant."
+                  },
+                  {
+                    "role": "user",
+                    "content": "What is rate limiting?"
+                  }
+                ],
+                "temperature": 0.2,
+                "max_tokens": 100,
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

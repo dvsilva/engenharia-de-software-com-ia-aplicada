@@ -1,0 +1,1126 @@
+{
+  "module": "modulo09-processamento-de-dados-e-fine-tuning-de-modelos/modulo-01-decision-framework",
+  "concepts": [
+    "decision-framework",
+    "investment-analysis",
+    "monte-carlo-simulation",
+    "verifiable-reward",
+    "llm-http-api"
+  ],
+  "recorded": "Every case passed against both originals: the JavaScript versions with Node.js 26.12.1, run as node {program}.js, and the Python versions with Python 3.15.2, run as python3 with the program's hyphens turned into underscores, as in python3 $(echo {program}.py | tr - _). Both programs use only the standard library. The decision framework tool reads amplitude-seguros-casos.json beside it, and two cases replace that file with a trimmed copy that keeps only the fields the tool reads. Its Monte Carlo and the volatility behind its binomial tree are unseeded, so each of those printed values is compared with the exact distribution, computed from five million draws, within about six times the standard deviation that 300 runs of each original showed, and everything else is compared exactly. The demo is accepted in either original's layout, which differ in the consistency labels (CI and CR or ci and cr), the wording of the Real Options block, and the risk-neutral probability, which JavaScript prints without trailing zeros. The self-check report must end with the same totals, while the titles of the checks are free. The GRPO demo hardcodes http://localhost:11434, so the copy that produced these cases reads OLLAMA_HOST instead, a one-line change in the JavaScript version and two in the Python version, which also imports os. gemma4:e2b was not installed, so the answers are recorded with gemma4:12b-mlx standing in, keeping each answer's model, created_at, response, done, and done_reason: one run gave a group with two rewards and another a degenerate group. The failed sample is synthesized from Ollama's documented error format, and the missing model case keeps Ollama's real 404. The Python version writes its prose without accents, booleans as True and False, each divergence as Python's repr instead of JSON, and the temperature as 1.0, so the patterns accept either spelling.",
+  "prepare": {
+    "patches": [
+      {
+        "file": "grpo-verifiable-reward-demo.js",
+        "find": "const OLLAMA_URL = 'http://localhost:11434/api/generate';",
+        "replace": "const OLLAMA_URL = `${process.env.OLLAMA_HOST ?? 'http://localhost:11434'}/api/generate`;"
+      },
+      {
+        "file": "grpo_verifiable_reward_demo.py",
+        "find": "import json\n",
+        "replace": "import json\nimport os\n"
+      },
+      {
+        "file": "grpo_verifiable_reward_demo.py",
+        "find": "OLLAMA_URL = \"http://localhost:11434/api/generate\"",
+        "replace": "OLLAMA_URL = os.environ.get(\"OLLAMA_HOST\", \"http://localhost:11434\") + \"/api/generate\""
+      }
+    ]
+  },
+  "originals": ["node {program}.js", "python3 $(echo {program}.py | tr - _)"],
+  "cases": [
+    {
+      "name": "checks itself, then weighs the four questions by AHP and takes Amplitude Auto through the DCF, Monte Carlo, and sensitivity, Saúde Empresarial through the binomial option to wait, Atendimento ao Cliente to a no, and the committee to the same verdicts",
+      "program": "decision-framework-tool",
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes: [^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n)+Total: 25 teste\\(s\\), 25 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n\\n===== Demo: Framework de 4 Perguntas -- versão de análise de decisão financeira =====\\n\\nPesos derivados por AHP: p1=0\\.141  p2=0\\.141  p3=0\\.455  p4=0\\.263\\nConsistência do julgamento: lambda_max=4\\.0104  (?:CI|ci)=0\\.0035  (?:CR|cr)=0\\.0038 \\(consistente, CR < 0\\.10\\)\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n===== Amplitude Auto =====\\nTarefa: Extrair segurado, placa e valor de orçamentos de oficina\\n\\n  \\[Governança\\] APROVADO -- dado pessoal comum, não sensível\\. Base legal: Execução de contrato de seguro \\(LGPD Art\\. 7º, V\\) -- dado de sinistro veicular e orçamento de oficina não é categoria sensível\\.\\n  Pergunta 1 \\[VERDE, score 0\\.90\\]: A tarefa é estreita e repetida, ou aberta e variável\\?\\n  Pergunta 2 \\[VERDE, score 0\\.85\\]: Já esgotou prompt engineering \\+ RAG \\+ roteamento, sem chegar na qualidade/custo/latência necessários\\?\\n  Pergunta 3 \\[VERDE, score 0\\.90\\]: Tem dado de exemplo suficiente, diverso e de qualidade pra treinar\\?\\n  Pergunta 4 \\[VERDE, score 0\\.85\\]: A tarefa é estável o bastante pra não virar esteira de retreino constante\\?\\n\\n  Score composto \\(AHP\\): 0\\.88\\n  Recomendação \\(gate\\): Fine-tuning vale a pena\\n  Decisão de técnica \\(LoRA local, full fine-tuning, ou API gerenciada\\): EM ABERTO -- Módulos 3 e 4\\n\\n  --- Análise financeira \\(DCF\\) ---\\n  Custo de treino: R\\$ 2400\\.00\\n  NPV em 24 meses \\(cenário mais provável\\): R\\$ 4780\\.27\\n  Breakeven: mês 10\\n\\n  --- Monte Carlo \\(10\\.000 simulações, incerteza de crescimento e custo\\) ---\\n  NPV médio: R\\$ \\d+\\.\\d\\d \\| P5: R\\$ \\d+\\.\\d\\d \\| P50: R\\$ \\d+\\.\\d\\d \\| P95: R\\$ \\d+\\.\\d\\d\\n  Probabilidade de NPV positivo: 100\\.0%\\n\\n  --- Sensibilidade \\(ranking por impacto no NPV, \\+/-20%\\) ---\\n  1\\. custoPorChamadaStatusQuo: amplitude de R\\$ 4456\\.72\\n  2\\. custoPorChamadaFineTuned: amplitude de R\\$ 1584\\.61\\n  3\\. crescimentoMensal: amplitude de R\\$ 1125\\.70\\n  4\\. custoTreinamento: amplitude de R\\$ 960\\.00\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n===== Amplitude Saúde Empresarial =====\\nTarefa: Extrair beneficiário, procedimento e valor de recibos médicos, cruzando com o cadastro de beneficiários\\n\\n  \\[Governança\\] APROVADO -- dado de categoria sensível \\(LGPD Art\\. 5º, II\\) -- DPA verificado\\. Base legal: Execução de contrato \\+ tutela da saúde \\(LGPD Art\\. 7º V e Art\\. 11, II-f\\) -- procedimento realizado por profissional/entidade de saúde, no contexto de reembolso contratado\\.\\n  Pergunta 1 \\[VERDE, score 0\\.85\\]: A tarefa é estreita e repetida, ou aberta e variável\\?\\n  Pergunta 2 \\[VERDE, score 0\\.80\\]: Já esgotou prompt engineering \\+ RAG \\+ roteamento, sem chegar na qualidade/custo/latência necessários\\?\\n  Pergunta 3 \\[VERMELHO, score 0\\.35\\]: Tem dado de exemplo suficiente, diverso e de qualidade pra treinar\\?\\n  Pergunta 4 \\[VERDE, score 0\\.80\\]: A tarefa é estável o bastante pra não virar esteira de retreino constante\\?\\n\\n  Score composto \\(AHP\\): 0\\.60\\n  Pergunta que reprovou no gate: 3 \\(dado suficiente\\)\\n  Isso é um \"ainda não\", não um \"não\" -- elegível a análise de Real Options\\.\\n\\n  --- Real Options: árvore binomial(?:, decidir agora vs\\. esperar| \\(CRR\\) sobre o valor de esperar) ---\\n  Meses até o score de dado cruzar o limiar: 9\\n  Volatilidade mensal (?:\\(derivada do Monte Carlo, 10\\.000 simulações\\)|derivada do Monte Carlo \\(sigma\\)): \\d+\\.\\d\\d%\\n  (?:Fatores da árvore CRR: alta u=\\d\\.\\d+ \\| baixa d=\\d\\.\\d+ \\| prob\\. risco-neutra p=\\d\\.\\d+|Fator de alta \\(u\\): \\d\\.\\d+ \\| Fator de baixa \\(d\\): \\d\\.\\d+ \\| Prob\\. risco-neutra \\(p\\): \\d\\.\\d+)\\n  (?:Valor do ativo hoje \\(fluxos brutos, cenário mais provável\\)|Valor presente bruto dos fluxos \\(S0\\)): R\\$ 1406\\.77\\n  Valor de exercer agora \\(com risco de retrabalho por dado insuficiente\\): R\\$ 0\\.00\\n  Valor da opção de esperar \\((?:indução retroativa na árvore|precificado na árvore)\\): R\\$ \\d+\\.\\d\\d\\n  Valor de esperar \\((?:diferença|opção - exercer agora)\\): R\\$ \\d+\\.\\d\\d\\n  Recomendação: Espere acumular dado, depois treine\\.\\n  Reavaliação agendada em: Módulo 3\\.2 \\(roda este mesmo código de verdade, não é spoiler do resultado\\)\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n===== Amplitude Atendimento ao Cliente =====\\nTarefa: Negociar e resolver contestações de sinistro em conversas abertas com o segurado, incluindo exceção de cobertura caso a caso\\n\\n  \\[Governança\\] APROVADO -- dado pessoal comum, não sensível\\. Base legal: Execução de contrato de seguro \\(LGPD Art\\. 7º, V\\) -- histórico de sinistro e conversa de contestação fazem parte da relação contratual já estabelecida\\.\\n  Pergunta 1 \\[VERMELHO, score 0\\.30\\]: A tarefa é estreita e repetida, ou aberta e variável\\?\\n  Pergunta 2 \\[VERDE, score 0\\.75\\]: Já esgotou prompt engineering \\+ RAG \\+ roteamento, sem chegar na qualidade/custo/latência necessários\\?\\n  Pergunta 3 \\[VERDE, score 0\\.92\\]: Tem dado de exemplo suficiente, diverso e de qualidade pra treinar\\?\\n  Pergunta 4 \\[VERMELHO, score 0\\.35\\]: A tarefa é estável o bastante pra não virar esteira de retreino constante\\?\\n\\n  Score composto \\(AHP\\): 0\\.66\\n  Perguntas que reprovaram no gate: 1 e 4\\n  Reparem: a pergunta 3 \\(dado suficiente\\) está VERDE, com folga\\. Não é falta de dado\\.\\n  Não é \"falha só por dado\" -- não é elegível a Real Options\\. Esperar não resolve nada aqui,\\n  porque o que falta não é tempo, é a tarefa ter formato fixo e não mudar de regra toda hora\\.\\n  Recomendação: Continue com prompt \\+ RAG\\. Fine-tuning ainda não\\.\\n\\n-----------------------------------------------------------------------------\\nTrês casos, três respostas diferentes\\. Auto: sim\\. Saúde Empresarial: ainda não,\\nsó falta dado, e dado é questão de tempo\\. Atendimento ao Cliente: não -- mesmo com\\no maior volume de todos e prompt/RAG já esgotado, a tarefa em si é aberta e instável\\ndemais\\. Mais dado não resolve um problema que não é de dado\\.\\n-----------------------------------------------------------------------------\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n===== AHP de comitê: agregando o julgamento de vários avaliadores =====\\n\\n  Gestor de produto \\(mesmo julgamento usado nos 3 casos reais\\)\\n    pesos: p1=0\\.141  p2=0\\.141  p3=0\\.455  p4=0\\.263\\n\\n  Compliance \\(prioriza p3 ainda mais, dado sensível pesa mais\\)\\n    pesos: p1=0\\.114  p2=0\\.081  p3=0\\.556  p4=0\\.249\\n\\n  Engenharia \\(perguntas mais equilibradas entre si\\)\\n    pesos: p1=0\\.200  p2=0\\.200  p3=0\\.400  p4=0\\.200\\n\\n  --- Agregado do comitê \\(média geométrica célula a célula, método AIJ\\) ---\\n    pesos: p1=0\\.151  p2=0\\.134  p3=0\\.475  p4=0\\.240\\n    consistência: cr=0\\.0064 \\(consistente, CR < 0\\.10\\)\\n\\n  O peso de p3 no comitê fica entre o do gestor de produto e o de compliance, puxado\\n  pra baixo pela visão mais equilibrada da engenharia -- exatamente o que se espera de\\n  uma agregação: nenhum avaliador domina sozinho o resultado final\\.\\n\\n  --- Reaplicando o peso do comitê aos 3 casos reais da Amplitude Seguros ---\\n    Amplitude Auto: original aprovado \\(score 0\\.880\\) -> comitê aprovado \\(score 0\\.881\\)\\n    Amplitude Saúde Empresarial: original reprovado \\(score 0\\.602\\) -> comitê reprovado \\(score 0\\.594\\)\\n    Amplitude Atendimento ao Cliente: original reprovado \\(score 0\\.659\\) -> comitê reprovado \\(score 0\\.667\\)\\n\\n  Os três vereditos batem com o peso de um avaliador só: a decisão é robusta a quem,\\n  especificamente, preencheu a matriz -- não só a diferença de peso, o veredito final\\.\\n  \\[OK\\] comitê não muda o veredito de nenhum dos 3 casos reais\\n\\n  --- Teste de regressão: comitê de 1 avaliador reproduz o resultado original ---\\n  \\[OK\\] comitê de 1 avaliador reproduz exatamente os pesos do AHP de matriz única\\n  \\[OK\\] a matriz agregada do comitê ainda é reciprocamente válida \\(a\\[j\\]\\[i\\] = 1/a\\[i\\]\\[j\\]\\)\\n  \\[OK\\] os pesos agregados do comitê somam 1\\.0\\n\\nTotal geral: 29 teste\\(s\\), 29 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n$"
+        },
+        {
+          "type": "numbers",
+          "groups": [
+            [
+              {
+                "value": 5078.3,
+                "tolerance": 100
+              },
+              {
+                "value": 2648.3,
+                "tolerance": 150
+              },
+              {
+                "value": 4960.2,
+                "tolerance": 130
+              },
+              {
+                "value": 7906.4,
+                "tolerance": 240
+              },
+              100
+            ],
+            [
+              {
+                "value": 25.22,
+                "tolerance": 1
+              },
+              {
+                "value": 1.2868,
+                "tolerance": 0.013
+              },
+              {
+                "value": 0.7771,
+                "tolerance": 0.008
+              },
+              {
+                "value": 0.457,
+                "tolerance": 0.004
+              },
+              1406.77,
+              0,
+              {
+                "value": 228.9,
+                "tolerance": 18
+              },
+              {
+                "value": 228.9,
+                "tolerance": 18
+              },
+              3.2
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "derives every result from the cases file, with another consistent AHP matrix, a larger Amplitude Auto volume, and Saúde Empresarial data growing faster",
+      "program": "decision-framework-tool",
+      "files": {
+        "amplitude-seguros-casos.json": {
+          "limiarVerde": 0.6,
+          "ahp": {
+            "matriz": [
+              [1, 2, 0.2, 0.3333333333],
+              [0.5, 1, 0.2, 0.3333333333],
+              [5, 5, 1, 3],
+              [3, 3, 0.3333333333, 1]
+            ]
+          },
+          "casos": [
+            {
+              "id": "amplitude-atendimento-cliente",
+              "nome": "Amplitude Atendimento ao Cliente",
+              "tarefa": "Negociar e resolver contestações de sinistro em conversas abertas com o segurado, incluindo exceção de cobertura caso a caso",
+              "scores": {
+                "p1": 0.3,
+                "p2": 0.75,
+                "p3": 0.92,
+                "p4": 0.35
+              },
+              "governanca": {
+                "dadoSensivelLGPD": false,
+                "baseLegalDefinida": true,
+                "baseLegalDescricao": "Execução de contrato de seguro (LGPD Art. 7º, V) -- histórico de sinistro e conversa de contestação fazem parte da relação contratual já estabelecida.",
+                "dpaAssinado": true
+              }
+            },
+            {
+              "id": "amplitude-auto",
+              "nome": "Amplitude Auto",
+              "tarefa": "Extrair segurado, placa e valor de orçamentos de oficina",
+              "scores": {
+                "p1": 0.9,
+                "p2": 0.85,
+                "p3": 0.9,
+                "p4": 0.85
+              },
+              "governanca": {
+                "dadoSensivelLGPD": false,
+                "baseLegalDefinida": true,
+                "baseLegalDescricao": "Execução de contrato de seguro (LGPD Art. 7º, V) -- dado de sinistro veicular e orçamento de oficina não é categoria sensível.",
+                "dpaAssinado": true
+              },
+              "financeiro": {
+                "volumeInicialMensal": 12000,
+                "crescimentoMensal": {
+                  "min": 0.01,
+                  "moda": 0.03,
+                  "max": 0.05
+                },
+                "custoPorChamadaStatusQuo": {
+                  "min": 0.035,
+                  "moda": 0.045,
+                  "max": 0.06
+                },
+                "custoPorChamadaFineTuned": {
+                  "min": 0.012,
+                  "moda": 0.016,
+                  "max": 0.022
+                },
+                "custoTreinamento": 2400,
+                "horizonteMeses": 24,
+                "taxaDescontoMensal": 0.01
+              }
+            },
+            {
+              "id": "amplitude-saude-empresarial",
+              "nome": "Amplitude Saúde Empresarial",
+              "tarefa": "Extrair beneficiário, procedimento e valor de recibos médicos, cruzando com o cadastro de beneficiários",
+              "scores": {
+                "p1": 0.85,
+                "p2": 0.8,
+                "p3": 0.35,
+                "p4": 0.8
+              },
+              "governanca": {
+                "dadoSensivelLGPD": true,
+                "baseLegalDefinida": true,
+                "baseLegalDescricao": "Execução de contrato + tutela da saúde (LGPD Art. 7º V e Art. 11, II-f) -- procedimento realizado por profissional/entidade de saúde, no contexto de reembolso contratado.",
+                "dpaAssinado": true
+              },
+              "financeiro": {
+                "volumeInicialMensal": 1200,
+                "crescimentoMensal": {
+                  "min": 0.02,
+                  "moda": 0.05,
+                  "max": 0.08
+                },
+                "custoPorChamadaStatusQuo": {
+                  "min": 0.035,
+                  "moda": 0.045,
+                  "max": 0.06
+                },
+                "custoPorChamadaFineTuned": {
+                  "min": 0.012,
+                  "moda": 0.016,
+                  "max": 0.022
+                },
+                "custoTreinamento": 2400,
+                "horizonteMeses": 24,
+                "taxaDescontoMensal": 0.01,
+                "opcaoReal": {
+                  "custoDeErroEsperadoPorChamada": 0.08,
+                  "taxaCrescimentoScorePorMes": 0.05,
+                  "scoreAlvo": 0.6
+                }
+              }
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "numbers",
+          "groups": [
+            [0.114, 0.081, 0.556, 0.249, 4.1041, 0.0347, 0.0386, 0.1],
+            [
+              0.88,
+              3,
+              4,
+              2400,
+              24,
+              8370.4,
+              7,
+              10,
+              {
+                "value": 8818.1,
+                "tolerance": 150
+              },
+              {
+                "value": 5170.4,
+                "tolerance": 225
+              },
+              {
+                "value": 8643.1,
+                "tolerance": 195
+              },
+              {
+                "value": 13062.5,
+                "tolerance": 360
+              },
+              100,
+              -20,
+              1,
+              6685.08,
+              2,
+              2376.92,
+              3,
+              1688.54,
+              4,
+              960
+            ],
+            [0.56, 3, 5],
+            [
+              {
+                "value": 25.22,
+                "tolerance": 1
+              },
+              {
+                "value": 1.2868,
+                "tolerance": 0.013
+              },
+              {
+                "value": 0.7771,
+                "tolerance": 0.008
+              },
+              {
+                "value": 0.457,
+                "tolerance": 0.004
+              },
+              1406.77,
+              0,
+              {
+                "value": 115.9,
+                "tolerance": 12
+              },
+              {
+                "value": 115.9,
+                "tolerance": 12
+              },
+              3.2
+            ],
+            [0.69, 1, 4, 3],
+            [0.883, 0.881, 0.555, 0.594, 0.694, 0.667]
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "\\nTotal geral: 29 teste\\(s\\), 29 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n$"
+        }
+      ]
+    },
+    {
+      "name": "stops before the demo when an inconsistent AHP matrix fails its consistency self-check",
+      "program": "decision-framework-tool",
+      "files": {
+        "amplitude-seguros-casos.json": {
+          "limiarVerde": 0.6,
+          "ahp": {
+            "matriz": [
+              [1, 1, 0.3333333333, 5],
+              [1, 1, 0.3333333333, 0.5],
+              [3, 3, 1, 2],
+              [0.2, 2, 0.5, 1]
+            ]
+          },
+          "casos": [
+            {
+              "id": "amplitude-atendimento-cliente",
+              "nome": "Amplitude Atendimento ao Cliente",
+              "tarefa": "Negociar e resolver contestações de sinistro em conversas abertas com o segurado, incluindo exceção de cobertura caso a caso",
+              "scores": {
+                "p1": 0.3,
+                "p2": 0.75,
+                "p3": 0.92,
+                "p4": 0.35
+              },
+              "governanca": {
+                "dadoSensivelLGPD": false,
+                "baseLegalDefinida": true,
+                "baseLegalDescricao": "Execução de contrato de seguro (LGPD Art. 7º, V) -- histórico de sinistro e conversa de contestação fazem parte da relação contratual já estabelecida.",
+                "dpaAssinado": true
+              }
+            },
+            {
+              "id": "amplitude-auto",
+              "nome": "Amplitude Auto",
+              "tarefa": "Extrair segurado, placa e valor de orçamentos de oficina",
+              "scores": {
+                "p1": 0.9,
+                "p2": 0.85,
+                "p3": 0.9,
+                "p4": 0.85
+              },
+              "governanca": {
+                "dadoSensivelLGPD": false,
+                "baseLegalDefinida": true,
+                "baseLegalDescricao": "Execução de contrato de seguro (LGPD Art. 7º, V) -- dado de sinistro veicular e orçamento de oficina não é categoria sensível.",
+                "dpaAssinado": true
+              },
+              "financeiro": {
+                "volumeInicialMensal": 8000,
+                "crescimentoMensal": {
+                  "min": 0.01,
+                  "moda": 0.03,
+                  "max": 0.05
+                },
+                "custoPorChamadaStatusQuo": {
+                  "min": 0.035,
+                  "moda": 0.045,
+                  "max": 0.06
+                },
+                "custoPorChamadaFineTuned": {
+                  "min": 0.012,
+                  "moda": 0.016,
+                  "max": 0.022
+                },
+                "custoTreinamento": 2400,
+                "horizonteMeses": 24,
+                "taxaDescontoMensal": 0.01
+              }
+            },
+            {
+              "id": "amplitude-saude-empresarial",
+              "nome": "Amplitude Saúde Empresarial",
+              "tarefa": "Extrair beneficiário, procedimento e valor de recibos médicos, cruzando com o cadastro de beneficiários",
+              "scores": {
+                "p1": 0.85,
+                "p2": 0.8,
+                "p3": 0.35,
+                "p4": 0.8
+              },
+              "governanca": {
+                "dadoSensivelLGPD": true,
+                "baseLegalDefinida": true,
+                "baseLegalDescricao": "Execução de contrato + tutela da saúde (LGPD Art. 7º V e Art. 11, II-f) -- procedimento realizado por profissional/entidade de saúde, no contexto de reembolso contratado.",
+                "dpaAssinado": true
+              },
+              "financeiro": {
+                "volumeInicialMensal": 1200,
+                "crescimentoMensal": {
+                  "min": 0.02,
+                  "moda": 0.05,
+                  "max": 0.08
+                },
+                "custoPorChamadaStatusQuo": {
+                  "min": 0.035,
+                  "moda": 0.045,
+                  "max": 0.06
+                },
+                "custoPorChamadaFineTuned": {
+                  "min": 0.012,
+                  "moda": 0.016,
+                  "max": 0.022
+                },
+                "custoTreinamento": 2400,
+                "horizonteMeses": 24,
+                "taxaDescontoMensal": 0.01,
+                "opcaoReal": {
+                  "custoDeErroEsperadoPorChamada": 0.08,
+                  "taxaCrescimentoScorePorMes": 0.03,
+                  "scoreAlvo": 0.6
+                }
+              }
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "pattern": "\\n  \\[FALHOU\\] a matriz de comparação é consistente \\(CR < 0\\.10, padrão de Saaty\\)\\n {11}CR = 0\\.23\\d*[^\\n]*\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\nTotal: 25 teste\\(s\\), 24 passou\\(passaram\\), 1 falhou\\(falharam\\)\\.\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "1 teste\\(s\\) falharam\\. A implementação não bate com a especificação\\."
+        }
+      ]
+    },
+    {
+      "name": "checks itself, samples a group of six extractions after a connection test, grades each against the answer key, and turns two rewards into advantages that reinforce or penalize",
+      "program": "grpo-verifiable-reward-demo",
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:20:24.825794Z",
+            "response": "Teste recebido com sucesso! ✅\n\nA conexão está funcionando perfeitamente. Como posso te ajudar hoje?",
+            "done": true,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:20:55.846523Z",
+            "response": "```json\n{\n  \"claimant_name\": \"M4rcos Vin1cius Alm3ida Te1xeira\",\n  \"claim_type\": \"Colisao veicular\",\n  \"incident_date\": \"12/07/2026\",\n  \"estimated_amount_brl\": 8450.0,\n  \"status\": \"Em analise pericial\",\n  \"prioridade\": \"alta\"\n}\n```",
+            "done": true,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:21:18.829926Z",
+            "response": "```json\n{\n  \"claimant_name\": \"Marcos Vinícius Almeida Teixeira\",\n  \"claim_type\": \"Colisão veicular\",\n  \"incident_date\": \"12/07/2026\",\n  \"estimated_amount_brl\": 8450,\n  \"status\": \"Em análise pericial\",\n  \"prioridade\": \"alta\"\n}\n```",
+            "done": true,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:21:41.721961Z",
+            "response": "```json\n{\n  \"claimant_name\": \"M4rcos Vin1cius Alm3ida Te1xeira\",\n  \"claim_type\": \"Colisao veicular\",\n  \"incident_date\": \"12/07/2026\",\n  \"estimated_amount_brl\": 8450.0,\n  \"status\": \"Em analise pericial\",\n  \"prioridade\": \"alta\"\n}\n```",
+            "done": true,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:21:58.46753Z",
+            "response": "```json\n{\n  \"claimant_name\": \"Marcos Vinicius Almeida Teixeira\",\n  \"claim_type\": \"Colisao veicular\",\n  \"incident_date\": \"12/07/2026\",\n  \"estimated_amount_brl\": 8450.0,\n  \"status\": \"Em analise pericial\",\n  \"prioridade\": \"alta\"\n}\n```",
+            "done": true,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:22:23.743792Z",
+            "response": "```json\n{\n  \"claimant_name\": \"Marcos Vinícius Almeida Teixeira\",\n  \"claim_type\": \"Colisão veicular\",\n  \"incident_date\": \"12/07/2026\",\n  \"estimated_amount_brl\": 8450.00,\n  \"status\": \"Em análise pericial\",\n  \"prioridade\": \"alta\"\n}\n```",
+            "done": true,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:22:47.969598Z",
+            "response": "```json\n{\n  \"claimant_name\": \"M4rcos Vin1cius Alm3ida Te1xeira\",\n  \"claim_type\": \"Colisao veicular\",\n  \"incident_date\": \"12/07/2026\",\n  \"estimated_amount_brl\": 8450.00,\n  \"status\": \"Em analise pericial\",\n  \"prioridade\": \"alta\"\n}\n```",
+            "done": true,
+            "done_reason": "stop"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes: [^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n)+Total: 10 teste\\(s\\), 10 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n\\n== Amostragem real de grupo \\(o passo que o GRPO chama de 'rollout'\\) ==\\nModelo: gemma4:e2b  \\|  tamanho do grupo G=6  \\|  temperatura=1(?:\\.0)?\\nMesma pergunta, G respostas reais e independentes, geradas agora, sem cache\\.\\n\\n  \\[0\\] recompensa=0\\.83  json_valido=(?:true|True)  divergencias=\\[\"claimant_name=(?:\\\\\"|')M4rcos Vin1cius Alm3ida Te1xeira(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Marcos Vinícius Almeida Teixeira(?:\\\\\"|')\\)\"\\]\\n  \\[1\\] recompensa=0\\.67  json_valido=(?:true|True)  divergencias=\\[\"claim_type=(?:\\\\\"|')Colisão veicular(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Colisao veicular(?:\\\\\"|')\\)\", ?\"status=(?:\\\\\"|')Em análise pericial(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Em analise pericial(?:\\\\\"|')\\)\"\\]\\n  \\[2\\] recompensa=0\\.83  json_valido=(?:true|True)  divergencias=\\[\"claimant_name=(?:\\\\\"|')M4rcos Vin1cius Alm3ida Te1xeira(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Marcos Vinícius Almeida Teixeira(?:\\\\\"|')\\)\"\\]\\n  \\[3\\] recompensa=0\\.83  json_valido=(?:true|True)  divergencias=\\[\"claimant_name=(?:\\\\\"|')Marcos Vinicius Almeida Teixeira(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Marcos Vinícius Almeida Teixeira(?:\\\\\"|')\\)\"\\]\\n  \\[4\\] recompensa=0\\.67  json_valido=(?:true|True)  divergencias=\\[\"claim_type=(?:\\\\\"|')Colisão veicular(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Colisao veicular(?:\\\\\"|')\\)\", ?\"status=(?:\\\\\"|')Em análise pericial(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Em analise pericial(?:\\\\\"|')\\)\"\\]\\n  \\[5\\] recompensa=0\\.83  json_valido=(?:true|True)  divergencias=\\[\"claimant_name=(?:\\\\\"|')M4rcos Vin1cius Alm3ida Te1xeira(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Marcos Vinícius Almeida Teixeira(?:\\\\\"|')\\)\"\\]\\n\\nGrupo completo: media\\(r\\)=0\\.778  desvio_padrao\\(r\\)=0\\.079\\n\\n i  recompensa   vantagem A_i  interpreta[çc][ãa]o\\n--------------------------------------------------------------------------\\n 0        0\\.83          0\\.707  refor[çc]aria essa resposta \\(A>0\\)\\n 1        0\\.67         -1\\.414  penalizaria essa resposta \\(A<0\\)\\n 2        0\\.83          0\\.707  refor[çc]aria essa resposta \\(A>0\\)\\n 3        0\\.83          0\\.707  refor[çc]aria essa resposta \\(A>0\\)\\n 4        0\\.67         -1\\.414  penalizaria essa resposta \\(A<0\\)\\n 5        0\\.83          0\\.707  refor[çc]aria essa resposta \\(A>0\\)\\n\\nA_i = \\(r_i - m[ée]dia\\(r\\)\\) / desvio_padr[ãa]o\\(r\\) [ée] o sinal que o GRPO usa pra\\natualizar a pol[íi]tica -- o pr[óo]prio grupo vira a linha de base, sem precisar\\nde um modelo de valor \\(critic\\) separado como no PPO/RLHF cl[áa]ssico\\.\\nNenhum peso do modelo foi atualizado por este script -- fim do demo\\.\\n$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "teste de conexao",
+                "stream": false,
+                "options": {
+                  "temperature": 0.1
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "Extraia os dados do documento abaixo e responda APENAS com um JSON\nvalido, sem nenhum texto adicional, seguindo exatamente este schema:\n{\"claimant_name\": string, \"claim_type\": string, \"incident_date\": \"DD/MM/AAAA\",\n\"estimated_amount_brl\": number, \"status\": string,\n\"prioridade\": \"alta se estimated_amount_brl > 5000, senao baixa\"}\n\nDocumento:\n\nAmplitude Seguros - Comunicado de Sinistro (documento digitalizado, OCR, scan parcialmente ilegivel)\nRef. anterior (cancelada): AS-2Q25-0988zi\nApolice vigente: A5-2026-1l44/7 (numero de dificil leitura no scan)\nSegurado: M4rcos Vin1cius Alm3ida Te1xeira (OCR com ruido no nome)\nTipo de sinistro: Colisao veicular (ou possivelmente \"Colisao e furto\", trecho cortado)\nData do incidente: 12/O7/2026 ou 17/02/2026 (data ambigua, dois carimbos sobrepostos)\nValor estimado do reparo: R$ 8.45O,OO (sujeito a pericia, valor preliminar)\nStatus atual: Em analise pericial\n\n",
+                "stream": false,
+                "options": {
+                  "temperature": 1
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "Extraia os dados do documento abaixo e responda APENAS com um JSON\nvalido, sem nenhum texto adicional, seguindo exatamente este schema:\n{\"claimant_name\": string, \"claim_type\": string, \"incident_date\": \"DD/MM/AAAA\",\n\"estimated_amount_brl\": number, \"status\": string,\n\"prioridade\": \"alta se estimated_amount_brl > 5000, senao baixa\"}\n\nDocumento:\n\nAmplitude Seguros - Comunicado de Sinistro (documento digitalizado, OCR, scan parcialmente ilegivel)\nRef. anterior (cancelada): AS-2Q25-0988zi\nApolice vigente: A5-2026-1l44/7 (numero de dificil leitura no scan)\nSegurado: M4rcos Vin1cius Alm3ida Te1xeira (OCR com ruido no nome)\nTipo de sinistro: Colisao veicular (ou possivelmente \"Colisao e furto\", trecho cortado)\nData do incidente: 12/O7/2026 ou 17/02/2026 (data ambigua, dois carimbos sobrepostos)\nValor estimado do reparo: R$ 8.45O,OO (sujeito a pericia, valor preliminar)\nStatus atual: Em analise pericial\n\n",
+                "stream": false,
+                "options": {
+                  "temperature": 1
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "Extraia os dados do documento abaixo e responda APENAS com um JSON\nvalido, sem nenhum texto adicional, seguindo exatamente este schema:\n{\"claimant_name\": string, \"claim_type\": string, \"incident_date\": \"DD/MM/AAAA\",\n\"estimated_amount_brl\": number, \"status\": string,\n\"prioridade\": \"alta se estimated_amount_brl > 5000, senao baixa\"}\n\nDocumento:\n\nAmplitude Seguros - Comunicado de Sinistro (documento digitalizado, OCR, scan parcialmente ilegivel)\nRef. anterior (cancelada): AS-2Q25-0988zi\nApolice vigente: A5-2026-1l44/7 (numero de dificil leitura no scan)\nSegurado: M4rcos Vin1cius Alm3ida Te1xeira (OCR com ruido no nome)\nTipo de sinistro: Colisao veicular (ou possivelmente \"Colisao e furto\", trecho cortado)\nData do incidente: 12/O7/2026 ou 17/02/2026 (data ambigua, dois carimbos sobrepostos)\nValor estimado do reparo: R$ 8.45O,OO (sujeito a pericia, valor preliminar)\nStatus atual: Em analise pericial\n\n",
+                "stream": false,
+                "options": {
+                  "temperature": 1
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "Extraia os dados do documento abaixo e responda APENAS com um JSON\nvalido, sem nenhum texto adicional, seguindo exatamente este schema:\n{\"claimant_name\": string, \"claim_type\": string, \"incident_date\": \"DD/MM/AAAA\",\n\"estimated_amount_brl\": number, \"status\": string,\n\"prioridade\": \"alta se estimated_amount_brl > 5000, senao baixa\"}\n\nDocumento:\n\nAmplitude Seguros - Comunicado de Sinistro (documento digitalizado, OCR, scan parcialmente ilegivel)\nRef. anterior (cancelada): AS-2Q25-0988zi\nApolice vigente: A5-2026-1l44/7 (numero de dificil leitura no scan)\nSegurado: M4rcos Vin1cius Alm3ida Te1xeira (OCR com ruido no nome)\nTipo de sinistro: Colisao veicular (ou possivelmente \"Colisao e furto\", trecho cortado)\nData do incidente: 12/O7/2026 ou 17/02/2026 (data ambigua, dois carimbos sobrepostos)\nValor estimado do reparo: R$ 8.45O,OO (sujeito a pericia, valor preliminar)\nStatus atual: Em analise pericial\n\n",
+                "stream": false,
+                "options": {
+                  "temperature": 1
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "Extraia os dados do documento abaixo e responda APENAS com um JSON\nvalido, sem nenhum texto adicional, seguindo exatamente este schema:\n{\"claimant_name\": string, \"claim_type\": string, \"incident_date\": \"DD/MM/AAAA\",\n\"estimated_amount_brl\": number, \"status\": string,\n\"prioridade\": \"alta se estimated_amount_brl > 5000, senao baixa\"}\n\nDocumento:\n\nAmplitude Seguros - Comunicado de Sinistro (documento digitalizado, OCR, scan parcialmente ilegivel)\nRef. anterior (cancelada): AS-2Q25-0988zi\nApolice vigente: A5-2026-1l44/7 (numero de dificil leitura no scan)\nSegurado: M4rcos Vin1cius Alm3ida Te1xeira (OCR com ruido no nome)\nTipo de sinistro: Colisao veicular (ou possivelmente \"Colisao e furto\", trecho cortado)\nData do incidente: 12/O7/2026 ou 17/02/2026 (data ambigua, dois carimbos sobrepostos)\nValor estimado do reparo: R$ 8.45O,OO (sujeito a pericia, valor preliminar)\nStatus atual: Em analise pericial\n\n",
+                "stream": false,
+                "options": {
+                  "temperature": 1
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "Extraia os dados do documento abaixo e responda APENAS com um JSON\nvalido, sem nenhum texto adicional, seguindo exatamente este schema:\n{\"claimant_name\": string, \"claim_type\": string, \"incident_date\": \"DD/MM/AAAA\",\n\"estimated_amount_brl\": number, \"status\": string,\n\"prioridade\": \"alta se estimated_amount_brl > 5000, senao baixa\"}\n\nDocumento:\n\nAmplitude Seguros - Comunicado de Sinistro (documento digitalizado, OCR, scan parcialmente ilegivel)\nRef. anterior (cancelada): AS-2Q25-0988zi\nApolice vigente: A5-2026-1l44/7 (numero de dificil leitura no scan)\nSegurado: M4rcos Vin1cius Alm3ida Te1xeira (OCR com ruido no nome)\nTipo de sinistro: Colisao veicular (ou possivelmente \"Colisao e furto\", trecho cortado)\nData do incidente: 12/O7/2026 ou 17/02/2026 (data ambigua, dois carimbos sobrepostos)\nValor estimado do reparo: R$ 8.45O,OO (sujeito a pericia, valor preliminar)\nStatus atual: Em analise pericial\n\n",
+                "stream": false,
+                "options": {
+                  "temperature": 1
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reports a degenerate group when all six answers earn the same reward",
+      "program": "grpo-verifiable-reward-demo",
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:24:16.940318Z",
+            "response": "Conexão estabelecida com sucesso! ✅\n\nEu recebi sua mensagem perfeitamente. Como posso ajudar você hoje?",
+            "done": true,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:25:26.398203Z",
+            "response": "```json\n{\n  \"claimant_name\": \"Márcos Vinícius Almeida Teixeira\",\n  \"claim_type\": \"Colisao veicular\",\n  \"incident_date\": \"12/07/2026\",\n  \"estimated_amount_brl\": 8450,\n  \"status\": \"Em analise pericial\",\n  \"prioridade\": \"alta\"\n}\n```",
+            "done": true,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:26:10.546848Z",
+            "response": "```json\n{\n  \"claimant_name\": \"Marcos Vinícius Almeida Teixeira\",\n  \"claim_type\": \"Colisão veicular\",\n  \"incident_date\": \"12/07/2026\",\n  \"estimated_amount_brl\": 8450.0,\n  \"status\": \"Em analise pericial\",\n  \"prioridade\": \"alta\"\n}\n```",
+            "done": true,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:26:58.035122Z",
+            "response": "```json\n{\n  \"claimant_name\": \"M4rcos Vin1cius Alm3ida Te1xeira\",\n  \"claim_type\": \"Colisao veicular\",\n  \"incident_date\": \"12/07/2026\",\n  \"estimated_amount_brl\": 8450.0,\n  \"status\": \"Em analise pericial\",\n  \"prioridade\": \"alta\"\n}\n```",
+            "done": true,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:27:18.684078Z",
+            "response": "```json\n{\n  \"claimant_name\": \"M4rcos Vin1cius Alm3ida Te1xeira\",\n  \"claim_type\": \"Colisao veicular\",\n  \"incident_date\": \"12/07/2026\",\n  \"estimated_amount_brl\": 8450.00,\n  \"status\": \"Em analise pericial\",\n  \"prioridade\": \"alta\"\n}\n```",
+            "done": true,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:27:47.258692Z",
+            "response": "```json\n{\n  \"claimant_name\": \"M4rcos Vin1cius Alm3ida Te1xeira\",\n  \"claim_type\": \"Colisao veicular\",\n  \"incident_date\": \"12/07/2026\",\n  \"estimated_amount_brl\": 8450.0,\n  \"status\": \"Em analise pericial\",\n  \"prioridade\": \"alta\"\n}\n```",
+            "done": true,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:28:10.592494Z",
+            "response": "```json\n{\n  \"claimant_name\": \"Marcos Vinicius Almeida Teixeira\",\n  \"claim_type\": \"Colisao veicular\",\n  \"incident_date\": \"12/07/2026\",\n  \"estimated_amount_brl\": 8450.0,\n  \"status\": \"Em analise pericial\",\n  \"prioridade\": \"alta\"\n}\n```",
+            "done": true,
+            "done_reason": "stop"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes: [^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n)+Total: 10 teste\\(s\\), 10 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n\\n== Amostragem real de grupo \\(o passo que o GRPO chama de 'rollout'\\) ==\\nModelo: gemma4:e2b  \\|  tamanho do grupo G=6  \\|  temperatura=1(?:\\.0)?\\nMesma pergunta, G respostas reais e independentes, geradas agora, sem cache\\.\\n\\n  \\[0\\] recompensa=0\\.83  json_valido=(?:true|True)  divergencias=\\[\"claimant_name=(?:\\\\\"|')Márcos Vinícius Almeida Teixeira(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Marcos Vinícius Almeida Teixeira(?:\\\\\"|')\\)\"\\]\\n  \\[1\\] recompensa=0\\.83  json_valido=(?:true|True)  divergencias=\\[\"claim_type=(?:\\\\\"|')Colisão veicular(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Colisao veicular(?:\\\\\"|')\\)\"\\]\\n  \\[2\\] recompensa=0\\.83  json_valido=(?:true|True)  divergencias=\\[\"claimant_name=(?:\\\\\"|')M4rcos Vin1cius Alm3ida Te1xeira(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Marcos Vinícius Almeida Teixeira(?:\\\\\"|')\\)\"\\]\\n  \\[3\\] recompensa=0\\.83  json_valido=(?:true|True)  divergencias=\\[\"claimant_name=(?:\\\\\"|')M4rcos Vin1cius Alm3ida Te1xeira(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Marcos Vinícius Almeida Teixeira(?:\\\\\"|')\\)\"\\]\\n  \\[4\\] recompensa=0\\.83  json_valido=(?:true|True)  divergencias=\\[\"claimant_name=(?:\\\\\"|')M4rcos Vin1cius Alm3ida Te1xeira(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Marcos Vinícius Almeida Teixeira(?:\\\\\"|')\\)\"\\]\\n  \\[5\\] recompensa=0\\.83  json_valido=(?:true|True)  divergencias=\\[\"claimant_name=(?:\\\\\"|')Marcos Vinicius Almeida Teixeira(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Marcos Vinícius Almeida Teixeira(?:\\\\\"|')\\)\"\\]\\n\\nGrupo completo: media\\(r\\)=0\\.833  desvio_padrao\\(r\\)=0\\.000\\n\\nGRUPO DEGENERADO: todas as G respostas receberam a mesma recompensa\\.\\nIsso N[ÃA]O [ée] um bug deste script -- [ée] um limite real e documentado do GRPO:\\nquando o grupo inteiro acerta \\(ou erra\\) igual, a vantagem de todo mundo\\nvira zero e o sinal de aprendizado desaparece nessa rodada\\. O paper DAPO\\n\\(Yu et al\\., arXiv 2503\\.14476\\) descreve exatamente esse caso e prop[õo]e\\n'amostragem din[âa]mica' como corre[çc][ãa]o: descartar grupos un[âa]nimes e\\nre-amostrar at[ée] achar um grupo com vari[âa]ncia real\\.\\n\\nA_i = \\(r_i - m[ée]dia\\(r\\)\\) / desvio_padr[ãa]o\\(r\\) [ée] o sinal que o GRPO usa pra\\natualizar a pol[íi]tica -- o pr[óo]prio grupo vira a linha de base, sem precisar\\nde um modelo de valor \\(critic\\) separado como no PPO/RLHF cl[áa]ssico\\.\\nNenhum peso do modelo foi atualizado por este script -- fim do demo\\.\\n$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "teste de conexao",
+                "stream": false,
+                "options": {
+                  "temperature": 0.1
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "Extraia os dados do documento abaixo e responda APENAS com um JSON\nvalido, sem nenhum texto adicional, seguindo exatamente este schema:\n{\"claimant_name\": string, \"claim_type\": string, \"incident_date\": \"DD/MM/AAAA\",\n\"estimated_amount_brl\": number, \"status\": string,\n\"prioridade\": \"alta se estimated_amount_brl > 5000, senao baixa\"}\n\nDocumento:\n\nAmplitude Seguros - Comunicado de Sinistro (documento digitalizado, OCR, scan parcialmente ilegivel)\nRef. anterior (cancelada): AS-2Q25-0988zi\nApolice vigente: A5-2026-1l44/7 (numero de dificil leitura no scan)\nSegurado: M4rcos Vin1cius Alm3ida Te1xeira (OCR com ruido no nome)\nTipo de sinistro: Colisao veicular (ou possivelmente \"Colisao e furto\", trecho cortado)\nData do incidente: 12/O7/2026 ou 17/02/2026 (data ambigua, dois carimbos sobrepostos)\nValor estimado do reparo: R$ 8.45O,OO (sujeito a pericia, valor preliminar)\nStatus atual: Em analise pericial\n\n",
+                "stream": false,
+                "options": {
+                  "temperature": 1
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "Extraia os dados do documento abaixo e responda APENAS com um JSON\nvalido, sem nenhum texto adicional, seguindo exatamente este schema:\n{\"claimant_name\": string, \"claim_type\": string, \"incident_date\": \"DD/MM/AAAA\",\n\"estimated_amount_brl\": number, \"status\": string,\n\"prioridade\": \"alta se estimated_amount_brl > 5000, senao baixa\"}\n\nDocumento:\n\nAmplitude Seguros - Comunicado de Sinistro (documento digitalizado, OCR, scan parcialmente ilegivel)\nRef. anterior (cancelada): AS-2Q25-0988zi\nApolice vigente: A5-2026-1l44/7 (numero de dificil leitura no scan)\nSegurado: M4rcos Vin1cius Alm3ida Te1xeira (OCR com ruido no nome)\nTipo de sinistro: Colisao veicular (ou possivelmente \"Colisao e furto\", trecho cortado)\nData do incidente: 12/O7/2026 ou 17/02/2026 (data ambigua, dois carimbos sobrepostos)\nValor estimado do reparo: R$ 8.45O,OO (sujeito a pericia, valor preliminar)\nStatus atual: Em analise pericial\n\n",
+                "stream": false,
+                "options": {
+                  "temperature": 1
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "Extraia os dados do documento abaixo e responda APENAS com um JSON\nvalido, sem nenhum texto adicional, seguindo exatamente este schema:\n{\"claimant_name\": string, \"claim_type\": string, \"incident_date\": \"DD/MM/AAAA\",\n\"estimated_amount_brl\": number, \"status\": string,\n\"prioridade\": \"alta se estimated_amount_brl > 5000, senao baixa\"}\n\nDocumento:\n\nAmplitude Seguros - Comunicado de Sinistro (documento digitalizado, OCR, scan parcialmente ilegivel)\nRef. anterior (cancelada): AS-2Q25-0988zi\nApolice vigente: A5-2026-1l44/7 (numero de dificil leitura no scan)\nSegurado: M4rcos Vin1cius Alm3ida Te1xeira (OCR com ruido no nome)\nTipo de sinistro: Colisao veicular (ou possivelmente \"Colisao e furto\", trecho cortado)\nData do incidente: 12/O7/2026 ou 17/02/2026 (data ambigua, dois carimbos sobrepostos)\nValor estimado do reparo: R$ 8.45O,OO (sujeito a pericia, valor preliminar)\nStatus atual: Em analise pericial\n\n",
+                "stream": false,
+                "options": {
+                  "temperature": 1
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "Extraia os dados do documento abaixo e responda APENAS com um JSON\nvalido, sem nenhum texto adicional, seguindo exatamente este schema:\n{\"claimant_name\": string, \"claim_type\": string, \"incident_date\": \"DD/MM/AAAA\",\n\"estimated_amount_brl\": number, \"status\": string,\n\"prioridade\": \"alta se estimated_amount_brl > 5000, senao baixa\"}\n\nDocumento:\n\nAmplitude Seguros - Comunicado de Sinistro (documento digitalizado, OCR, scan parcialmente ilegivel)\nRef. anterior (cancelada): AS-2Q25-0988zi\nApolice vigente: A5-2026-1l44/7 (numero de dificil leitura no scan)\nSegurado: M4rcos Vin1cius Alm3ida Te1xeira (OCR com ruido no nome)\nTipo de sinistro: Colisao veicular (ou possivelmente \"Colisao e furto\", trecho cortado)\nData do incidente: 12/O7/2026 ou 17/02/2026 (data ambigua, dois carimbos sobrepostos)\nValor estimado do reparo: R$ 8.45O,OO (sujeito a pericia, valor preliminar)\nStatus atual: Em analise pericial\n\n",
+                "stream": false,
+                "options": {
+                  "temperature": 1
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "Extraia os dados do documento abaixo e responda APENAS com um JSON\nvalido, sem nenhum texto adicional, seguindo exatamente este schema:\n{\"claimant_name\": string, \"claim_type\": string, \"incident_date\": \"DD/MM/AAAA\",\n\"estimated_amount_brl\": number, \"status\": string,\n\"prioridade\": \"alta se estimated_amount_brl > 5000, senao baixa\"}\n\nDocumento:\n\nAmplitude Seguros - Comunicado de Sinistro (documento digitalizado, OCR, scan parcialmente ilegivel)\nRef. anterior (cancelada): AS-2Q25-0988zi\nApolice vigente: A5-2026-1l44/7 (numero de dificil leitura no scan)\nSegurado: M4rcos Vin1cius Alm3ida Te1xeira (OCR com ruido no nome)\nTipo de sinistro: Colisao veicular (ou possivelmente \"Colisao e furto\", trecho cortado)\nData do incidente: 12/O7/2026 ou 17/02/2026 (data ambigua, dois carimbos sobrepostos)\nValor estimado do reparo: R$ 8.45O,OO (sujeito a pericia, valor preliminar)\nStatus atual: Em analise pericial\n\n",
+                "stream": false,
+                "options": {
+                  "temperature": 1
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "Extraia os dados do documento abaixo e responda APENAS com um JSON\nvalido, sem nenhum texto adicional, seguindo exatamente este schema:\n{\"claimant_name\": string, \"claim_type\": string, \"incident_date\": \"DD/MM/AAAA\",\n\"estimated_amount_brl\": number, \"status\": string,\n\"prioridade\": \"alta se estimated_amount_brl > 5000, senao baixa\"}\n\nDocumento:\n\nAmplitude Seguros - Comunicado de Sinistro (documento digitalizado, OCR, scan parcialmente ilegivel)\nRef. anterior (cancelada): AS-2Q25-0988zi\nApolice vigente: A5-2026-1l44/7 (numero de dificil leitura no scan)\nSegurado: M4rcos Vin1cius Alm3ida Te1xeira (OCR com ruido no nome)\nTipo de sinistro: Colisao veicular (ou possivelmente \"Colisao e furto\", trecho cortado)\nData do incidente: 12/O7/2026 ou 17/02/2026 (data ambigua, dois carimbos sobrepostos)\nValor estimado do reparo: R$ 8.45O,OO (sujeito a pericia, valor preliminar)\nStatus atual: Em analise pericial\n\n",
+                "stream": false,
+                "options": {
+                  "temperature": 1
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "skips a sample whose call fails and computes the advantages over the five that answered",
+      "program": "grpo-verifiable-reward-demo",
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:20:24.825794Z",
+            "response": "Teste recebido com sucesso! ✅\n\nA conexão está funcionando perfeitamente. Como posso te ajudar hoje?",
+            "done": true,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:20:55.846523Z",
+            "response": "```json\n{\n  \"claimant_name\": \"M4rcos Vin1cius Alm3ida Te1xeira\",\n  \"claim_type\": \"Colisao veicular\",\n  \"incident_date\": \"12/07/2026\",\n  \"estimated_amount_brl\": 8450.0,\n  \"status\": \"Em analise pericial\",\n  \"prioridade\": \"alta\"\n}\n```",
+            "done": true,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:21:18.829926Z",
+            "response": "```json\n{\n  \"claimant_name\": \"Marcos Vinícius Almeida Teixeira\",\n  \"claim_type\": \"Colisão veicular\",\n  \"incident_date\": \"12/07/2026\",\n  \"estimated_amount_brl\": 8450,\n  \"status\": \"Em análise pericial\",\n  \"prioridade\": \"alta\"\n}\n```",
+            "done": true,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "source": "synthesized from Ollama's documented error format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/api/generate",
+          "status": 500,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "error": "llama runner process has terminated: signal: killed"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:21:58.46753Z",
+            "response": "```json\n{\n  \"claimant_name\": \"Marcos Vinicius Almeida Teixeira\",\n  \"claim_type\": \"Colisao veicular\",\n  \"incident_date\": \"12/07/2026\",\n  \"estimated_amount_brl\": 8450.0,\n  \"status\": \"Em analise pericial\",\n  \"prioridade\": \"alta\"\n}\n```",
+            "done": true,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:22:23.743792Z",
+            "response": "```json\n{\n  \"claimant_name\": \"Marcos Vinícius Almeida Teixeira\",\n  \"claim_type\": \"Colisão veicular\",\n  \"incident_date\": \"12/07/2026\",\n  \"estimated_amount_brl\": 8450.00,\n  \"status\": \"Em análise pericial\",\n  \"prioridade\": \"alta\"\n}\n```",
+            "done": true,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for gemma4:e2b",
+          "method": "POST",
+          "path": "/api/generate",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "model": "gemma4:12b-mlx",
+            "created_at": "2026-10-27T11:22:47.969598Z",
+            "response": "```json\n{\n  \"claimant_name\": \"M4rcos Vin1cius Alm3ida Te1xeira\",\n  \"claim_type\": \"Colisao veicular\",\n  \"incident_date\": \"12/07/2026\",\n  \"estimated_amount_brl\": 8450.00,\n  \"status\": \"Em analise pericial\",\n  \"prioridade\": \"alta\"\n}\n```",
+            "done": true,
+            "done_reason": "stop"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes: [^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n)+Total: 10 teste\\(s\\), 10 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n\\n== Amostragem real de grupo \\(o passo que o GRPO chama de 'rollout'\\) ==\\nModelo: gemma4:e2b  \\|  tamanho do grupo G=6  \\|  temperatura=1(?:\\.0)?\\nMesma pergunta, G respostas reais e independentes, geradas agora, sem cache\\.\\n\\n  \\[0\\] recompensa=0\\.83  json_valido=(?:true|True)  divergencias=\\[\"claimant_name=(?:\\\\\"|')M4rcos Vin1cius Alm3ida Te1xeira(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Marcos Vinícius Almeida Teixeira(?:\\\\\"|')\\)\"\\]\\n  \\[1\\] recompensa=0\\.67  json_valido=(?:true|True)  divergencias=\\[\"claim_type=(?:\\\\\"|')Colisão veicular(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Colisao veicular(?:\\\\\"|')\\)\", ?\"status=(?:\\\\\"|')Em análise pericial(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Em analise pericial(?:\\\\\"|')\\)\"\\]\\n  \\[2\\] chamada ao Ollama falhou \\([^\\n]*500[^\\n]*\\) -- pulando esta amostra do grupo\\.\\n  \\[3\\] recompensa=0\\.83  json_valido=(?:true|True)  divergencias=\\[\"claimant_name=(?:\\\\\"|')Marcos Vinicius Almeida Teixeira(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Marcos Vinícius Almeida Teixeira(?:\\\\\"|')\\)\"\\]\\n  \\[4\\] recompensa=0\\.67  json_valido=(?:true|True)  divergencias=\\[\"claim_type=(?:\\\\\"|')Colisão veicular(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Colisao veicular(?:\\\\\"|')\\)\", ?\"status=(?:\\\\\"|')Em análise pericial(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Em analise pericial(?:\\\\\"|')\\)\"\\]\\n  \\[5\\] recompensa=0\\.83  json_valido=(?:true|True)  divergencias=\\[\"claimant_name=(?:\\\\\"|')M4rcos Vin1cius Alm3ida Te1xeira(?:\\\\\"|') \\(gabarito=(?:\\\\\"|')Marcos Vinícius Almeida Teixeira(?:\\\\\"|')\\)\"\\]\\n\\nGrupo completo: media\\(r\\)=0\\.767  desvio_padrao\\(r\\)=0\\.082\\n\\n i  recompensa   vantagem A_i  interpreta[çc][ãa]o\\n--------------------------------------------------------------------------\\n 0        0\\.83          0\\.816  refor[çc]aria essa resposta \\(A>0\\)\\n 1        0\\.67         -1\\.225  penalizaria essa resposta \\(A<0\\)\\n 2        0\\.83          0\\.816  refor[çc]aria essa resposta \\(A>0\\)\\n 3        0\\.67         -1\\.225  penalizaria essa resposta \\(A<0\\)\\n 4        0\\.83          0\\.816  refor[çc]aria essa resposta \\(A>0\\)\\n\\nA_i = \\(r_i - m[ée]dia\\(r\\)\\) / desvio_padr[ãa]o\\(r\\) [ée] o sinal que o GRPO usa pra\\natualizar a pol[íi]tica -- o pr[óo]prio grupo vira a linha de base, sem precisar\\nde um modelo de valor \\(critic\\) separado como no PPO/RLHF cl[áa]ssico\\.\\nNenhum peso do modelo foi atualizado por este script -- fim do demo\\.\\n$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "teste de conexao",
+                "stream": false,
+                "options": {
+                  "temperature": 0.1
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "Extraia os dados do documento abaixo e responda APENAS com um JSON\nvalido, sem nenhum texto adicional, seguindo exatamente este schema:\n{\"claimant_name\": string, \"claim_type\": string, \"incident_date\": \"DD/MM/AAAA\",\n\"estimated_amount_brl\": number, \"status\": string,\n\"prioridade\": \"alta se estimated_amount_brl > 5000, senao baixa\"}\n\nDocumento:\n\nAmplitude Seguros - Comunicado de Sinistro (documento digitalizado, OCR, scan parcialmente ilegivel)\nRef. anterior (cancelada): AS-2Q25-0988zi\nApolice vigente: A5-2026-1l44/7 (numero de dificil leitura no scan)\nSegurado: M4rcos Vin1cius Alm3ida Te1xeira (OCR com ruido no nome)\nTipo de sinistro: Colisao veicular (ou possivelmente \"Colisao e furto\", trecho cortado)\nData do incidente: 12/O7/2026 ou 17/02/2026 (data ambigua, dois carimbos sobrepostos)\nValor estimado do reparo: R$ 8.45O,OO (sujeito a pericia, valor preliminar)\nStatus atual: Em analise pericial\n\n",
+                "stream": false,
+                "options": {
+                  "temperature": 1
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "Extraia os dados do documento abaixo e responda APENAS com um JSON\nvalido, sem nenhum texto adicional, seguindo exatamente este schema:\n{\"claimant_name\": string, \"claim_type\": string, \"incident_date\": \"DD/MM/AAAA\",\n\"estimated_amount_brl\": number, \"status\": string,\n\"prioridade\": \"alta se estimated_amount_brl > 5000, senao baixa\"}\n\nDocumento:\n\nAmplitude Seguros - Comunicado de Sinistro (documento digitalizado, OCR, scan parcialmente ilegivel)\nRef. anterior (cancelada): AS-2Q25-0988zi\nApolice vigente: A5-2026-1l44/7 (numero de dificil leitura no scan)\nSegurado: M4rcos Vin1cius Alm3ida Te1xeira (OCR com ruido no nome)\nTipo de sinistro: Colisao veicular (ou possivelmente \"Colisao e furto\", trecho cortado)\nData do incidente: 12/O7/2026 ou 17/02/2026 (data ambigua, dois carimbos sobrepostos)\nValor estimado do reparo: R$ 8.45O,OO (sujeito a pericia, valor preliminar)\nStatus atual: Em analise pericial\n\n",
+                "stream": false,
+                "options": {
+                  "temperature": 1
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "Extraia os dados do documento abaixo e responda APENAS com um JSON\nvalido, sem nenhum texto adicional, seguindo exatamente este schema:\n{\"claimant_name\": string, \"claim_type\": string, \"incident_date\": \"DD/MM/AAAA\",\n\"estimated_amount_brl\": number, \"status\": string,\n\"prioridade\": \"alta se estimated_amount_brl > 5000, senao baixa\"}\n\nDocumento:\n\nAmplitude Seguros - Comunicado de Sinistro (documento digitalizado, OCR, scan parcialmente ilegivel)\nRef. anterior (cancelada): AS-2Q25-0988zi\nApolice vigente: A5-2026-1l44/7 (numero de dificil leitura no scan)\nSegurado: M4rcos Vin1cius Alm3ida Te1xeira (OCR com ruido no nome)\nTipo de sinistro: Colisao veicular (ou possivelmente \"Colisao e furto\", trecho cortado)\nData do incidente: 12/O7/2026 ou 17/02/2026 (data ambigua, dois carimbos sobrepostos)\nValor estimado do reparo: R$ 8.45O,OO (sujeito a pericia, valor preliminar)\nStatus atual: Em analise pericial\n\n",
+                "stream": false,
+                "options": {
+                  "temperature": 1
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "Extraia os dados do documento abaixo e responda APENAS com um JSON\nvalido, sem nenhum texto adicional, seguindo exatamente este schema:\n{\"claimant_name\": string, \"claim_type\": string, \"incident_date\": \"DD/MM/AAAA\",\n\"estimated_amount_brl\": number, \"status\": string,\n\"prioridade\": \"alta se estimated_amount_brl > 5000, senao baixa\"}\n\nDocumento:\n\nAmplitude Seguros - Comunicado de Sinistro (documento digitalizado, OCR, scan parcialmente ilegivel)\nRef. anterior (cancelada): AS-2Q25-0988zi\nApolice vigente: A5-2026-1l44/7 (numero de dificil leitura no scan)\nSegurado: M4rcos Vin1cius Alm3ida Te1xeira (OCR com ruido no nome)\nTipo de sinistro: Colisao veicular (ou possivelmente \"Colisao e furto\", trecho cortado)\nData do incidente: 12/O7/2026 ou 17/02/2026 (data ambigua, dois carimbos sobrepostos)\nValor estimado do reparo: R$ 8.45O,OO (sujeito a pericia, valor preliminar)\nStatus atual: Em analise pericial\n\n",
+                "stream": false,
+                "options": {
+                  "temperature": 1
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "Extraia os dados do documento abaixo e responda APENAS com um JSON\nvalido, sem nenhum texto adicional, seguindo exatamente este schema:\n{\"claimant_name\": string, \"claim_type\": string, \"incident_date\": \"DD/MM/AAAA\",\n\"estimated_amount_brl\": number, \"status\": string,\n\"prioridade\": \"alta se estimated_amount_brl > 5000, senao baixa\"}\n\nDocumento:\n\nAmplitude Seguros - Comunicado de Sinistro (documento digitalizado, OCR, scan parcialmente ilegivel)\nRef. anterior (cancelada): AS-2Q25-0988zi\nApolice vigente: A5-2026-1l44/7 (numero de dificil leitura no scan)\nSegurado: M4rcos Vin1cius Alm3ida Te1xeira (OCR com ruido no nome)\nTipo de sinistro: Colisao veicular (ou possivelmente \"Colisao e furto\", trecho cortado)\nData do incidente: 12/O7/2026 ou 17/02/2026 (data ambigua, dois carimbos sobrepostos)\nValor estimado do reparo: R$ 8.45O,OO (sujeito a pericia, valor preliminar)\nStatus atual: Em analise pericial\n\n",
+                "stream": false,
+                "options": {
+                  "temperature": 1
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "Extraia os dados do documento abaixo e responda APENAS com um JSON\nvalido, sem nenhum texto adicional, seguindo exatamente este schema:\n{\"claimant_name\": string, \"claim_type\": string, \"incident_date\": \"DD/MM/AAAA\",\n\"estimated_amount_brl\": number, \"status\": string,\n\"prioridade\": \"alta se estimated_amount_brl > 5000, senao baixa\"}\n\nDocumento:\n\nAmplitude Seguros - Comunicado de Sinistro (documento digitalizado, OCR, scan parcialmente ilegivel)\nRef. anterior (cancelada): AS-2Q25-0988zi\nApolice vigente: A5-2026-1l44/7 (numero de dificil leitura no scan)\nSegurado: M4rcos Vin1cius Alm3ida Te1xeira (OCR com ruido no nome)\nTipo de sinistro: Colisao veicular (ou possivelmente \"Colisao e furto\", trecho cortado)\nData do incidente: 12/O7/2026 ou 17/02/2026 (data ambigua, dois carimbos sobrepostos)\nValor estimado do reparo: R$ 8.45O,OO (sujeito a pericia, valor preliminar)\nStatus atual: Em analise pericial\n\n",
+                "stream": false,
+                "options": {
+                  "temperature": 1
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "stops after the connection test when Ollama does not have the model",
+      "program": "grpo-verifiable-reward-demo",
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 without gemma4:e2b installed",
+          "method": "POST",
+          "path": "/api/generate",
+          "status": 404,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "error": "model 'gemma4:e2b' not found"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes: [^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n)+Total: 10 teste\\(s\\), 10 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n\\n== Amostragem real de grupo \\(o passo que o GRPO chama de 'rollout'\\) ==\\nModelo: gemma4:e2b  \\|  tamanho do grupo G=6  \\|  temperatura=1(?:\\.0)?\\nMesma pergunta, G respostas reais e independentes, geradas agora, sem cache\\.\\n\\nN[ãa]o foi poss[íi]vel conectar ao Ollama local em http://[^\\s]+/api/generate: [^\\n]*404[^\\n]*\\nRode 'ollama serve' e confirme que o modelo 'gemma4:e2b' est[áa] dispon[íi]vel \\('ollama list'\\)\\.\\n$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gemma4:e2b",
+                "prompt": "teste de conexao",
+                "stream": false,
+                "options": {
+                  "temperature": 0.1
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

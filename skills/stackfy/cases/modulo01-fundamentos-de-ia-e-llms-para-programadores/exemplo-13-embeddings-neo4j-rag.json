@@ -1,0 +1,602 @@
+{
+  "module": "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-13-embeddings-neo4j-rag",
+  "concepts": [
+    "retrieval-augmented-generation",
+    "vector-store",
+    "graph-database",
+    "document-chunking",
+    "text-embeddings",
+    "chat-model"
+  ],
+  "recorded": "Both cases passed 10 runs against the original with Node.js 26.12.1, @langchain/core 0.3.80, @langchain/openai 0.4.9, and @langchain/community 0.3.59, installed from the lesson's lockfile and run as node src/index.ts, the file npm start runs, without its --env-file .env flag, since the lesson ships no environment file and the cases set the variables of the embeddings template's .env.example themselves, with Neo4j's address on the cases' own port. The original always calls OpenRouter's address, so the copy that produced these cases passes OPENAI_BASE_URL to ChatOpenAI as its base URL, falling back to OpenRouter's, a one-line change in src/config.ts. The first run downloads Xenova/all-MiniLM-L6-v2 from the Hugging Face hub without a token, and later runs read the cache. The service is Neo4j 5.14.0 community with APOC, from the lesson's compose file with an override passed on standard input, as in the embeddings lesson's cases, with a container and a project of its own and the browser and Bolt on ports 48147 and 48148, so every run of the file starts with an empty database and nothing is written in the module's folder. No OpenRouter key was available, so the five answers were recorded from Ollama 0.40.11 through its OpenAI-compatible API, with gemma4:12b-mlx standing in for google/gemma-3-27b-it:free, the model of the template's example environment, and wrapped in OpenRouter's documented response format without the stand-in's reasoning, while the requests keep the model the program sends. The rejected key answers OpenRouter's documented 401. The replay answers only when the Authorization, HTTP-Referer, and X-Title headers carry the cases' values. The output is compared exactly, apart from where the deletion's confirmation falls among the lines of the chunks being added, since the original does not wait for the deletion, and each request is compared by its model, its temperature, and its single user message, exactly. Each answer is compared in the file it is written to, found in respostas by the name resposta-, the question's position, a hyphen, 13 digits of epoch milliseconds, and .md, among the files written during the run, so the older answers the lesson ships never count. With the rejected key, standard error is checked by its first line, which must start with error and name the status 401. After each run, the cases ask Neo4j's HTTP API, as neo4j with the password password, what the program stored, as the embeddings lesson's cases do. The second case runs over what the first stored.",
+  "prepare": {
+    "setup": ["npm ci --no-audit --no-fund"],
+    "patches": [
+      {
+        "file": "src/config.ts",
+        "find": "url: \"https://openrouter.ai/api/v1\",",
+        "replace": "url: process.env.OPENAI_BASE_URL ?? \"https://openrouter.ai/api/v1\","
+      }
+    ]
+  },
+  "originals": ["node src/index.ts"],
+  "services": {
+    "up": "docker compose -f docker-compose.yml -f - -p stackfy-exemplo-13-embeddings-neo4j-rag up -d --wait <<'EOF'\nservices:\n  neo4j:\n    container_name: stackfy-exemplo-13-embeddings-neo4j-rag-neo4j\n    ports: !override ['48147:7474', '48148:7687']\n    volumes: !reset []\n    healthcheck:\n      test: ['CMD-SHELL', 'cypher-shell -u neo4j -p password \"RETURN 1\"']\n      interval: 2s\n      timeout: 10s\n      retries: 90\nEOF",
+    "down": "docker compose -f docker-compose.yml -p stackfy-exemplo-13-embeddings-neo4j-rag down -v",
+    "ready": [
+      {
+        "port": 48148
+      },
+      {
+        "port": 48147
+      }
+    ]
+  },
+  "env": {
+    "NEO4J_URI": "bolt://127.0.0.1:48148",
+    "NEO4J_USER": "neo4j",
+    "NEO4J_PASSWORD": "password",
+    "EMBEDDING_MODEL": "Xenova/all-MiniLM-L6-v2",
+    "OPENROUTER_API_KEY": "sk-or-v1-stackfy",
+    "NLP_MODEL": "google/gemma-3-27b-it:free",
+    "OPENROUTER_SITE_URL": "http://localhost:3000",
+    "OPENROUTER_SITE_NAME": "My Example"
+  },
+  "cases": [
+    {
+      "name": "with an empty database, stores the 15 chunks, answers each of five questions from the three chunks closest to it, printing the best score, and writes every answer to its own file",
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for google/gemma-3-27b-it:free, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer sk-or-v1-stackfy$",
+            "http-referer": "^http://localhost:3000$",
+            "x-title": "^My Example$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793104454-JW1MbG5hzMMYt1WaRVY1",
+            "model": "google/gemma-3-27b-it:free",
+            "object": "chat.completion",
+            "created": 1793104454,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "Olá! Essa é uma excelente pergunta para quem está começando a explorar o mundo do machine learning com JavaScript.\n\nPara converter objetos JavaScript em tensores, o primeiro passo fundamental é entender que o TensorFlow.js não consegue processar objetos ou instâncias primitivas diretamente. Por isso, você precisa transformar esses dados em uma estrutura que contenha apenas números. Essa estrutura é o que chamamos de **Tensor**.\n\nPense nos Tensores como vetores ou listas em JavaScript onde o conteúdo é representado por números. É através desses números que os algoritmos conseguem identificar padrões nos dados.\n\nUma forma prática de realizar essa conversão é imaginar uma tabela. Para transformar um array de pessoas em um Tensor, você pode criar uma tabela e atribuir pontos para as propriedades que estão ativas. \n\nPor exemplo, imagine que temos três cores diferentes: azul, vermelho e verde. Podemos representar as preferências de cada pessoa da seguinte forma:\n\n*   **Azul:** 1, 0, 0\n*   **Vermelho:** 0, 1, 0\n*   **Verde:** 0, 0, 1\n\nNesse exemplo, se a cor azul recebe o valor 1 e todas as outras recebem zero, o sistema passa a entender a informação de forma numérica. Seguindo o contexto do exemplo fornecido:\n\n```javascript\nconst pessoas = [ \n  { nome: \"Erick\", idade: 30, cor: \"azul\", localizacao: \"São Paulo\" }, \n  { nome: \"Ana\", idade: 25, cor: \"vermelho\", localizacao: \"Rio\" }, \n  { nome: \"Carlos\", idade: 40, cor: \"verde\", localizacao: \"Curitiba\" } \n];\n```\n\nAo converter esses dados para números, você prepara o terreno para que a rede neural consiga processar as informações e aprender com os padrões do banco de dados.",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 979,
+              "completion_tokens": 1646,
+              "total_tokens": 2625,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for google/gemma-3-27b-it:free, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer sk-or-v1-stackfy$",
+            "http-referer": "^http://localhost:3000$",
+            "x-title": "^My Example$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793104549-y36FElLHNUr41IlIrbvt",
+            "model": "google/gemma-3-27b-it:free",
+            "object": "chat.completion",
+            "created": 1793104549,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "Olá! É muito importante entender como os dados são preparados para que a inteligência artificial funcione corretamente.\n\nSobre a sua pergunta específica sobre o que é a normalização de dados e por que ela é necessária, eu não encontrei essa informação no contexto fornecido.\n\nO texto menciona apenas que a normalização é realizada no momento em que informamos ao algoritmo as categorias dos usuários que já temos. Ele apresenta o seguinte exemplo de categorias:\n\n`const categorias = [\"premium\", \"medium\", \"basico\"];`\n\nEmbora o contexto não explique o conceito técnico da normalização, ele detalha como a rede de aprendizagem processa as informações: os dados passam por diversas conexões e cálculos, onde cada camada funciona como se fosse um \"filtro\" do passo anterior. Esse processo permite que a rede extraia padrões cada vez mais complexos até chegar à camada de saída, que transforma o que foi aprendido em probabilidades para cada categoria (por exemplo, identificar que um perfil tem 78% de chance de ser Premium).",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 671,
+              "completion_tokens": 1546,
+              "total_tokens": 2217,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for google/gemma-3-27b-it:free, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer sk-or-v1-stackfy$",
+            "http-referer": "^http://localhost:3000$",
+            "x-title": "^My Example$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793104613-IXtu4FZRGK2ZkMix7cbK",
+            "model": "google/gemma-3-27b-it:free",
+            "object": "chat.completion",
+            "created": 1793104613,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "Olá! É muito legal ver seu interesse em entender como as redes neurais funcionam dentro do ecossistema do TensorFlow.js. Vamos explorar isso de uma forma simples e prática!\n\nPara começar, você pode imaginar uma rede neural como um grande conjunto de operações matemáticas conectadas. O objetivo principal dessa estrutura é identificar padrões escondidos nos dados que fornecemos a ela.\n\nPara entender como isso funciona na prática, imagine o seguinte cenário: temos uma lista de pessoas e queremos que a rede neural aprenda a categorizá-las. Se você alimentar a rede com informações sobre pessoas e disser a ela em qual categoria cada uma se encaixa, o algoritmo começará a identificar padrões. Depois disso, você pode criar uma nova pessoa e a rede neural tentará determinar qual é a categoria com maior probabilidade para ela.\n\nUm ponto fundamental que você precisa saber é que o TensorFlow.js não entende objetos ou instâncias primitivas do JavaScript (como strings ou objetos comuns). Para que a rede neural consiga processar as informações, precisamos converter tudo para uma estrutura que contenha apenas números, chamada de **Tensor**.\n\nPara facilitar esse entendimento, veja como transformamos dados de pessoas em números para o modelo:\n\nImagine que temos três cores diferentes (azul, vermelho e verde). Para transformar isso em um Tensor, criamos uma tabela onde cada cor recebe o valor 1 e as outras recebem 0. Veja como ficaria:\n\n| Nome | Azul | Vermelho | Verde |\n| :--- | :--- | :--- | :--- |\n| Erick | 1 | 0 | 0 |\n| Ana | 0 | 1 | 0 |\n| Carlos | 0 | 0 | 1 |\n\nComo desenvolvedores web, muitas vezes utilizaremos modelos prontos que foram treinados por engenheiros de machine learning (geralmente utilizando Python). No entanto, entender esses conceitos fundamentais — como a conversão de dados para Tensores e como a rede identifica padrões — é essencial para que você possa trabalhar com sucesso nessas tecnologias!",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 957,
+              "completion_tokens": 1291,
+              "total_tokens": 2248,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for google/gemma-3-27b-it:free, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer sk-or-v1-stackfy$",
+            "http-referer": "^http://localhost:3000$",
+            "x-title": "^My Example$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793104674-gdnwuRcE3nLi9d0p7LWk",
+            "model": "google/gemma-3-27b-it:free",
+            "object": "chat.completion",
+            "created": 1793104674,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "Treinar uma rede neural significa ensinar a máquina a identificar padrões escondidos nos dados para que ela consiga prever situações ou recomendar produtos. Você pode imaginar uma rede neural como um grande conjunto de operações matemáticas conectadas que trabalham juntas para entender essas informações.\n\nPara que esse aprendizado aconteça, o primeiro passo é preparar os dados. Isso envolve a normalização e a conversão dos dados para tensores, garantindo que a máquina consiga processar as informações corretamente. Por exemplo, no contexto de idade, os dados são normalizados para trabalharem entre 0 e 1, como neste exemplo:\n\n*   **Erick:** 30 (30-25)/(40-25) = 0.33\n*   **Ana:** 25 (25-25)/(40-25) = 0\n*   **Carlos:** 40 (40-25)/(40-25) = 1\n\nDurante o processo de treinamento, você alimenta a rede com dados (como uma lista de pessoas contendo nome, idade, cor e localização) e as categorias em que esses clientes se encaixam. A rede neural possui camadas chamadas \"camadas ocultas\", que são compostas por vários \"neurônios\". \n\nPara facilitar o entendimento, você pode pensar nesses neurônios como **\"minicalculadoras matemáticas\"**. Cada neurônio recebe todos os valores de entrada, realiza suas próprias \"continhas\" internas e gera um novo número de saída. \n\nO treinamento propriamente dito acontece na etapa de refinamento: você compara os resultados que saíram da rede com o que você esperava obter. Ao comparar esses resultados, você refina o modelo para que o algoritmo aprenda a determinar com maior precisão em qual categoria uma nova pessoa tem mais probabilidade de estar.",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 988,
+              "completion_tokens": 1412,
+              "total_tokens": 2400,
+              "cost": 0
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gemma4:12b-mlx standing in for google/gemma-3-27b-it:free, in OpenRouter's documented response format",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer sk-or-v1-stackfy$",
+            "http-referer": "^http://localhost:3000$",
+            "x-title": "^My Example$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "gen-1793104732-kUreopxVJAAvoelQbD3r",
+            "model": "google/gemma-3-27b-it:free",
+            "object": "chat.completion",
+            "created": 1793104732,
+            "choices": [
+              {
+                "logprobs": null,
+                "finish_reason": "stop",
+                "native_finish_reason": "stop",
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "Olá! Eu analisei cuidadosamente o material fornecido para responder à sua pergunta, mas não encontrei informações sobre o que é \"hot encoding\" ou quando utilizá-lo no contexto apresentado.\n\nO texto fornecido foca em explicar como as redes neurais funcionam, como o treinamento ocorre através do ajuste de \"pesos\" internos dos neurônios e como os dados de entrada (como idade, cor e localização) são processados pelas camadas ocultas para gerar resultados.",
+                  "refusal": null,
+                  "reasoning": null
+                }
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 830,
+              "completion_tokens": 720,
+              "total_tokens": 1550,
+              "cost": 0
+            }
+          }
+        }
+      ],
+      "inspect": [
+        {
+          "method": "POST",
+          "port": 48147,
+          "path": "/db/neo4j/tx/commit",
+          "headers": {
+            "authorization": "Basic bmVvNGo6cGFzc3dvcmQ="
+          },
+          "json": {
+            "statements": [
+              {
+                "statement": "MATCH (chunk:Chunk) WITH chunk ORDER BY size(chunk.text) RETURN count(chunk) AS chunks, count(DISTINCT chunk.id) AS ids, collect(DISTINCT keys(chunk)) AS properties, collect(DISTINCT chunk.source) AS sources, collect(DISTINCT size(chunk.embedding)) AS dimensions, collect(size(chunk.text)) AS lengths"
+              },
+              {
+                "statement": "SHOW INDEXES YIELD name, type, labelsOrTypes, properties, options WHERE type = 'VECTOR' RETURN name, labelsOrTypes, properties, options.indexConfig AS config"
+              }
+            ]
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^🚀 Inicializando sistema de Embeddings com Neo4j\\.\\.\\.\n\n📄 Loaded 7 pages from PDF\n✂️  Split into 15 chunks\n🗑️  Removendo todos os documentos existentes\\.\\.\\.\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 1/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 2/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 3/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 4/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 5/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 6/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 7/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 8/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 9/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 10/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 11/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 12/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 13/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 14/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 15/15\n(?:✅ Documentos removidos com sucesso\n\n)?\n✅ Base de dados populada com sucesso!\n\n🔍 ETAPA 2: Executando buscas por similaridade\\.\\.\\.\n\n\n================================================================================\n📌 PERGUNTA: Como converter objetos JavaScript em tensores\\?\n================================================================================\n🔍 Buscando no vector store do Neo4j\\.\\.\\.\n✅ Encontrados 3 resultados relevantes \\(melhor score: 0\\.806\\)\n🤖 Gerando resposta com IA\\.\\.\\.\n\n🎙️  Pergunta:\nComo converter objetos JavaScript em tensores\\? \n\n💬 Resposta:\nOlá! Essa é uma excelente pergunta para quem está começando a explorar o mundo do machine learning com JavaScript\\.\n\nPara converter objetos JavaScript em tensores, o primeiro passo fundamental é entender que o TensorFlow\\.js não consegue processar objetos ou instâncias primitivas diretamente\\. Por isso, você precisa transformar esses dados em uma estrutura que contenha apenas números\\. Essa estrutura é o que chamamos de \\*\\*Tensor\\*\\*\\.\n\nPense nos Tensores como vetores ou listas em JavaScript onde o conteúdo é representado por números\\. É através desses números que os algoritmos conseguem identificar padrões nos dados\\.\n\nUma forma prática de realizar essa conversão é imaginar uma tabela\\. Para transformar um array de pessoas em um Tensor, você pode criar uma tabela e atribuir pontos para as propriedades que estão ativas\\. \n\nPor exemplo, imagine que temos três cores diferentes: azul, vermelho e verde\\. Podemos representar as preferências de cada pessoa da seguinte forma:\n\n\\*   \\*\\*Azul:\\*\\* 1, 0, 0\n\\*   \\*\\*Vermelho:\\*\\* 0, 1, 0\n\\*   \\*\\*Verde:\\*\\* 0, 0, 1\n\nNesse exemplo, se a cor azul recebe o valor 1 e todas as outras recebem zero, o sistema passa a entender a informação de forma numérica\\. Seguindo o contexto do exemplo fornecido:\n\n```javascript\nconst pessoas = \\[ \n  \\{ nome: \"Erick\", idade: 30, cor: \"azul\", localizacao: \"São Paulo\" \\}, \n  \\{ nome: \"Ana\", idade: 25, cor: \"vermelho\", localizacao: \"Rio\" \\}, \n  \\{ nome: \"Carlos\", idade: 40, cor: \"verde\", localizacao: \"Curitiba\" \\} \n\\];\n```\n\nAo converter esses dados para números, você prepara o terreno para que a rede neural consiga processar as informações e aprender com os padrões do banco de dados\\. \n\n\nOlá! Essa é uma excelente pergunta para quem está começando a explorar o mundo do machine learning com JavaScript\\.\n\nPara converter objetos JavaScript em tensores, o primeiro passo fundamental é entender que o TensorFlow\\.js não consegue processar objetos ou instâncias primitivas diretamente\\. Por isso, você precisa transformar esses dados em uma estrutura que contenha apenas números\\. Essa estrutura é o que chamamos de \\*\\*Tensor\\*\\*\\.\n\nPense nos Tensores como vetores ou listas em JavaScript onde o conteúdo é representado por números\\. É através desses números que os algoritmos conseguem identificar padrões nos dados\\.\n\nUma forma prática de realizar essa conversão é imaginar uma tabela\\. Para transformar um array de pessoas em um Tensor, você pode criar uma tabela e atribuir pontos para as propriedades que estão ativas\\. \n\nPor exemplo, imagine que temos três cores diferentes: azul, vermelho e verde\\. Podemos representar as preferências de cada pessoa da seguinte forma:\n\n\\*   \\*\\*Azul:\\*\\* 1, 0, 0\n\\*   \\*\\*Vermelho:\\*\\* 0, 1, 0\n\\*   \\*\\*Verde:\\*\\* 0, 0, 1\n\nNesse exemplo, se a cor azul recebe o valor 1 e todas as outras recebem zero, o sistema passa a entender a informação de forma numérica\\. Seguindo o contexto do exemplo fornecido:\n\n```javascript\nconst pessoas = \\[ \n  \\{ nome: \"Erick\", idade: 30, cor: \"azul\", localizacao: \"São Paulo\" \\}, \n  \\{ nome: \"Ana\", idade: 25, cor: \"vermelho\", localizacao: \"Rio\" \\}, \n  \\{ nome: \"Carlos\", idade: 40, cor: \"verde\", localizacao: \"Curitiba\" \\} \n\\];\n```\n\nAo converter esses dados para números, você prepara o terreno para que a rede neural consiga processar as informações e aprender com os padrões do banco de dados\\.\n\n\n================================================================================\n📌 PERGUNTA: O que é normalização de dados e por que é necessária\\?\n================================================================================\n🔍 Buscando no vector store do Neo4j\\.\\.\\.\n✅ Encontrados 3 resultados relevantes \\(melhor score: 0\\.788\\)\n🤖 Gerando resposta com IA\\.\\.\\.\n\n🎙️  Pergunta:\nO que é normalização de dados e por que é necessária\\? \n\n💬 Resposta:\nOlá! É muito importante entender como os dados são preparados para que a inteligência artificial funcione corretamente\\.\n\nSobre a sua pergunta específica sobre o que é a normalização de dados e por que ela é necessária, eu não encontrei essa informação no contexto fornecido\\.\n\nO texto menciona apenas que a normalização é realizada no momento em que informamos ao algoritmo as categorias dos usuários que já temos\\. Ele apresenta o seguinte exemplo de categorias:\n\n`const categorias = \\[\"premium\", \"medium\", \"basico\"\\];`\n\nEmbora o contexto não explique o conceito técnico da normalização, ele detalha como a rede de aprendizagem processa as informações: os dados passam por diversas conexões e cálculos, onde cada camada funciona como se fosse um \"filtro\" do passo anterior\\. Esse processo permite que a rede extraia padrões cada vez mais complexos até chegar à camada de saída, que transforma o que foi aprendido em probabilidades para cada categoria \\(por exemplo, identificar que um perfil tem 78% de chance de ser Premium\\)\\. \n\n\nOlá! É muito importante entender como os dados são preparados para que a inteligência artificial funcione corretamente\\.\n\nSobre a sua pergunta específica sobre o que é a normalização de dados e por que ela é necessária, eu não encontrei essa informação no contexto fornecido\\.\n\nO texto menciona apenas que a normalização é realizada no momento em que informamos ao algoritmo as categorias dos usuários que já temos\\. Ele apresenta o seguinte exemplo de categorias:\n\n`const categorias = \\[\"premium\", \"medium\", \"basico\"\\];`\n\nEmbora o contexto não explique o conceito técnico da normalização, ele detalha como a rede de aprendizagem processa as informações: os dados passam por diversas conexões e cálculos, onde cada camada funciona como se fosse um \"filtro\" do passo anterior\\. Esse processo permite que a rede extraia padrões cada vez mais complexos até chegar à camada de saída, que transforma o que foi aprendido em probabilidades para cada categoria \\(por exemplo, identificar que um perfil tem 78% de chance de ser Premium\\)\\.\n\n\n================================================================================\n📌 PERGUNTA: Como funciona uma rede neural no TensorFlow\\.js\\?\n================================================================================\n🔍 Buscando no vector store do Neo4j\\.\\.\\.\n✅ Encontrados 3 resultados relevantes \\(melhor score: 0\\.804\\)\n🤖 Gerando resposta com IA\\.\\.\\.\n\n🎙️  Pergunta:\nComo funciona uma rede neural no TensorFlow\\.js\\? \n\n💬 Resposta:\nOlá! É muito legal ver seu interesse em entender como as redes neurais funcionam dentro do ecossistema do TensorFlow\\.js\\. Vamos explorar isso de uma forma simples e prática!\n\nPara começar, você pode imaginar uma rede neural como um grande conjunto de operações matemáticas conectadas\\. O objetivo principal dessa estrutura é identificar padrões escondidos nos dados que fornecemos a ela\\.\n\nPara entender como isso funciona na prática, imagine o seguinte cenário: temos uma lista de pessoas e queremos que a rede neural aprenda a categorizá-las\\. Se você alimentar a rede com informações sobre pessoas e disser a ela em qual categoria cada uma se encaixa, o algoritmo começará a identificar padrões\\. Depois disso, você pode criar uma nova pessoa e a rede neural tentará determinar qual é a categoria com maior probabilidade para ela\\.\n\nUm ponto fundamental que você precisa saber é que o TensorFlow\\.js não entende objetos ou instâncias primitivas do JavaScript \\(como strings ou objetos comuns\\)\\. Para que a rede neural consiga processar as informações, precisamos converter tudo para uma estrutura que contenha apenas números, chamada de \\*\\*Tensor\\*\\*\\.\n\nPara facilitar esse entendimento, veja como transformamos dados de pessoas em números para o modelo:\n\nImagine que temos três cores diferentes \\(azul, vermelho e verde\\)\\. Para transformar isso em um Tensor, criamos uma tabela onde cada cor recebe o valor 1 e as outras recebem 0\\. Veja como ficaria:\n\n\\| Nome \\| Azul \\| Vermelho \\| Verde \\|\n\\| :--- \\| :--- \\| :--- \\| :--- \\|\n\\| Erick \\| 1 \\| 0 \\| 0 \\|\n\\| Ana \\| 0 \\| 1 \\| 0 \\|\n\\| Carlos \\| 0 \\| 0 \\| 1 \\|\n\nComo desenvolvedores web, muitas vezes utilizaremos modelos prontos que foram treinados por engenheiros de machine learning \\(geralmente utilizando Python\\)\\. No entanto, entender esses conceitos fundamentais — como a conversão de dados para Tensores e como a rede identifica padrões — é essencial para que você possa trabalhar com sucesso nessas tecnologias! \n\n\nOlá! É muito legal ver seu interesse em entender como as redes neurais funcionam dentro do ecossistema do TensorFlow\\.js\\. Vamos explorar isso de uma forma simples e prática!\n\nPara começar, você pode imaginar uma rede neural como um grande conjunto de operações matemáticas conectadas\\. O objetivo principal dessa estrutura é identificar padrões escondidos nos dados que fornecemos a ela\\.\n\nPara entender como isso funciona na prática, imagine o seguinte cenário: temos uma lista de pessoas e queremos que a rede neural aprenda a categorizá-las\\. Se você alimentar a rede com informações sobre pessoas e disser a ela em qual categoria cada uma se encaixa, o algoritmo começará a identificar padrões\\. Depois disso, você pode criar uma nova pessoa e a rede neural tentará determinar qual é a categoria com maior probabilidade para ela\\.\n\nUm ponto fundamental que você precisa saber é que o TensorFlow\\.js não entende objetos ou instâncias primitivas do JavaScript \\(como strings ou objetos comuns\\)\\. Para que a rede neural consiga processar as informações, precisamos converter tudo para uma estrutura que contenha apenas números, chamada de \\*\\*Tensor\\*\\*\\.\n\nPara facilitar esse entendimento, veja como transformamos dados de pessoas em números para o modelo:\n\nImagine que temos três cores diferentes \\(azul, vermelho e verde\\)\\. Para transformar isso em um Tensor, criamos uma tabela onde cada cor recebe o valor 1 e as outras recebem 0\\. Veja como ficaria:\n\n\\| Nome \\| Azul \\| Vermelho \\| Verde \\|\n\\| :--- \\| :--- \\| :--- \\| :--- \\|\n\\| Erick \\| 1 \\| 0 \\| 0 \\|\n\\| Ana \\| 0 \\| 1 \\| 0 \\|\n\\| Carlos \\| 0 \\| 0 \\| 1 \\|\n\nComo desenvolvedores web, muitas vezes utilizaremos modelos prontos que foram treinados por engenheiros de machine learning \\(geralmente utilizando Python\\)\\. No entanto, entender esses conceitos fundamentais — como a conversão de dados para Tensores e como a rede identifica padrões — é essencial para que você possa trabalhar com sucesso nessas tecnologias!\n\n\n================================================================================\n📌 PERGUNTA: O que significa treinar uma rede neural\\?\n================================================================================\n🔍 Buscando no vector store do Neo4j\\.\\.\\.\n✅ Encontrados 3 resultados relevantes \\(melhor score: 0\\.856\\)\n🤖 Gerando resposta com IA\\.\\.\\.\n\n🎙️  Pergunta:\nO que significa treinar uma rede neural\\? \n\n💬 Resposta:\nTreinar uma rede neural significa ensinar a máquina a identificar padrões escondidos nos dados para que ela consiga prever situações ou recomendar produtos\\. Você pode imaginar uma rede neural como um grande conjunto de operações matemáticas conectadas que trabalham juntas para entender essas informações\\.\n\nPara que esse aprendizado aconteça, o primeiro passo é preparar os dados\\. Isso envolve a normalização e a conversão dos dados para tensores, garantindo que a máquina consiga processar as informações corretamente\\. Por exemplo, no contexto de idade, os dados são normalizados para trabalharem entre 0 e 1, como neste exemplo:\n\n\\*   \\*\\*Erick:\\*\\* 30 \\(30-25\\)/\\(40-25\\) = 0\\.33\n\\*   \\*\\*Ana:\\*\\* 25 \\(25-25\\)/\\(40-25\\) = 0\n\\*   \\*\\*Carlos:\\*\\* 40 \\(40-25\\)/\\(40-25\\) = 1\n\nDurante o processo de treinamento, você alimenta a rede com dados \\(como uma lista de pessoas contendo nome, idade, cor e localização\\) e as categorias em que esses clientes se encaixam\\. A rede neural possui camadas chamadas \"camadas ocultas\", que são compostas por vários \"neurônios\"\\. \n\nPara facilitar o entendimento, você pode pensar nesses neurônios como \\*\\*\"minicalculadoras matemáticas\"\\*\\*\\. Cada neurônio recebe todos os valores de entrada, realiza suas próprias \"continhas\" internas e gera um novo número de saída\\. \n\nO treinamento propriamente dito acontece na etapa de refinamento: você compara os resultados que saíram da rede com o que você esperava obter\\. Ao comparar esses resultados, você refina o modelo para que o algoritmo aprenda a determinar com maior precisão em qual categoria uma nova pessoa tem mais probabilidade de estar\\. \n\n\nTreinar uma rede neural significa ensinar a máquina a identificar padrões escondidos nos dados para que ela consiga prever situações ou recomendar produtos\\. Você pode imaginar uma rede neural como um grande conjunto de operações matemáticas conectadas que trabalham juntas para entender essas informações\\.\n\nPara que esse aprendizado aconteça, o primeiro passo é preparar os dados\\. Isso envolve a normalização e a conversão dos dados para tensores, garantindo que a máquina consiga processar as informações corretamente\\. Por exemplo, no contexto de idade, os dados são normalizados para trabalharem entre 0 e 1, como neste exemplo:\n\n\\*   \\*\\*Erick:\\*\\* 30 \\(30-25\\)/\\(40-25\\) = 0\\.33\n\\*   \\*\\*Ana:\\*\\* 25 \\(25-25\\)/\\(40-25\\) = 0\n\\*   \\*\\*Carlos:\\*\\* 40 \\(40-25\\)/\\(40-25\\) = 1\n\nDurante o processo de treinamento, você alimenta a rede com dados \\(como uma lista de pessoas contendo nome, idade, cor e localização\\) e as categorias em que esses clientes se encaixam\\. A rede neural possui camadas chamadas \"camadas ocultas\", que são compostas por vários \"neurônios\"\\. \n\nPara facilitar o entendimento, você pode pensar nesses neurônios como \\*\\*\"minicalculadoras matemáticas\"\\*\\*\\. Cada neurônio recebe todos os valores de entrada, realiza suas próprias \"continhas\" internas e gera um novo número de saída\\. \n\nO treinamento propriamente dito acontece na etapa de refinamento: você compara os resultados que saíram da rede com o que você esperava obter\\. Ao comparar esses resultados, você refina o modelo para que o algoritmo aprenda a determinar com maior precisão em qual categoria uma nova pessoa tem mais probabilidade de estar\\.\n\n\n================================================================================\n📌 PERGUNTA: o que é hot enconding e quando usar\\?\n================================================================================\n🔍 Buscando no vector store do Neo4j\\.\\.\\.\n✅ Encontrados 3 resultados relevantes \\(melhor score: 0\\.697\\)\n🤖 Gerando resposta com IA\\.\\.\\.\n\n🎙️  Pergunta:\no que é hot enconding e quando usar\\? \n\n💬 Resposta:\nOlá! Eu analisei cuidadosamente o material fornecido para responder à sua pergunta, mas não encontrei informações sobre o que é \"hot encoding\" ou quando utilizá-lo no contexto apresentado\\.\n\nO texto fornecido foca em explicar como as redes neurais funcionam, como o treinamento ocorre através do ajuste de \"pesos\" internos dos neurônios e como os dados de entrada \\(como idade, cor e localização\\) são processados pelas camadas ocultas para gerar resultados\\. \n\n\nOlá! Eu analisei cuidadosamente o material fornecido para responder à sua pergunta, mas não encontrei informações sobre o que é \"hot encoding\" ou quando utilizá-lo no contexto apresentado\\.\n\nO texto fornecido foca em explicar como as redes neurais funcionam, como o treinamento ocorre através do ajuste de \"pesos\" internos dos neurônios e como os dados de entrada \\(como idade, cor e localização\\) são processados pelas camadas ocultas para gerar resultados\\.\n\n\n================================================================================\n✅ Processamento concluído com sucesso!\n\n$"
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:(?!Documentos removidos)[\\s\\S])*✅ Documentos removidos com sucesso\\n\\n(?:(?!Documentos removidos)[\\s\\S])*$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "google/gemma-3-27b-it:free",
+                "temperature": 0.3,
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "user",
+                      "content": "Você é um Você é um assistente especializado em TensorFlow.js e machine learning.\n\n**Contexto e Regras:**\n- Tarefa: Responder perguntas sobre TensorFlow.js e machine learning de forma educacional\n- Tom de voz: educacional e amigável\n- Idioma: pt-BR\n- Formato de resposta: texto natural com exemplos\n\n**Instruções importantes:**\n1. Use APENAS as informações do contexto fornecido para responder\n2. Se o contexto não contiver informação suficiente, diga que não encontrou a informação\n3. Seja claro, objetivo e use exemplos quando apropriado\n4. Mantenha um tom educacional e amigável\n5. Se houver código ou exemplos no contexto, inclua-os na resposta\n6. Responda em português de forma natural e conversacional\n7. Estruture sua resposta em parágrafos quando necessário\n8. Use analogias e exemplos práticos para facilitar o entendimento\n\n**Pergunta do usuário:**\nComo converter objetos JavaScript em tensores?\n\n**Contexto recuperado do documento:**\n\ntext: { nome: \"Carlos\", idade: 40, cor: \"verde\", localizacao: \"Curitiba\" } \n]; \n \nconst categorias = [ \n  'Erick', 'premium', \n  'Ana', 'medium', \n  'Carlos', 'basic' \n] \n \n \nComo eu falei, Tensorflow.js não entende objetos ou instâncias primitivas de JavaScript, você \nnecessariamente precisa converter para uma estrutura que contenha apenas números, um \nTensor \n \nPara simplificar, vamos trabalhar em cima do array de pessoas, para transformar esse array em \num Tensor podemos criar uma tabela e adicionar pontos para propriedades que estão ativas \n \nBatendo o olho, temos 3 cores diferentes, então, Erick tem cor preferida azul, o azul recebe 1 e \ntodo o resto zero, Ana vermelho, vermelho recebe 1 e zero para o resto e asim por diante \n \n \n azul vermelho verde \nErick 1 0 0 \nAna 0 1 0 \nCarlos 0 0 1\n\n---\n\n\ntext: No início, te falei sobre a biblioteca TensorFlow.js e disse que ela seria a base para as \ndemonstrações deste módulo \n \nEntão para começar, Tensorflow tem este nome, pois trabalha com Tensores, que são vetores, \nou listas em JavaScript em que seu conteúdo é representado por números para posteriormente \nserem usados por algoritmos que aprendem com padrões de dados \n \nVamos pensar em um exemplo de um array de pessoas, onde tem sua idade, cor preferida, e \nlocalização, cada pessoa aqui tem uma categoria. Dado as propriedades de uma nova pessoa, \nvocê quer determinar em qual categoria ela mais se encaixa baseado no histórico do banco de \ndados \n \n(animação) \nconst pessoas = [ \n  { nome: \"Erick\", idade: 30, cor: \"azul\", localizacao: \"São Paulo\" }, \n  { nome: \"Ana\", idade: 25, cor: \"vermelho\", localizacao: \"Rio\" }, \n  { nome: \"Carlos\", idade: 40, cor: \"verde\", localizacao: \"Curitiba\" } \n]; \n \nconst categorias = [ \n  'Erick', 'premium', \n  'Ana', 'medium', \n  'Carlos', 'basic' \n]\n\n---\n\n\ntext: Mas para nós, Web developers, na prática, geralmente usamos modelos prontos e podemos \naté estendê-los, o trabalho de treinar um modelo, gerar o arquivo final para que alguém possa \nreutilizá-lo depois, é trabalho de engenheiros de machine learning,  normalmente uma galera \nque vem do Python. \nSó que nós Web developers, somos a galera do JavaScript e com JavaScript tudo é possível!  \nNa próxima aula, vou cair na prática em como criar essa rede neural, usando o mesmo \ncontexto que vimos aqui, para ficar mais claro como isso funciona \nVai ser importante para você entender conceitos fundamentais antes de cair para os modelos \nprontos de machine learning, vem comigo que vai val a pena!\n\n**Resposta:**\nForneça uma resposta clara, educacional e em português. Use exemplos do contexto quando disponível.\n"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "google/gemma-3-27b-it:free",
+                "temperature": 0.3,
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "user",
+                      "content": "Você é um Você é um assistente especializado em TensorFlow.js e machine learning.\n\n**Contexto e Regras:**\n- Tarefa: Responder perguntas sobre TensorFlow.js e machine learning de forma educacional\n- Tom de voz: educacional e amigável\n- Idioma: pt-BR\n- Formato de resposta: texto natural com exemplos\n\n**Instruções importantes:**\n1. Use APENAS as informações do contexto fornecido para responder\n2. Se o contexto não contiver informação suficiente, diga que não encontrou a informação\n3. Seja claro, objetivo e use exemplos quando apropriado\n4. Mantenha um tom educacional e amigável\n5. Se houver código ou exemplos no contexto, inclua-os na resposta\n6. Responda em português de forma natural e conversacional\n7. Estruture sua resposta em parágrafos quando necessário\n8. Use analogias e exemplos práticos para facilitar o entendimento\n\n**Pergunta do usuário:**\nO que é normalização de dados e por que é necessária?\n\n**Contexto recuperado do documento:**\n\ntext: É assim que a rede decide qual categoria tem mais a ver com aquele perfil. \nResumindo: \n O dado entra, passa por um monte de conexões e cálculos, e o modelo te entrega uma \nresposta — não só dizendo qual é o resultado mais provável, mas também mostrando o quanto \nele “acredita” em cada categoria!\n\n---\n\n\ntext: opções \nAgora, precisamos informar o algoritmo, qual é a categoria dos usuários que já temos, e \nfazemos a normalização, então dado que temos as categorias \nconst categorias = [\"premium\", \"medium\", \"basico\"];\n\n---\n\n\ntext: acordo com o que você estava esperando \nEssas saídas então viram a entrada para a próxima camada, cada camada vira como se fosse \num filtro do passo anterior, se houver mais de uma camada oculta, esse processo se repete, \ncada vez extraindo padrões mais complexos dos dados \nCada linha colorida mostra como todos os inputs estão conectados a todos os neurônios da \ncamada seguinte, formando esse emaranhado de conexões que permite a rede aprender. \nDepois, vem a camada de saída, onde cada neurônio representa uma categoria possível: \n● Premium \n \n● Medium \n \n● Basic \n \nO papel dessa camada é transformar tudo o que foi aprendido pelas camadas anteriores em \nprobabilidades — indicando, por exemplo, que este perfil tem 78% de chance de ser Premium, \n12% de ser Medium, e 10% de ser Basic. \n \n(voltar apenas para a câmera) \n É assim que a rede decide qual categoria tem mais a ver com aquele perfil. \nResumindo: \n O dado entra, passa por um monte de conexões e cálculos, e o modelo te entrega uma\n\n**Resposta:**\nForneça uma resposta clara, educacional e em português. Use exemplos do contexto quando disponível.\n"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "google/gemma-3-27b-it:free",
+                "temperature": 0.3,
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "user",
+                      "content": "Você é um Você é um assistente especializado em TensorFlow.js e machine learning.\n\n**Contexto e Regras:**\n- Tarefa: Responder perguntas sobre TensorFlow.js e machine learning de forma educacional\n- Tom de voz: educacional e amigável\n- Idioma: pt-BR\n- Formato de resposta: texto natural com exemplos\n\n**Instruções importantes:**\n1. Use APENAS as informações do contexto fornecido para responder\n2. Se o contexto não contiver informação suficiente, diga que não encontrou a informação\n3. Seja claro, objetivo e use exemplos quando apropriado\n4. Mantenha um tom educacional e amigável\n5. Se houver código ou exemplos no contexto, inclua-os na resposta\n6. Responda em português de forma natural e conversacional\n7. Estruture sua resposta em parágrafos quando necessário\n8. Use analogias e exemplos práticos para facilitar o entendimento\n\n**Pergunta do usuário:**\nComo funciona uma rede neural no TensorFlow.js?\n\n**Contexto recuperado do documento:**\n\ntext: Efeito fade \nAgora que você já entendeu como transformar seus dados em tensores e normalizar tudo para \ntrabalhar entre 0 e 1, chega a parte mais mágica (e divertida!) do machine learning: as redes \nneurais. \nhttps://www.notablecap.com/blog/the-anatomy-of-a-neural-network \nComo funciona uma rede neural no TensorFlow.js? \nUma rede neural é como se fosse um monte de operações matemáticas conectadas, \ntentando encontrar padrões escondidos nos dados. \nPegando o exemplo da aula anterior, você vai enviar essa lista de pessoas para uma rede \nneural,  vai alimentar ela com qual categoria esses clientes estão inclusos e então vai criar uma \nnova pessoa e o algoritmo vai tentar determinar em qual categoria essa pessoa tem mais \nprobabilidade de ser \nVamos ver de uma forma mais prática. Voltando à aula anterior, tinhamos essa lista:  \nconst pessoas = [ \n  { nome: \"Erick\", idade: 30, cor: \"azul\", localizacao: \"São Paulo\" }, \n  { nome: \"Ana\", idade: 25, cor: \"vermelho\", localizacao: \"Rio\" },\n\n---\n\n\ntext: Mas para nós, Web developers, na prática, geralmente usamos modelos prontos e podemos \naté estendê-los, o trabalho de treinar um modelo, gerar o arquivo final para que alguém possa \nreutilizá-lo depois, é trabalho de engenheiros de machine learning,  normalmente uma galera \nque vem do Python. \nSó que nós Web developers, somos a galera do JavaScript e com JavaScript tudo é possível!  \nNa próxima aula, vou cair na prática em como criar essa rede neural, usando o mesmo \ncontexto que vimos aqui, para ficar mais claro como isso funciona \nVai ser importante para você entender conceitos fundamentais antes de cair para os modelos \nprontos de machine learning, vem comigo que vai val a pena!\n\n---\n\n\ntext: { nome: \"Carlos\", idade: 40, cor: \"verde\", localizacao: \"Curitiba\" } \n]; \n \nconst categorias = [ \n  'Erick', 'premium', \n  'Ana', 'medium', \n  'Carlos', 'basic' \n] \n \n \nComo eu falei, Tensorflow.js não entende objetos ou instâncias primitivas de JavaScript, você \nnecessariamente precisa converter para uma estrutura que contenha apenas números, um \nTensor \n \nPara simplificar, vamos trabalhar em cima do array de pessoas, para transformar esse array em \num Tensor podemos criar uma tabela e adicionar pontos para propriedades que estão ativas \n \nBatendo o olho, temos 3 cores diferentes, então, Erick tem cor preferida azul, o azul recebe 1 e \ntodo o resto zero, Ana vermelho, vermelho recebe 1 e zero para o resto e asim por diante \n \n \n azul vermelho verde \nErick 1 0 0 \nAna 0 1 0 \nCarlos 0 0 1\n\n**Resposta:**\nForneça uma resposta clara, educacional e em português. Use exemplos do contexto quando disponível.\n"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "google/gemma-3-27b-it:free",
+                "temperature": 0.3,
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "user",
+                      "content": "Você é um Você é um assistente especializado em TensorFlow.js e machine learning.\n\n**Contexto e Regras:**\n- Tarefa: Responder perguntas sobre TensorFlow.js e machine learning de forma educacional\n- Tom de voz: educacional e amigável\n- Idioma: pt-BR\n- Formato de resposta: texto natural com exemplos\n\n**Instruções importantes:**\n1. Use APENAS as informações do contexto fornecido para responder\n2. Se o contexto não contiver informação suficiente, diga que não encontrou a informação\n3. Seja claro, objetivo e use exemplos quando apropriado\n4. Mantenha um tom educacional e amigável\n5. Se houver código ou exemplos no contexto, inclua-os na resposta\n6. Responda em português de forma natural e conversacional\n7. Estruture sua resposta em parágrafos quando necessário\n8. Use analogias e exemplos práticos para facilitar o entendimento\n\n**Pergunta do usuário:**\nO que significa treinar uma rede neural?\n\n**Contexto recuperado do documento:**\n\ntext: ] \n \nToda vez que você for trabalhar com processamento de máquina ou machine learning, \nacontece essa etapa de normalização e conversão dos dados para tensores, é dessa forma \nque a máquina consegue aprender padrões, prever situações e recomendar produtos \n \nNa próxima aula, vamos avançar ainda mais a partir deste ponto, você vai entender o que são \nredes neurais, porque se diz “treinar uma rede neural” e vou continuar esse exemplo treinando \na rede para classificar a categoria de uma pessoa \n idade Idade normalizada \nErick 30 (30-25)/(40-25) = 0.33 \nAna 25 (25-25)/(40-25) = 0 \nCarlos 40 (40-25)/(40-25) = 1\n\n---\n\n\ntext: Efeito fade \nAgora que você já entendeu como transformar seus dados em tensores e normalizar tudo para \ntrabalhar entre 0 e 1, chega a parte mais mágica (e divertida!) do machine learning: as redes \nneurais. \nhttps://www.notablecap.com/blog/the-anatomy-of-a-neural-network \nComo funciona uma rede neural no TensorFlow.js? \nUma rede neural é como se fosse um monte de operações matemáticas conectadas, \ntentando encontrar padrões escondidos nos dados. \nPegando o exemplo da aula anterior, você vai enviar essa lista de pessoas para uma rede \nneural,  vai alimentar ela com qual categoria esses clientes estão inclusos e então vai criar uma \nnova pessoa e o algoritmo vai tentar determinar em qual categoria essa pessoa tem mais \nprobabilidade de ser \nVamos ver de uma forma mais prática. Voltando à aula anterior, tinhamos essa lista:  \nconst pessoas = [ \n  { nome: \"Erick\", idade: 30, cor: \"azul\", localizacao: \"São Paulo\" }, \n  { nome: \"Ana\", idade: 25, cor: \"vermelho\", localizacao: \"Rio\" },\n\n---\n\n\ntext: Uma rede neural geralmente é representada com imagens como essa. \nCada input vira um parâmetro — por exemplo, idade, cor e localização da pessoa — e é \nenviado para a primeira camada do modelo. \nEssa primeira etapa, chamada de camada oculta, é composta por vários “neurônios”, que são \ncomo minicalculadoras matemáticas. \nCada neurônio recebe todos os valores de entrada, faz suas próprias continhas internas \n(misturando idade, cor, localização, etc.) e gera um novo número de saída. \nAli por exemplo, cada bolinha de camada oculta, representa um neurônio, neste exemplo, eu \nusei apenas 4 neurônios, mais por visualização, mas na aula de criar um sistema de \nrecomendação, vamos usar mais de 120 neurônios diferentes, essas quantidades de \nneurônios, você vai refinando com o tempo, comparando se os resultados que sairam estão de \nacordo com o que você estava esperando \nEssas saídas então viram a entrada para a próxima camada, cada camada vira como se fosse\n\n**Resposta:**\nForneça uma resposta clara, educacional e em português. Use exemplos do contexto quando disponível.\n"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "google/gemma-3-27b-it:free",
+                "temperature": 0.3,
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "user",
+                      "content": "Você é um Você é um assistente especializado em TensorFlow.js e machine learning.\n\n**Contexto e Regras:**\n- Tarefa: Responder perguntas sobre TensorFlow.js e machine learning de forma educacional\n- Tom de voz: educacional e amigável\n- Idioma: pt-BR\n- Formato de resposta: texto natural com exemplos\n\n**Instruções importantes:**\n1. Use APENAS as informações do contexto fornecido para responder\n2. Se o contexto não contiver informação suficiente, diga que não encontrou a informação\n3. Seja claro, objetivo e use exemplos quando apropriado\n4. Mantenha um tom educacional e amigável\n5. Se houver código ou exemplos no contexto, inclua-os na resposta\n6. Responda em português de forma natural e conversacional\n7. Estruture sua resposta em parágrafos quando necessário\n8. Use analogias e exemplos práticos para facilitar o entendimento\n\n**Pergunta do usuário:**\no que é hot enconding e quando usar?\n\n**Contexto recuperado do documento:**\n\ntext: É assim que a rede decide qual categoria tem mais a ver com aquele perfil. \nResumindo: \n O dado entra, passa por um monte de conexões e cálculos, e o modelo te entrega uma \nresposta — não só dizendo qual é o resultado mais provável, mas também mostrando o quanto \nele “acredita” em cada categoria!\n\n---\n\n\ntext: Efeito fade \nPor que se fala em “treinar” a rede? \nTreinar nada mais é do que mostrar vários exemplos (como fizemos com Erick, Ana e Carlos), \ne deixar o algoritmo ajustar sozinho os “pesos” internos dos neurônios, até conseguir acertar o \nmáximo possível nos resultados. \nQuanto mais exemplos variados, melhor ela vai aprender.  \nPrint e zoom no trained on 60 million hours of data \nOlha esse exemplo do SensorLM do google, para gerar esse modelo final, foram necessários \nmais de 60 milhões de horas de dados de sensores de pessoas para que o modelo fosse \npossível de determinar se a pessoa teve variação de risco de batimento cardíaco, temperatura \ne mais \nPor isso, pra problemas reais, o segredo está na quantidade e diversidade de dados! \nMas para nós, Web developers, na prática, geralmente usamos modelos prontos e podemos \naté estendê-los, o trabalho de treinar um modelo, gerar o arquivo final para que alguém possa\n\n---\n\n\ntext: Uma rede neural geralmente é representada com imagens como essa. \nCada input vira um parâmetro — por exemplo, idade, cor e localização da pessoa — e é \nenviado para a primeira camada do modelo. \nEssa primeira etapa, chamada de camada oculta, é composta por vários “neurônios”, que são \ncomo minicalculadoras matemáticas. \nCada neurônio recebe todos os valores de entrada, faz suas próprias continhas internas \n(misturando idade, cor, localização, etc.) e gera um novo número de saída. \nAli por exemplo, cada bolinha de camada oculta, representa um neurônio, neste exemplo, eu \nusei apenas 4 neurônios, mais por visualização, mas na aula de criar um sistema de \nrecomendação, vamos usar mais de 120 neurônios diferentes, essas quantidades de \nneurônios, você vai refinando com o tempo, comparando se os resultados que sairam estão de \nacordo com o que você estava esperando \nEssas saídas então viram a entrada para a próxima camada, cada camada vira como se fosse\n\n**Resposta:**\nForneça uma resposta clara, educacional e em português. Use exemplos do contexto quando disponível.\n"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "results": {
+                  "$like": [
+                    {
+                      "data": [
+                        {
+                          "row": [
+                            15,
+                            15,
+                            [
+                              {
+                                "$unordered": [
+                                  "id",
+                                  "text",
+                                  "embedding",
+                                  "source"
+                                ]
+                              }
+                            ],
+                            ["./tensores.pdf"],
+                            [384],
+                            [
+                              208, 297, 583, 614, 623, 690, 797, 926, 946, 953,
+                              955, 962, 988, 993, 997
+                            ]
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [
+                            "tensors_index",
+                            ["Chunk"],
+                            ["embedding"],
+                            {
+                              "vector.dimensions": 384,
+                              "vector.similarity_function": "cosine"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "errors": []
+              }
+            }
+          ]
+        },
+        {
+          "type": "file",
+          "path": "respostas",
+          "name": "^resposta-0-\\d{13}\\.md$",
+          "pattern": "^Olá! Essa é uma excelente pergunta para quem está começando a explorar o mundo do machine learning com JavaScript\\.\n\nPara converter objetos JavaScript em tensores, o primeiro passo fundamental é entender que o TensorFlow\\.js não consegue processar objetos ou instâncias primitivas diretamente\\. Por isso, você precisa transformar esses dados em uma estrutura que contenha apenas números\\. Essa estrutura é o que chamamos de \\*\\*Tensor\\*\\*\\.\n\nPense nos Tensores como vetores ou listas em JavaScript onde o conteúdo é representado por números\\. É através desses números que os algoritmos conseguem identificar padrões nos dados\\.\n\nUma forma prática de realizar essa conversão é imaginar uma tabela\\. Para transformar um array de pessoas em um Tensor, você pode criar uma tabela e atribuir pontos para as propriedades que estão ativas\\. \n\nPor exemplo, imagine que temos três cores diferentes: azul, vermelho e verde\\. Podemos representar as preferências de cada pessoa da seguinte forma:\n\n\\*   \\*\\*Azul:\\*\\* 1, 0, 0\n\\*   \\*\\*Vermelho:\\*\\* 0, 1, 0\n\\*   \\*\\*Verde:\\*\\* 0, 0, 1\n\nNesse exemplo, se a cor azul recebe o valor 1 e todas as outras recebem zero, o sistema passa a entender a informação de forma numérica\\. Seguindo o contexto do exemplo fornecido:\n\n```javascript\nconst pessoas = \\[ \n  \\{ nome: \"Erick\", idade: 30, cor: \"azul\", localizacao: \"São Paulo\" \\}, \n  \\{ nome: \"Ana\", idade: 25, cor: \"vermelho\", localizacao: \"Rio\" \\}, \n  \\{ nome: \"Carlos\", idade: 40, cor: \"verde\", localizacao: \"Curitiba\" \\} \n\\];\n```\n\nAo converter esses dados para números, você prepara o terreno para que a rede neural consiga processar as informações e aprender com os padrões do banco de dados\\.$"
+        },
+        {
+          "type": "file",
+          "path": "respostas",
+          "name": "^resposta-1-\\d{13}\\.md$",
+          "pattern": "^Olá! É muito importante entender como os dados são preparados para que a inteligência artificial funcione corretamente\\.\n\nSobre a sua pergunta específica sobre o que é a normalização de dados e por que ela é necessária, eu não encontrei essa informação no contexto fornecido\\.\n\nO texto menciona apenas que a normalização é realizada no momento em que informamos ao algoritmo as categorias dos usuários que já temos\\. Ele apresenta o seguinte exemplo de categorias:\n\n`const categorias = \\[\"premium\", \"medium\", \"basico\"\\];`\n\nEmbora o contexto não explique o conceito técnico da normalização, ele detalha como a rede de aprendizagem processa as informações: os dados passam por diversas conexões e cálculos, onde cada camada funciona como se fosse um \"filtro\" do passo anterior\\. Esse processo permite que a rede extraia padrões cada vez mais complexos até chegar à camada de saída, que transforma o que foi aprendido em probabilidades para cada categoria \\(por exemplo, identificar que um perfil tem 78% de chance de ser Premium\\)\\.$"
+        },
+        {
+          "type": "file",
+          "path": "respostas",
+          "name": "^resposta-2-\\d{13}\\.md$",
+          "pattern": "^Olá! É muito legal ver seu interesse em entender como as redes neurais funcionam dentro do ecossistema do TensorFlow\\.js\\. Vamos explorar isso de uma forma simples e prática!\n\nPara começar, você pode imaginar uma rede neural como um grande conjunto de operações matemáticas conectadas\\. O objetivo principal dessa estrutura é identificar padrões escondidos nos dados que fornecemos a ela\\.\n\nPara entender como isso funciona na prática, imagine o seguinte cenário: temos uma lista de pessoas e queremos que a rede neural aprenda a categorizá-las\\. Se você alimentar a rede com informações sobre pessoas e disser a ela em qual categoria cada uma se encaixa, o algoritmo começará a identificar padrões\\. Depois disso, você pode criar uma nova pessoa e a rede neural tentará determinar qual é a categoria com maior probabilidade para ela\\.\n\nUm ponto fundamental que você precisa saber é que o TensorFlow\\.js não entende objetos ou instâncias primitivas do JavaScript \\(como strings ou objetos comuns\\)\\. Para que a rede neural consiga processar as informações, precisamos converter tudo para uma estrutura que contenha apenas números, chamada de \\*\\*Tensor\\*\\*\\.\n\nPara facilitar esse entendimento, veja como transformamos dados de pessoas em números para o modelo:\n\nImagine que temos três cores diferentes \\(azul, vermelho e verde\\)\\. Para transformar isso em um Tensor, criamos uma tabela onde cada cor recebe o valor 1 e as outras recebem 0\\. Veja como ficaria:\n\n\\| Nome \\| Azul \\| Vermelho \\| Verde \\|\n\\| :--- \\| :--- \\| :--- \\| :--- \\|\n\\| Erick \\| 1 \\| 0 \\| 0 \\|\n\\| Ana \\| 0 \\| 1 \\| 0 \\|\n\\| Carlos \\| 0 \\| 0 \\| 1 \\|\n\nComo desenvolvedores web, muitas vezes utilizaremos modelos prontos que foram treinados por engenheiros de machine learning \\(geralmente utilizando Python\\)\\. No entanto, entender esses conceitos fundamentais — como a conversão de dados para Tensores e como a rede identifica padrões — é essencial para que você possa trabalhar com sucesso nessas tecnologias!$"
+        },
+        {
+          "type": "file",
+          "path": "respostas",
+          "name": "^resposta-3-\\d{13}\\.md$",
+          "pattern": "^Treinar uma rede neural significa ensinar a máquina a identificar padrões escondidos nos dados para que ela consiga prever situações ou recomendar produtos\\. Você pode imaginar uma rede neural como um grande conjunto de operações matemáticas conectadas que trabalham juntas para entender essas informações\\.\n\nPara que esse aprendizado aconteça, o primeiro passo é preparar os dados\\. Isso envolve a normalização e a conversão dos dados para tensores, garantindo que a máquina consiga processar as informações corretamente\\. Por exemplo, no contexto de idade, os dados são normalizados para trabalharem entre 0 e 1, como neste exemplo:\n\n\\*   \\*\\*Erick:\\*\\* 30 \\(30-25\\)/\\(40-25\\) = 0\\.33\n\\*   \\*\\*Ana:\\*\\* 25 \\(25-25\\)/\\(40-25\\) = 0\n\\*   \\*\\*Carlos:\\*\\* 40 \\(40-25\\)/\\(40-25\\) = 1\n\nDurante o processo de treinamento, você alimenta a rede com dados \\(como uma lista de pessoas contendo nome, idade, cor e localização\\) e as categorias em que esses clientes se encaixam\\. A rede neural possui camadas chamadas \"camadas ocultas\", que são compostas por vários \"neurônios\"\\. \n\nPara facilitar o entendimento, você pode pensar nesses neurônios como \\*\\*\"minicalculadoras matemáticas\"\\*\\*\\. Cada neurônio recebe todos os valores de entrada, realiza suas próprias \"continhas\" internas e gera um novo número de saída\\. \n\nO treinamento propriamente dito acontece na etapa de refinamento: você compara os resultados que saíram da rede com o que você esperava obter\\. Ao comparar esses resultados, você refina o modelo para que o algoritmo aprenda a determinar com maior precisão em qual categoria uma nova pessoa tem mais probabilidade de estar\\.$"
+        },
+        {
+          "type": "file",
+          "path": "respostas",
+          "name": "^resposta-4-\\d{13}\\.md$",
+          "pattern": "^Olá! Eu analisei cuidadosamente o material fornecido para responder à sua pergunta, mas não encontrei informações sobre o que é \"hot encoding\" ou quando utilizá-lo no contexto apresentado\\.\n\nO texto fornecido foca em explicar como as redes neurais funcionam, como o treinamento ocorre através do ajuste de \"pesos\" internos dos neurônios e como os dados de entrada \\(como idade, cor e localização\\) são processados pelas camadas ocultas para gerar resultados\\.$"
+        }
+      ]
+    },
+    {
+      "name": "run again over the stored chunks with a key OpenRouter rejects, still holds the same 15 chunks, stops at the first question, and prints the error to standard error without failing",
+      "env": {
+        "OPENROUTER_API_KEY": "sk-or-v1-unknown"
+      },
+      "replay": [
+        {
+          "source": "synthesized from OpenRouter's documented error format for a key it does not know",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer sk-or-v1-unknown$",
+            "http-referer": "^http://localhost:3000$",
+            "x-title": "^My Example$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "User not found.",
+              "code": 401
+            }
+          }
+        }
+      ],
+      "inspect": [
+        {
+          "method": "POST",
+          "port": 48147,
+          "path": "/db/neo4j/tx/commit",
+          "headers": {
+            "authorization": "Basic bmVvNGo6cGFzc3dvcmQ="
+          },
+          "json": {
+            "statements": [
+              {
+                "statement": "MATCH (chunk:Chunk) WITH chunk ORDER BY size(chunk.text) RETURN count(chunk) AS chunks, count(DISTINCT chunk.id) AS ids, collect(DISTINCT keys(chunk)) AS properties, collect(DISTINCT chunk.source) AS sources, collect(DISTINCT size(chunk.embedding)) AS dimensions, collect(size(chunk.text)) AS lengths"
+              },
+              {
+                "statement": "SHOW INDEXES YIELD name, type, labelsOrTypes, properties, options WHERE type = 'VECTOR' RETURN name, labelsOrTypes, properties, options.indexConfig AS config"
+              }
+            ]
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^🚀 Inicializando sistema de Embeddings com Neo4j\\.\\.\\.\n\n📄 Loaded 7 pages from PDF\n✂️  Split into 15 chunks\n🗑️  Removendo todos os documentos existentes\\.\\.\\.\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 1/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 2/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 3/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 4/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 5/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 6/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 7/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 8/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 9/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 10/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 11/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 12/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 13/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 14/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 15/15\n(?:✅ Documentos removidos com sucesso\n\n)?\n✅ Base de dados populada com sucesso!\n\n🔍 ETAPA 2: Executando buscas por similaridade\\.\\.\\.\n\n\n================================================================================\n📌 PERGUNTA: Como converter objetos JavaScript em tensores\\?\n================================================================================\n🔍 Buscando no vector store do Neo4j\\.\\.\\.\n✅ Encontrados 3 resultados relevantes \\(melhor score: 0\\.806\\)\n🤖 Gerando resposta com IA\\.\\.\\.\n$"
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:(?!Documentos removidos)[\\s\\S])*✅ Documentos removidos com sucesso\\n\\n(?:(?!Documentos removidos)[\\s\\S])*$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^error .*\\b401\\b"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "google/gemma-3-27b-it:free",
+                "temperature": 0.3,
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "user",
+                      "content": "Você é um Você é um assistente especializado em TensorFlow.js e machine learning.\n\n**Contexto e Regras:**\n- Tarefa: Responder perguntas sobre TensorFlow.js e machine learning de forma educacional\n- Tom de voz: educacional e amigável\n- Idioma: pt-BR\n- Formato de resposta: texto natural com exemplos\n\n**Instruções importantes:**\n1. Use APENAS as informações do contexto fornecido para responder\n2. Se o contexto não contiver informação suficiente, diga que não encontrou a informação\n3. Seja claro, objetivo e use exemplos quando apropriado\n4. Mantenha um tom educacional e amigável\n5. Se houver código ou exemplos no contexto, inclua-os na resposta\n6. Responda em português de forma natural e conversacional\n7. Estruture sua resposta em parágrafos quando necessário\n8. Use analogias e exemplos práticos para facilitar o entendimento\n\n**Pergunta do usuário:**\nComo converter objetos JavaScript em tensores?\n\n**Contexto recuperado do documento:**\n\ntext: { nome: \"Carlos\", idade: 40, cor: \"verde\", localizacao: \"Curitiba\" } \n]; \n \nconst categorias = [ \n  'Erick', 'premium', \n  'Ana', 'medium', \n  'Carlos', 'basic' \n] \n \n \nComo eu falei, Tensorflow.js não entende objetos ou instâncias primitivas de JavaScript, você \nnecessariamente precisa converter para uma estrutura que contenha apenas números, um \nTensor \n \nPara simplificar, vamos trabalhar em cima do array de pessoas, para transformar esse array em \num Tensor podemos criar uma tabela e adicionar pontos para propriedades que estão ativas \n \nBatendo o olho, temos 3 cores diferentes, então, Erick tem cor preferida azul, o azul recebe 1 e \ntodo o resto zero, Ana vermelho, vermelho recebe 1 e zero para o resto e asim por diante \n \n \n azul vermelho verde \nErick 1 0 0 \nAna 0 1 0 \nCarlos 0 0 1\n\n---\n\n\ntext: No início, te falei sobre a biblioteca TensorFlow.js e disse que ela seria a base para as \ndemonstrações deste módulo \n \nEntão para começar, Tensorflow tem este nome, pois trabalha com Tensores, que são vetores, \nou listas em JavaScript em que seu conteúdo é representado por números para posteriormente \nserem usados por algoritmos que aprendem com padrões de dados \n \nVamos pensar em um exemplo de um array de pessoas, onde tem sua idade, cor preferida, e \nlocalização, cada pessoa aqui tem uma categoria. Dado as propriedades de uma nova pessoa, \nvocê quer determinar em qual categoria ela mais se encaixa baseado no histórico do banco de \ndados \n \n(animação) \nconst pessoas = [ \n  { nome: \"Erick\", idade: 30, cor: \"azul\", localizacao: \"São Paulo\" }, \n  { nome: \"Ana\", idade: 25, cor: \"vermelho\", localizacao: \"Rio\" }, \n  { nome: \"Carlos\", idade: 40, cor: \"verde\", localizacao: \"Curitiba\" } \n]; \n \nconst categorias = [ \n  'Erick', 'premium', \n  'Ana', 'medium', \n  'Carlos', 'basic' \n]\n\n---\n\n\ntext: Mas para nós, Web developers, na prática, geralmente usamos modelos prontos e podemos \naté estendê-los, o trabalho de treinar um modelo, gerar o arquivo final para que alguém possa \nreutilizá-lo depois, é trabalho de engenheiros de machine learning,  normalmente uma galera \nque vem do Python. \nSó que nós Web developers, somos a galera do JavaScript e com JavaScript tudo é possível!  \nNa próxima aula, vou cair na prática em como criar essa rede neural, usando o mesmo \ncontexto que vimos aqui, para ficar mais claro como isso funciona \nVai ser importante para você entender conceitos fundamentais antes de cair para os modelos \nprontos de machine learning, vem comigo que vai val a pena!\n\n**Resposta:**\nForneça uma resposta clara, educacional e em português. Use exemplos do contexto quando disponível.\n"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "results": {
+                  "$like": [
+                    {
+                      "data": [
+                        {
+                          "row": [
+                            15,
+                            15,
+                            [
+                              {
+                                "$unordered": [
+                                  "id",
+                                  "text",
+                                  "embedding",
+                                  "source"
+                                ]
+                              }
+                            ],
+                            ["./tensores.pdf"],
+                            [384],
+                            [
+                              208, 297, 583, 614, 623, 690, 797, 926, 946, 953,
+                              955, 962, 988, 993, 997
+                            ]
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [
+                            "tensors_index",
+                            ["Chunk"],
+                            ["embedding"],
+                            {
+                              "vector.dimensions": 384,
+                              "vector.similarity_function": "cosine"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "errors": []
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

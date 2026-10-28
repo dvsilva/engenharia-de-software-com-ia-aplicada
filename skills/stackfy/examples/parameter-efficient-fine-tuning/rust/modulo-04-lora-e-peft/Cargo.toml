@@ -1,0 +1,11 @@
+[package]
+name = "modulo-04-lora-e-peft"
+version = "0.0.1"
+edition = "2021"
+
+[lib]
+name = "mlx_lm_generate"
+path = "src/mlx_lm_generate.rs"
+
+[dependencies]
+serde_json = { version = "1", features = ["preserve_order"] }

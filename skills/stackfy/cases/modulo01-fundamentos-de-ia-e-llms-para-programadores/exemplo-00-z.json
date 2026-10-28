@@ -1,0 +1,25 @@
+{
+  "module": "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-00-z",
+  "concepts": ["neural-network-training"],
+  "recorded": "125 original runs with Node.js 22 and @tensorflow/tfjs-node 4.22 in a linux/amd64 container. The top label alternated between premium and medium, and basic was always last, between 8.39% and 21.37% in the 25 runs whose values were kept.",
+  "originals": [
+    "docker run --rm --platform linux/amd64 -v \"$PWD\":/src:ro node:22 sh -c 'cp -R /src /app && cd /app && npm ci --silent --no-audit --no-fund >&2 && node index.js'"
+  ],
+  "cases": [
+    {
+      "name": "prints the three plans for the new person, most likely first",
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "lines",
+          "pattern": "^(premium|medium|basic) \\((\\d+(?:\\.\\d+)?)%\\)$",
+          "count": 3,
+          "distinct": { "group": 1, "values": ["premium", "medium", "basic"] },
+          "sum": { "group": 2, "value": 100, "tolerance": 0.1 },
+          "order": { "group": 2, "direction": "desc" },
+          "last": { "group": 1, "value": "basic" }
+        }
+      ]
+    }
+  ]
+}

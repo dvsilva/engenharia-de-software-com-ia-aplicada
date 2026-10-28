@@ -1,0 +1,17 @@
+[package]
+name = "testes-com-bancos-de-dados"
+version = "0.0.1"
+edition = "2024"
+
+[[bin]]
+name = "index"
+path = "src/main.rs"
+
+[dependencies]
+axum = "0.8"
+futures = "0.3"
+jsonwebtoken = { version = "11", default-features = false, features = ["rust_crypto"] }
+mongodb = "3"
+serde_json = { version = "1", features = ["preserve_order"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net"] }
+uuid = { version = "1", features = ["v4"] }

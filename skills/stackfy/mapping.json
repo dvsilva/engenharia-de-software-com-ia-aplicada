@@ -1,0 +1,782 @@
+{
+  "concepts": {
+    "neural-network-training": {
+      "node": ["@tensorflow/tfjs-node", "@tensorflow/tfjs"]
+    },
+    "llm-http-api": {
+      "node": ["@anthropic-ai/sdk", "ollama"],
+      "shell": ["ollama"]
+    },
+    "browser-app": {
+      "node": [
+        "browser-sync",
+        "http-server",
+        "webpack-dev-server",
+        "vite",
+        "pixi.js",
+        "@pixi/graphics",
+        "@pixi/sprite-animated",
+        "@pixi/text"
+      ]
+    },
+    "object-detection": {},
+    "browser-built-in-ai": {},
+    "coding-agent-harness": {},
+    "layered-architecture": {},
+    "rest-api": {
+      "node": [
+        "express",
+        "fastify",
+        "@fastify/multipart",
+        "@nestjs/common",
+        "@nestjs/core",
+        "@nestjs/platform-express"
+      ]
+    },
+    "command-line-interface": {},
+    "schema-validation": {
+      "node": ["zod", "class-validator", "class-transformer"]
+    },
+    "chat-model": {
+      "node": [
+        "@langchain/openai",
+        "@langchain/core",
+        "langchain",
+        "genkit",
+        "@genkit-ai/google-genai"
+      ],
+      "python": ["google", "langchain-groq", "litellm"]
+    },
+    "tool-calling": {},
+    "state-graph": {
+      "node": ["@langchain/langgraph"]
+    },
+    "reasoning-strategies": {},
+    "model-context-protocol": {
+      "node": [
+        "@modelcontextprotocol/sdk",
+        "@langchain/mcp-adapters",
+        "@modelcontextprotocol/server-filesystem"
+      ]
+    },
+    "sql-database": {
+      "node": ["better-sqlite3", "knex", "@libsql/client", "pg"]
+    },
+    "conversation-memory": {
+      "node": [
+        "@langchain/langgraph-checkpoint-postgres",
+        "@langchain/langgraph-checkpoint-sqlite"
+      ]
+    },
+    "text-embeddings": {
+      "node": ["@huggingface/transformers", "@xenova/transformers"]
+    },
+    "document-chunking": {
+      "node": ["pdf-parse"]
+    },
+    "vector-store": {},
+    "graph-database": {
+      "node": ["neo4j-driver"]
+    },
+    "text-to-query": {},
+    "retrieval-augmented-generation": {},
+    "semantic-memory": {},
+    "context-management": {},
+    "agent-observability": {},
+    "model-routing": {
+      "node": ["@openrouter/sdk"]
+    },
+    "monte-carlo-simulation": {},
+    "component-framework": {
+      "node": [
+        "@angular/core",
+        "@angular/common",
+        "@angular/compiler",
+        "@angular/platform-browser",
+        "@angular/forms",
+        "@angular/router",
+        "next",
+        "react",
+        "react-dom",
+        "@angular/ssr",
+        "@angular/platform-server"
+      ]
+    },
+    "web-accessibility": {},
+    "pull-request-governance": {
+      "node": ["danger"]
+    },
+    "full-stack-monorepo": {
+      "node": [
+        "nx",
+        "@nx/workspace",
+        "@nx/js",
+        "@nx/angular",
+        "@nx/nest",
+        "@nx/node",
+        "@nx/web",
+        "@nx/webpack",
+        "@nx/esbuild",
+        "@nx/devkit"
+      ]
+    },
+    "end-to-end-testing": {
+      "node": ["cypress", "@nx/cypress"]
+    },
+    "user-authentication": {
+      "node": ["better-auth", "@better-auth/cli"]
+    },
+    "api-access-control": {
+      "node": ["@fastify/jwt", "@fastify/rate-limit"]
+    },
+    "chat-bot": {
+      "node": ["@slack/bolt"]
+    },
+    "telemetry": {
+      "node": [
+        "@opentelemetry/api",
+        "@opentelemetry/auto-instrumentations-node",
+        "@opentelemetry/exporter-logs-otlp-grpc",
+        "@opentelemetry/exporter-metrics-otlp-grpc",
+        "@opentelemetry/exporter-prometheus",
+        "@opentelemetry/exporter-trace-otlp-grpc",
+        "@opentelemetry/instrumentation-fastify",
+        "@opentelemetry/instrumentation-knex",
+        "@opentelemetry/resources",
+        "@opentelemetry/sdk-logs",
+        "@opentelemetry/sdk-metrics",
+        "@opentelemetry/sdk-node",
+        "@opentelemetry/sdk-trace-base",
+        "@opentelemetry/semantic-conventions",
+        "@fastify/otel",
+        "pino",
+        "pino-loki"
+      ]
+    },
+    "decision-framework": {},
+    "investment-analysis": {},
+    "verifiable-reward": {},
+    "dataset-preparation": {},
+    "pii-scrubbing": {},
+    "model-fine-tuning": {},
+    "parameter-efficient-fine-tuning": {
+      "python": ["mlx_lm", "peft", "trl"]
+    },
+    "symmetric-encryption": {},
+    "multi-agent-orchestration": {},
+    "prompt-injection-defense": {},
+    "document-database": {
+      "node": ["mongodb"]
+    },
+    "agent-crew": {
+      "python": ["crewai"]
+    },
+    "infrastructure-as-code": {
+      "python": ["checkov", "kubernetes"]
+    },
+    "data-app": {
+      "python": ["streamlit"]
+    },
+    "ai-gateway": {},
+    "hybrid-search": {},
+    "model-evaluation": {},
+    "package-publishing": {},
+    "live-coding-exercise": {}
+  },
+  "modules": {
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-01-ecommerce-recomendations-template": [
+      "neural-network-training"
+    ],
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-01-ecommerce-recomendations-z/parte01-ecommerce-recomendations-with-tensorflow": [
+      "neural-network-training"
+    ],
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-01-ecommerce-recomendations-z/parte02-ecommerce-recomendations-with-tensorflow": [
+      "neural-network-training"
+    ],
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-01-ecommerce-recomendations-z/parte03-ecommerce-recomendations-with-tensorflow": [
+      "neural-network-training"
+    ],
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-01-ecommerce-recomendations-z/parte04-ecommerce-recomendations-with-tensorflow": [
+      "neural-network-training"
+    ],
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-01-ecommerce-recomendations-z/parte05-ecommerce-recomendations-with-tensorflow": [
+      "neural-network-training"
+    ],
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-02-vencendo-qualquer-jogo/_template": [
+      "object-detection"
+    ],
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-02-vencendo-qualquer-jogo/DuckHunt-JS-parte01": [
+      "object-detection"
+    ],
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-02-vencendo-qualquer-jogo/DuckHunt-JS-parte02": [
+      "object-detection"
+    ],
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-03-webai01": [
+      "browser-built-in-ai",
+      "browser-app"
+    ],
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-04-webai02-temperature-and-topK": [
+      "browser-built-in-ai"
+    ],
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-05-webai03-multimodal": [
+      "browser-built-in-ai"
+    ],
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-08-context7/nextjs-better-auth-demo": [
+      "browser-app",
+      "coding-agent-harness"
+    ],
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-09-grafana-mcp/alumnus": [
+      "telemetry",
+      "model-context-protocol",
+      "coding-agent-harness"
+    ],
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-11-openrouter": [
+      "llm-http-api"
+    ],
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-12-embeddings-neo4j-template": [
+      "vector-store"
+    ],
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-12-embeddings-neo4j": [
+      "vector-store"
+    ],
+    "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-13-embeddings-neo4j-rag": [
+      "vector-store",
+      "retrieval-augmented-generation"
+    ],
+    "modulo02-integracao-apis-llms/02-langchain-intro": ["state-graph"],
+    "modulo02-integracao-apis-llms/03-medical-appointment-template": [
+      "state-graph",
+      "schema-validation"
+    ],
+    "modulo02-integracao-apis-llms/03-medical-appointment-z": [
+      "state-graph",
+      "schema-validation"
+    ],
+    "modulo02-integracao-apis-llms/04-song-highlights-template": [
+      "state-graph",
+      "schema-validation",
+      "command-line-interface"
+    ],
+    "modulo02-integracao-apis-llms/04-song-highlights-z": [
+      "state-graph",
+      "schema-validation",
+      "command-line-interface"
+    ],
+    "modulo02-integracao-apis-llms/05-safeguard-prompt-injection-template": [
+      "prompt-injection-defense",
+      "state-graph",
+      "command-line-interface",
+      "model-routing"
+    ],
+    "modulo02-integracao-apis-llms/05-safeguard-prompt-injection-z": [
+      "prompt-injection-defense",
+      "state-graph",
+      "tool-calling",
+      "command-line-interface",
+      "model-routing"
+    ],
+    "modulo02-integracao-apis-llms/06-rag-neo4j-students-template": [
+      "text-to-query",
+      "retrieval-augmented-generation",
+      "state-graph",
+      "schema-validation",
+      "model-routing"
+    ],
+    "modulo02-integracao-apis-llms/06-rag-neo4j-students-z": [
+      "text-to-query",
+      "retrieval-augmented-generation",
+      "state-graph",
+      "schema-validation",
+      "model-routing"
+    ],
+    "modulo02-integracao-apis-llms/07-doc-analysis": [
+      "state-graph",
+      "model-routing"
+    ],
+    "modulo03-mcp-na-pratica/01-multiple-mcp-tools-template": [
+      "tool-calling",
+      "schema-validation"
+    ],
+    "modulo03-mcp-na-pratica/01-multiple-mcp-tools-z": [
+      "tool-calling",
+      "schema-validation"
+    ],
+    "modulo03-mcp-na-pratica/02-google-trends-agent": [
+      "tool-calling",
+      "schema-validation"
+    ],
+    "modulo03-mcp-na-pratica/05-mcps-do-zero-template": [
+      "symmetric-encryption"
+    ],
+    "modulo03-mcp-na-pratica/05-mcps-do-zero-z": ["symmetric-encryption"],
+    "modulo03-mcp-na-pratica/06-your-legacy-api-as-mcp/nodejs-fastify-mongodb-crud": [
+      "schema-validation"
+    ],
+    "modulo03-mcp-na-pratica/06-your-legacy-api-as-mcp/customers-mcp-template": [
+      "layered-architecture"
+    ],
+    "modulo03-mcp-na-pratica/06-your-legacy-api-as-mcp/customers-mcp-z": [
+      "rest-api",
+      "layered-architecture"
+    ],
+    "modulo03-mcp-na-pratica/07-api-security-auth-rate-limiting-template/nodejs-fastify-mongodb-crud-z": [
+      "schema-validation"
+    ],
+    "modulo03-mcp-na-pratica/07-api-security-auth-rate-limiting-template/customers-mcp-z": [
+      "rest-api",
+      "layered-architecture",
+      "api-access-control"
+    ],
+    "modulo03-mcp-na-pratica/07-api-security-auth-rate-limiting-z/nodejs-fastify-mongodb-crud-z": [
+      "schema-validation"
+    ],
+    "modulo03-mcp-na-pratica/07-api-security-auth-rate-limiting-z/customers-mcp-z": [
+      "rest-api",
+      "layered-architecture",
+      "api-access-control"
+    ],
+    "modulo03-mcp-na-pratica/08-publishing-mcps-private-npm/nodejs-fastify-mongodb-crud-z": [
+      "schema-validation"
+    ],
+    "modulo03-mcp-na-pratica/08-publishing-mcps-private-npm/customers-mcp-z": [
+      "rest-api",
+      "layered-architecture",
+      "api-access-control",
+      "package-publishing"
+    ],
+    "modulo03-mcp-na-pratica/09-using-mcp-with-langchain/01-multiple-mcp-tools-z": [
+      "tool-calling",
+      "schema-validation",
+      "api-access-control",
+      "package-publishing"
+    ],
+    "modulo03-mcp-na-pratica/09-using-mcp-with-langchain/nodejs-fastify-mongodb-crud-z": [
+      "schema-validation"
+    ],
+    "modulo04-criacao-de-agentes-autonomos-novo/01-arquitetura-de-agentes-de-codigo/notas-api": [
+      "coding-agent-harness",
+      "layered-architecture",
+      "rest-api",
+      "command-line-interface"
+    ],
+    "modulo04-criacao-de-agentes-autonomos-novo/02-padroes-de-raciocinio-e-execucao": [
+      "reasoning-strategies",
+      "tool-calling",
+      "layered-architecture",
+      "command-line-interface",
+      "coding-agent-harness"
+    ],
+    "modulo04-criacao-de-agentes-autonomos-novo/03-function-calling-e-tool-use": [
+      "tool-calling",
+      "sql-database",
+      "conversation-memory",
+      "reasoning-strategies",
+      "layered-architecture",
+      "command-line-interface",
+      "coding-agent-harness"
+    ],
+    "modulo04-criacao-de-agentes-autonomos-novo/04-memoria-e-reflexao-em-agentes-autonomos": [
+      "semantic-memory",
+      "tool-calling",
+      "sql-database",
+      "conversation-memory",
+      "reasoning-strategies",
+      "layered-architecture",
+      "command-line-interface",
+      "coding-agent-harness"
+    ],
+    "modulo04-criacao-de-agentes-autonomos-novo/04-memoria-e-reflexao-em-agentes-autonomos/scripts": [
+      "conversation-memory",
+      "rest-api",
+      "command-line-interface"
+    ],
+    "modulo04-criacao-de-agentes-autonomos-novo/05-gerenciamento-de-contextos": [
+      "context-management",
+      "semantic-memory",
+      "tool-calling",
+      "sql-database",
+      "conversation-memory",
+      "reasoning-strategies",
+      "layered-architecture",
+      "command-line-interface",
+      "coding-agent-harness"
+    ],
+    "modulo04-criacao-de-agentes-autonomos-novo/05-gerenciamento-de-contextos/scripts": [
+      "context-management",
+      "conversation-memory",
+      "rest-api",
+      "command-line-interface"
+    ],
+    "modulo04-criacao-de-agentes-autonomos-novo/06-langgraph-e-workflows-complexos": [
+      "agent-observability",
+      "model-routing",
+      "reasoning-strategies",
+      "context-management",
+      "semantic-memory",
+      "tool-calling",
+      "sql-database",
+      "conversation-memory",
+      "layered-architecture",
+      "command-line-interface",
+      "coding-agent-harness"
+    ],
+    "modulo04-criacao-de-agentes-autonomos-novo/06-langgraph-e-workflows-complexos/scripts": [
+      "context-management",
+      "conversation-memory",
+      "rest-api",
+      "command-line-interface"
+    ],
+    "modulo04-criacao-de-agentes-autonomos-novo/07-observabilidade-e-limites-de-autonomia": [
+      "agent-observability",
+      "model-routing",
+      "reasoning-strategies",
+      "context-management",
+      "semantic-memory",
+      "tool-calling",
+      "sql-database",
+      "conversation-memory",
+      "layered-architecture",
+      "command-line-interface",
+      "coding-agent-harness"
+    ],
+    "modulo04-criacao-de-agentes-autonomos-novo/07-observabilidade-e-limites-de-autonomia/scripts": [
+      "context-management",
+      "conversation-memory",
+      "rest-api",
+      "command-line-interface"
+    ],
+    "modulo04-criacao-de-agentes-autonomos-novo/08-projeto-pratico-opspilot-publicado": [
+      "agent-observability",
+      "model-routing",
+      "reasoning-strategies",
+      "context-management",
+      "semantic-memory",
+      "tool-calling",
+      "sql-database",
+      "conversation-memory",
+      "layered-architecture",
+      "command-line-interface",
+      "coding-agent-harness"
+    ],
+    "modulo04-criacao-de-agentes-autonomos-novo/08-projeto-pratico-opspilot-publicado/scripts": [
+      "context-management",
+      "conversation-memory",
+      "rest-api",
+      "command-line-interface"
+    ],
+    "modulo04-criacao-de-agentes-autonomos-novo/08-projeto-pratico-opspilot-publicado/web": [
+      "web-accessibility",
+      "agent-observability",
+      "rest-api"
+    ],
+    "modulo04-criacao-de-agentes-autonomos-novo/09-multi-agent-systems": [
+      "multi-agent-orchestration",
+      "agent-observability",
+      "model-routing",
+      "reasoning-strategies",
+      "context-management",
+      "semantic-memory",
+      "tool-calling",
+      "sql-database",
+      "conversation-memory",
+      "layered-architecture",
+      "command-line-interface",
+      "coding-agent-harness"
+    ],
+    "modulo04-criacao-de-agentes-autonomos-novo/09-multi-agent-systems/scripts": [
+      "context-management",
+      "conversation-memory",
+      "rest-api",
+      "command-line-interface"
+    ],
+    "modulo04-criacao-de-agentes-autonomos-novo/09-multi-agent-systems/web": [
+      "web-accessibility",
+      "agent-observability",
+      "rest-api"
+    ],
+    "modulo05-ferramentas-de-IA-para-UI-UX/modulo-02/pix-app": [
+      "browser-app",
+      "web-accessibility",
+      "coding-agent-harness"
+    ],
+    "modulo05-ferramentas-de-IA-para-UI-UX/modulo-03/cfp-platform": [
+      "web-accessibility",
+      "layered-architecture",
+      "coding-agent-harness"
+    ],
+    "modulo05-ferramentas-de-IA-para-UI-UX/modulo-03/cfp-platform/shared-types": [
+      "full-stack-monorepo"
+    ],
+    "modulo05-ferramentas-de-IA-para-UI-UX/modulo-04/cfp-plataform_v1/cfp-platform_v1": [
+      "web-accessibility",
+      "layered-architecture",
+      "coding-agent-harness"
+    ],
+    "modulo05-ferramentas-de-IA-para-UI-UX/modulo-04/cfp-plataform_v1/cfp-platform_v1/shared-types": [
+      "full-stack-monorepo"
+    ],
+    "modulo05-ferramentas-de-IA-para-UI-UX/modulo-05/brag-bot": [
+      "schema-validation",
+      "coding-agent-harness"
+    ],
+    "modulo06-aiops-engenharia-agentica": [
+      "tool-calling",
+      "agent-observability",
+      "command-line-interface"
+    ],
+    "modulo07-ferramentas-de-ia-para-gestao-de-projetos/modulo-04-estimativas-e-previsoes": [
+      "monte-carlo-simulation"
+    ],
+    "modulo07-ferramentas-de-ia-para-gestao-de-projetos/modulo-08-governanca-e-compliance": [
+      "pull-request-governance",
+      "command-line-interface"
+    ],
+    "modulo08-arquitetura-de-sistemas-com-ia/modulo-01-fundamentos-ai-first": [
+      "decision-framework"
+    ],
+    "modulo08-arquitetura-de-sistemas-com-ia/modulo-02-single-agent": [
+      "reasoning-strategies",
+      "tool-calling",
+      "conversation-memory",
+      "decision-framework",
+      "model-routing"
+    ],
+    "modulo08-arquitetura-de-sistemas-com-ia/modulo-03-multi-agent": [
+      "multi-agent-orchestration"
+    ],
+    "modulo08-arquitetura-de-sistemas-com-ia/modulo-04-padroes-ai-especificos": [
+      "ai-gateway",
+      "hybrid-search",
+      "text-embeddings",
+      "model-routing",
+      "decision-framework",
+      "agent-observability"
+    ],
+    "modulo08-arquitetura-de-sistemas-com-ia/modulo-05-arquitetura-enterprise": [
+      "model-routing",
+      "ai-gateway",
+      "model-evaluation",
+      "prompt-injection-defense",
+      "text-embeddings",
+      "decision-framework",
+      "agent-observability"
+    ],
+    "modulo09-processamento-de-dados-e-fine-tuning-de-modelos/modulo-01-decision-framework": [
+      "decision-framework",
+      "investment-analysis",
+      "monte-carlo-simulation",
+      "verifiable-reward",
+      "llm-http-api"
+    ],
+    "modulo09-processamento-de-dados-e-fine-tuning-de-modelos/modulo-02-preparacao-datasets": [
+      "dataset-preparation",
+      "pii-scrubbing",
+      "decision-framework",
+      "llm-http-api"
+    ],
+    "modulo09-processamento-de-dados-e-fine-tuning-de-modelos/modulo-03-fine-tuning-via-api": [
+      "model-fine-tuning",
+      "dataset-preparation",
+      "decision-framework"
+    ],
+    "modulo09-processamento-de-dados-e-fine-tuning-de-modelos/modulo-04-lora-e-peft": [
+      "parameter-efficient-fine-tuning",
+      "model-fine-tuning",
+      "investment-analysis"
+    ],
+    "modulo09-processamento-de-dados-e-fine-tuning-de-modelos/modulo-05-avaliacao-modelos": [
+      "model-evaluation",
+      "llm-http-api",
+      "parameter-efficient-fine-tuning",
+      "decision-framework",
+      "investment-analysis"
+    ],
+    "modulo09-processamento-de-dados-e-fine-tuning-de-modelos/modulo-06-projeto-final": [
+      "dataset-preparation",
+      "model-evaluation",
+      "ai-gateway",
+      "parameter-efficient-fine-tuning",
+      "llm-http-api",
+      "command-line-interface"
+    ],
+    "modulo10-seguranca-governanca-ia/modulo5-seguranca-dados": [
+      "prompt-injection-defense"
+    ],
+    "modulo12-carreira-engenheiros-ia/parte-2-entrevistas-tecnicas/01-live-coding-duplicates": [
+      "live-coding-exercise"
+    ],
+    "modulo12-carreira-engenheiros-ia/parte-2-entrevistas-tecnicas/02-live-coding-set-game": [
+      "live-coding-exercise"
+    ]
+  },
+  "neutral": {
+    "node": [
+      "@angular-devkit/core",
+      "@angular-devkit/schematics",
+      "@angular/build",
+      "@angular/cli",
+      "@angular/compiler-cli",
+      "@angular/language-service",
+      "@babel/preset-env",
+      "@eslint/js",
+      "@faker-js/faker",
+      "@huggingface/inference",
+      "@langchain/community",
+      "@nestjs/schematics",
+      "@nestjs/testing",
+      "@nx/eslint",
+      "@nx/eslint-plugin",
+      "@nx/jest",
+      "@nx/playwright",
+      "@oxc-project/runtime",
+      "@playwright/test",
+      "@schematics/angular",
+      "@swc-node/register",
+      "@swc/core",
+      "@swc/helpers",
+      "@tailwindcss/postcss",
+      "@testing-library/jest-dom",
+      "@testing-library/react",
+      "@testing-library/user-event",
+      "@types/express",
+      "@types/form-data",
+      "@types/jest",
+      "@types/node",
+      "@types/react",
+      "@types/react-dom",
+      "@typescript-eslint/eslint-plugin",
+      "@typescript-eslint/parser",
+      "@typescript-eslint/utils",
+      "@vitejs/plugin-react",
+      "angular-eslint",
+      "audiosprite",
+      "axios",
+      "babel-core",
+      "babel-loader",
+      "babel-preset-es2015",
+      "bluebird",
+      "copy-webpack-plugin",
+      "csvtojson",
+      "dotenv",
+      "env-var",
+      "esbuild",
+      "eslint",
+      "eslint-config-prettier",
+      "eslint-plugin-cypress",
+      "eslint-plugin-import",
+      "eslint-plugin-playwright",
+      "exports-loader",
+      "file-loader",
+      "form-data",
+      "glob",
+      "gsap",
+      "gulp",
+      "gulp-connect",
+      "gulp-shell",
+      "hard-source-webpack-plugin",
+      "howler",
+      "jest",
+      "jest-environment-node",
+      "jest-util",
+      "jsdom",
+      "json-loader",
+      "jsonc-eslint-parser",
+      "lodash",
+      "mysql2",
+      "node-object-hash",
+      "oxlint",
+      "postcss",
+      "prettier",
+      "reflect-metadata",
+      "rxjs",
+      "script-loader",
+      "sequelize",
+      "serpapi",
+      "tailwindcss",
+      "ts-jest",
+      "ts-node",
+      "tslib",
+      "tsx",
+      "tween.js",
+      "typescript",
+      "typescript-eslint",
+      "uuid",
+      "vitest",
+      "webpack",
+      "webpack-cli"
+    ],
+    "python": [
+      "datasets",
+      "numpy",
+      "pandas",
+      "python-dotenv",
+      "requests",
+      "torch",
+      "transformers"
+    ],
+    "shell": [
+      "awk",
+      "basename",
+      "case",
+      "cat",
+      "cd",
+      "chmod",
+      "cp",
+      "curl",
+      "cut",
+      "date",
+      "declare",
+      "dirname",
+      "do",
+      "done",
+      "echo",
+      "elif",
+      "else",
+      "env",
+      "esac",
+      "eval",
+      "exit",
+      "export",
+      "false",
+      "fi",
+      "for",
+      "function",
+      "grep",
+      "head",
+      "if",
+      "jq",
+      "local",
+      "ls",
+      "mkdir",
+      "mv",
+      "printf",
+      "pwd",
+      "read",
+      "readonly",
+      "return",
+      "rm",
+      "sed",
+      "seq",
+      "set",
+      "shift",
+      "sleep",
+      "sort",
+      "source",
+      "tail",
+      "tee",
+      "test",
+      "then",
+      "touch",
+      "tr",
+      "trap",
+      "true",
+      "uniq",
+      "unset",
+      "wait",
+      "wc",
+      "which",
+      "while",
+      "xargs"
+    ]
+  }
+}

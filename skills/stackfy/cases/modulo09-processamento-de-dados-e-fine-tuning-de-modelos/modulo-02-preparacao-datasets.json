@@ -1,0 +1,2150 @@
+{
+  "module": "modulo09-processamento-de-dados-e-fine-tuning-de-modelos/modulo-02-preparacao-datasets",
+  "concepts": [
+    "dataset-preparation",
+    "pii-scrubbing",
+    "decision-framework",
+    "llm-http-api"
+  ],
+  "recorded": "Every case passed against both originals: the JavaScript versions with Node.js 26.12.1, run as node {program}.js, and the Python versions with Python 3.15.2, run as python3 with the program's hyphens turned into underscores, as in python3 $(echo {program}.py | tr - _). Every program uses only the standard library and takes no arguments. The relevance, cleaning, and PII tools are deterministic, so their demos are compared exactly, with the PII gate's prose with or without accents, since the Python version writes it without them, and O(n²) or O(n^2) in the cleaning note, while their self-check reports must end with the same totals and the titles of the checks are free. The extraction tool runs the tesseract CLI, which the recording machine lacked, so its first case ran in a Debian trixie container with tesseract 5.5.0, tesseract-ocr-por 4.1.0 (the fast model), Node.js 20.19.2, and Python 3.13.5. That container read the same text as the dataset-amplitude-seguros.jsonl the lesson ships, which Homebrew's tesseract wrote, the first plate as QJk-4F82 included, with confidences up to 0.6 points apart, so each confidence is compared within 1.5 points and the plate's k in either case. Its second case puts a stand-in tesseract on PATH that fails as tesseract does without the Portuguese model, with the message that container printed, and ran on the host. The multimodal tool calls Gemini on Vertex AI at a hardcoded regional address, so the copy that produced these cases reads GOOGLE_VERTEX_BASE_URL instead, a one-line change in each version, and the cases set GCP_PROJECT_ID to a placeholder project and answer gcloud auth print-access-token with a stand-in that prints a placeholder token, which the replay requires as the bearer token. No Google Cloud project was available, and Ollama does not serve Vertex AI's format, so every answer is synthesized from Vertex AI's documented generateContent format: the first case carries the twelve correct fields and the token usage that the lesson's ocr-vs-llm-extracao-comparativo.md reports for gemini-2.5-flash (2,384 input and about 40 output tokens per document), the second a misread plate, a wrong amount, and fields that differ from the key only in accents and case, and the third Vertex AI's documented 429 RESOURCE_EXHAUSTED for the last document, while the failing gcloud prints what gcloud prints without an active account. Requests are compared by the prompt, the image's length and last bytes, the mime type, temperature 0, and responseMimeType, with inline_data or inlineData, and latencies are free. The Python version prints its extracted JSON with spaces, writes whole amounts as 7940.0, quotes a failed field's values with Python's repr, names its own OCR counterpart in the closing line, and prints its final error to standard output where JavaScript uses standard error, so the patterns accept either and that error line is not compared.",
+  "prepare": {
+    "patches": [
+      {
+        "file": "extracao-llm-multimodal-tool.js",
+        "find": "`https://${REGIAO}-aiplatform.googleapis.com/v1/",
+        "replace": "`${process.env.GOOGLE_VERTEX_BASE_URL ?? `https://${REGIAO}-aiplatform.googleapis.com`}/v1/"
+      },
+      {
+        "file": "extracao_llm_multimodal_tool.py",
+        "find": "f\"https://{REGIAO}-aiplatform.googleapis.com/v1/",
+        "replace": "f\"{os.environ.get('GOOGLE_VERTEX_BASE_URL', f'https://{REGIAO}-aiplatform.googleapis.com')}/v1/"
+      }
+    ]
+  },
+  "originals": ["node {program}.js", "python3 $(echo {program}.py | tr - _)"],
+  "cases": [
+    {
+      "name": "checks the strict four-criteria gate, then accepts only the workshop estimate and the medical receipt among the seven Amplitude Seguros source candidates",
+      "program": "data-relevance-scoring-tool",
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes: [^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n)+Total: 11 teste\\(s\\), 11 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n\n===== Demo: gate de relevância aplicado a 7 candidatos reais de documento =====\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\n--- amplitude-auto ---\n\n  \\[ACEITO\\] Orçamento de oficina\n    v Contém o ground truth da tarefa \\(entrada real \\+ resposta correta observável\\)\\?\n    v Vem do fluxo real de produção, não é exemplo sintético ou hipotético\\?\n    v Cobre a variação real de formato e situação que a tarefa tem, não só o caso fácil\\?\n    v Passa no crivo de sensibilidade e compliance pra ser usado em treino\\?\n    -> Contém segurado, placa e valor em texto real, vem de sinistros já processados, varia de formato entre oficinas, sem dado sensível\\.\n\n  \\[REJEITADO\\] Boletim de ocorrência policial\n    x Contém o ground truth da tarefa \\(entrada real \\+ resposta correta observável\\)\\?\n    v Vem do fluxo real de produção, não é exemplo sintético ou hipotético\\?\n    v Cobre a variação real de formato e situação que a tarefa tem, não só o caso fácil\\?\n    v Passa no crivo de sensibilidade e compliance pra ser usado em treino\\?\n    -> É narrativa de ocorrência, não traz segurado/placa/valor em formato consistente o bastante pra servir de resposta correta da tarefa\\.\n\n  \\[REJEITADO\\] Foto do veículo danificado\n    x Contém o ground truth da tarefa \\(entrada real \\+ resposta correta observável\\)\\?\n    v Vem do fluxo real de produção, não é exemplo sintético ou hipotético\\?\n    x Cobre a variação real de formato e situação que a tarefa tem, não só o caso fácil\\?\n    v Passa no crivo de sensibilidade e compliance pra ser usado em treino\\?\n    -> É imagem do dano, não do documento com os campos-alvo; não serve de par texto-entrada/texto-saída pra esta tarefa de extração\\.\n\n  \\[REJEITADO\\] Transcrição da ligação de abertura de sinistro\n    v Contém o ground truth da tarefa \\(entrada real \\+ resposta correta observável\\)\\?\n    v Vem do fluxo real de produção, não é exemplo sintético ou hipotético\\?\n    x Cobre a variação real de formato e situação que a tarefa tem, não só o caso fácil\\?\n    v Passa no crivo de sensibilidade e compliance pra ser usado em treino\\?\n    -> Tem os dados, mas a estrutura da ligação varia demais de atendente pra atendente pra servir de exemplo confiável de formato\\.\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\n--- amplitude-saude-empresarial ---\n\n  \\[ACEITO\\] Recibo médico\n    v Contém o ground truth da tarefa \\(entrada real \\+ resposta correta observável\\)\\?\n    v Vem do fluxo real de produção, não é exemplo sintético ou hipotético\\?\n    v Cobre a variação real de formato e situação que a tarefa tem, não só o caso fácil\\?\n    v Passa no crivo de sensibilidade e compliance pra ser usado em treino\\?\n    -> Contém beneficiário, procedimento e valor, vem de reembolsos já processados, varia entre clínicas, e o dado sensível é tratável com o rastro de auditoria já desenhado no schema\\.\n\n  \\[REJEITADO\\] Prontuário médico completo\n    v Contém o ground truth da tarefa \\(entrada real \\+ resposta correta observável\\)\\?\n    v Vem do fluxo real de produção, não é exemplo sintético ou hipotético\\?\n    v Cobre a variação real de formato e situação que a tarefa tem, não só o caso fácil\\?\n    x Passa no crivo de sensibilidade e compliance pra ser usado em treino\\?\n    -> Traz dado clínico muito além do necessário pra extrair beneficiário/procedimento/valor; viola minimização de dado exigida pela LGPD pra essa tarefa específica\\.\n\n  \\[REJEITADO\\] Cadastro de beneficiários\n    x Contém o ground truth da tarefa \\(entrada real \\+ resposta correta observável\\)\\?\n    v Vem do fluxo real de produção, não é exemplo sintético ou hipotético\\?\n    v Cobre a variação real de formato e situação que a tarefa tem, não só o caso fácil\\?\n    v Passa no crivo de sensibilidade e compliance pra ser usado em treino\\?\n    -> É tabela de referência \\(titular/dependente\\), não um par entrada-saída de extração; útil pra cruzamento, não pra treinar o extrator em si\\.\n\n-----------------------------------------------------------------------------\nDe 7 candidatos plausíveis, só 2 passam: orçamento de oficina e recibo médico --\nexatamente os que o pipeline de extração do Módulo 2 usa\\. Identificar dado\nrelevante é filtrar antes de coletar, não aceitar tudo que existir no arquivo\\.\n-----------------------------------------------------------------------------\n$"
+        }
+      ]
+    },
+    {
+      "name": "checks MinHash, LSH, temperature sampling, and diversity, then removes the three planted near-duplicates and rebalances 44 examples to 34 with more effective sources",
+      "program": "dataset-cleaning-balancing-tool",
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes: [^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n)+Total: 16 teste\\(s\\), 16 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n\n===== Demo: MinHash\\+LSH, amostragem por temperatura, e diversidade formal =====\n\nDataset simulado: 47 exemplos\\.\n\n--- Deduplicação \\(MinHash k=32 \\+ LSH banding b=8,r=4\\) ---\namplitude-auto: 28 exemplos, 378 pares força-bruta -> 19 candidatos LSH \\(redução de 95\\.0%\\), 2 duplicata\\(s\\) confirmada\\(s\\) após refino exato\\.\namplitude-saude-empresarial: 19 exemplos, 171 pares força-bruta -> 1 candidatos LSH \\(redução de 99\\.4%\\), 1 duplicata\\(s\\) confirmada\\(s\\) após refino exato\\.\n\nTotal geral: 549 pares força-bruta -> 20 candidatos LSH\\.\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\n--- Pipeline: 47 -> 44 \\(dedup\\) -> 34 \\(balanceado por temperatura, alpha=0\\.3\\) ---\n\n--- amplitude-auto ---\n  Antes: Oficina Estrela=14 \\(53\\.8%\\), Auto Center Silva=5 \\(19\\.2%\\), Funilaria Rio Bonito=4 \\(15\\.4%\\), Oficina Nova Aliança=3 \\(11\\.5%\\)\n  Entropia antes: 1\\.1875 nats \\| Número efetivo de fontes: 3\\.279 \\(de 4 fontes reais\\)\n  Depois: Oficina Estrela=8 \\(40\\.0%\\), Auto Center Silva=5 \\(25\\.0%\\), Funilaria Rio Bonito=4 \\(20\\.0%\\), Oficina Nova Aliança=3 \\(15\\.0%\\)\n  Entropia depois: 1\\.3195 nats \\| Número efetivo de fontes: 3\\.742\n\n--- amplitude-saude-empresarial ---\n  Antes: Clínica Vitalis=11 \\(61\\.1%\\), Hospital Santa Clara=4 \\(22\\.2%\\), Centro Médico Bem Estar=3 \\(16\\.7%\\)\n  Entropia antes: 0\\.9338 nats \\| Número efetivo de fontes: 2\\.544 \\(de 3 fontes reais\\)\n  Depois: Clínica Vitalis=7 \\(50\\.0%\\), Hospital Santa Clara=4 \\(28\\.6%\\), Centro Médico Bem Estar=3 \\(21\\.4%\\)\n  Entropia depois: 1\\.0346 nats \\| Número efetivo de fontes: 2\\.814\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\n-----------------------------------------------------------------------------\nMinHash\\+LSH reduz a busca de quase-duplicata de O\\(n(?:²|\\^2)\\) pra um número muito menor\nde candidatos, sem perder nenhuma duplicata real \\(recall verificado nos testes\\)\\.\nA amostragem por temperatura \\(mesmo método do T5/mT5\\) troca corte arbitrário por\npeso formal, nunca inventando exemplo além da capacidade real de cada fonte, e o\nnúmero efetivo de fontes prova, em número, que o dataset final é mais diverso\\.\n-----------------------------------------------------------------------------\n$"
+        }
+      ]
+    },
+    {
+      "name": "checks the CPF check digits and the label-anchored names, then redacts the name and the valid CPF of both documents while keeping the plate and the amount",
+      "program": "pii-scrubbing-gate-tool",
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes: [^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n)+Total: 11 teste\\(s\\), 11 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n\n== Gate real: documentos do M[óo]dulo 2\\.1, agora com CPF \\(como um caso real de seguradora traria\\) ==\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\n--- amplitude-auto-1 ---\nAntes \\(bruto, nunca deveria entrar assim num dataset de treino\\):\nOFICINA ESTRELA - ORCAMENTO N\\. 4471\nSegurado: Marcos Vinicius Andrade Pereira\nCPF: 111\\.444\\.777-35\nPlaca do veiculo: QJK-4F82\n\nValor total do reparo: R\\$ 3\\.210,50\n\nPII detectado: 1 nome\\(s\\), 1 CPF\\(s\\) v[áa]lido\\(s\\)\nDepois \\(o que de fato entra no dataset de fine-tuning\\):\nOFICINA ESTRELA - ORCAMENTO N\\. 4471\nSegurado: \\[NOME_REDIGIDO\\]\nCPF: \\[CPF_REDIGIDO\\]\nPlaca do veiculo: QJK-4F82\n\nValor total do reparo: R\\$ 3\\.210,50\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\n--- amplitude-saude-1 ---\nAntes \\(bruto, nunca deveria entrar assim num dataset de treino\\):\nRECIBO DE ATENDIMENTO MEDICO\nBeneficiario: Carlos Eduardo Martins\nCPF: 111\\.444\\.777-35\nProcedimento: Consulta Cardiologica\nValor: R\\$ 380,00\n\nPII detectado: 1 nome\\(s\\), 1 CPF\\(s\\) v[áa]lido\\(s\\)\nDepois \\(o que de fato entra no dataset de fine-tuning\\):\nRECIBO DE ATENDIMENTO MEDICO\nBeneficiario: \\[NOME_REDIGIDO\\]\nCPF: \\[CPF_REDIGIDO\\]\nProcedimento: Consulta Cardiologica\nValor: R\\$ 380,00\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\nNota honesta: a [âa]ncora de r[óo]tulo \\(Segurado:/Benefici[áa]rio:\\) tem alta confian[çc]a, mas s[óo]\npega nome que segue esse padr[ãa]o\\. Nome solto em texto livre, fora de r[óo]tulo conhecido,\nexigiria NER de verdade \\(ex\\.: spaCy, como o Microsoft Presidio usa em produ[çc][ãa]o\\) para n[ãa]o\ndepender s[óo] de heur[íi]stica de capitaliza[çc][ãa]o, que erra tanto nome de oficina/cl[íi]nica quanto\nnome de pessoa\\. Ver o companion privacy-preserving-finetuning-companion\\.md pra esse\npr[óo]ximo passo, mais o cen[áa]rio de dado de sa[úu]de \\(DP-SGD/DP-LoRA\\) e o risco de memoriza[çc][ãa]o\\.\n$"
+        }
+      ]
+    },
+    {
+      "name": "reads the four document images with Tesseract in Portuguese, parses each layout's labels into a validated example, and writes them as JSONL",
+      "program": "extraction-to-jsonl-tool",
+      "timeout": 120000,
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes: [^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n)+Total: 28 teste\\(s\\), 28 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n\\n===== Demo: pipeline completo de extração, 4 documentos reais via Tesseract =====\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n--- doc-auto-1\\.png \\(amplitude-auto\\) ---\\nTexto OCR bruto:\\n  OFICINA ESTRELA - ORCAMENTO N\\. 4471\\n  Segurado: Marcos Vinicius Andrade Pereira\\n  Placa do veiculo: QJ[Kk]-4F82\\n *\\n  Valor total do reparo: R\\$ 3\\.210,50\\nConfiança média de OCR: \\d+\\.\\d%\\nExemplo estruturado: \\{\"segurado\": ?\"Marcos Vinicius Andrade Pereira\", ?\"placa\": ?\"QJ[Kk]-4F82\", ?\"valor\": ?3210\\.5\\}\\nValidação de schema: OK\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n--- doc-auto-2\\.png \\(amplitude-auto\\) ---\\nTexto OCR bruto:\\n  Orcamento de Reparo\\n *\\n  Oficina: Auto Center Silva\\n *\\n  Nome do segurado: Beatriz Nogueira Lima\\n  Placa: RTA-9B15\\n *\\n  Total: R\\$ 7\\.940,00\\nConfiança média de OCR: \\d+\\.\\d%\\nExemplo estruturado: \\{\"segurado\": ?\"Beatriz Nogueira Lima\", ?\"placa\": ?\"RTA-9B15\", ?\"valor\": ?7940(?:\\.0)?\\}\\nValidação de schema: OK\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n--- doc-saude-1\\.png \\(amplitude-saude-empresarial\\) ---\\nTexto OCR bruto:\\n  RECIBO DE ATENDIMENTO MEDICO\\n  Beneficiario: Carlos Eduardo Martins\\n  Procedimento: Consulta Cardiologica\\n  Valor: R\\$ 380,00\\nConfiança média de OCR: \\d+\\.\\d%\\nExemplo estruturado: \\{\"beneficiario\": ?\"Carlos Eduardo Martins\", ?\"procedimento\": ?\"Consulta Cardiologica\", ?\"valor\": ?380(?:\\.0)?\\}\\nValidação de schema: OK\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n--- doc-saude-2\\.png \\(amplitude-saude-empresarial\\) ---\\nTexto OCR bruto:\\n  Clinica Vida Nova - Recibo\\n  Paciente/Beneficiario: Fernanda Alves Costa\\n *\\n  Procedimento realizado: Exame de Sangue Completo\\n  Valor cobrado: R\\$ 145,90\\nConfiança média de OCR: \\d+\\.\\d%\\nExemplo estruturado: \\{\"beneficiario\": ?\"Fernanda Alves Costa\", ?\"procedimento\": ?\"Exame de Sangue Completo\", ?\"valor\": ?145\\.9\\}\\nValidação de schema: OK\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\n-----------------------------------------------------------------------------\n4 exemplos escritos em: dataset-amplitude-seguros\\.jsonl\nDois formatos de orçamento de oficina, dois formatos de recibo médico, rótulo\nde campo diferente em cada um, mas o parser tolerante e a validação de schema\ngarantem que os 4 viram exemplo estruturado, sem exigir OCR ou layout perfeito\\.\n-----------------------------------------------------------------------------\n$"
+        },
+        {
+          "type": "numbers",
+          "groups": [
+            [
+              {
+                "value": 94.1,
+                "tolerance": 1.5
+              }
+            ],
+            [
+              {
+                "value": 95.8,
+                "tolerance": 1.5
+              }
+            ],
+            [
+              {
+                "value": 95.7,
+                "tolerance": 1.5
+              }
+            ],
+            [
+              {
+                "value": 95.9,
+                "tolerance": 1.5
+              }
+            ]
+          ]
+        },
+        {
+          "type": "file",
+          "path": "dataset-amplitude-seguros.jsonl",
+          "pattern": "^\\{\"instrucao\": ?\"Extraia segurado, placa e valor do or(?:ç|\\\\u00e7)amento de oficina abaixo\\.\", ?\"entrada\": ?\"OFICINA ESTRELA - ORCAMENTO N\\. 4471\\\\nSegurado: Marcos Vinicius Andrade Pereira\\\\nPlaca do veiculo: QJ[Kk]-4F82\\\\n\\\\nValor total do reparo: R\\$ 3\\.210,50\", ?\"saida\": ?\\{\"segurado\": ?\"Marcos Vinicius Andrade Pereira\", ?\"placa\": ?\"QJ[Kk]-4F82\", ?\"valor\": ?3210\\.5\\}, ?\"metadata\": ?\\{\"caso\": ?\"amplitude-auto\", ?\"arquivoFonte\": ?\"doc-auto-1\\.png\", ?\"confiancaOcr\": ?0\\.9\\d{0,4}, ?\"valido\": ?true\\}\\}\\n\\{\"instrucao\": ?\"Extraia segurado, placa e valor do or(?:ç|\\\\u00e7)amento de oficina abaixo\\.\", ?\"entrada\": ?\"Orcamento de Reparo\\\\n\\\\nOficina: Auto Center Silva\\\\n\\\\nNome do segurado: Beatriz Nogueira Lima\\\\nPlaca: RTA-9B15\\\\n\\\\nTotal: R\\$ 7\\.940,00\", ?\"saida\": ?\\{\"segurado\": ?\"Beatriz Nogueira Lima\", ?\"placa\": ?\"RTA-9B15\", ?\"valor\": ?7940(?:\\.0)?\\}, ?\"metadata\": ?\\{\"caso\": ?\"amplitude-auto\", ?\"arquivoFonte\": ?\"doc-auto-2\\.png\", ?\"confiancaOcr\": ?0\\.9\\d{0,4}, ?\"valido\": ?true\\}\\}\\n\\{\"instrucao\": ?\"Extraia benefici(?:á|\\\\u00e1)rio, procedimento e valor do recibo m(?:é|\\\\u00e9)dico abaixo\\.\", ?\"entrada\": ?\"RECIBO DE ATENDIMENTO MEDICO\\\\nBeneficiario: Carlos Eduardo Martins\\\\nProcedimento: Consulta Cardiologica\\\\nValor: R\\$ 380,00\", ?\"saida\": ?\\{\"beneficiario\": ?\"Carlos Eduardo Martins\", ?\"procedimento\": ?\"Consulta Cardiologica\", ?\"valor\": ?380(?:\\.0)?\\}, ?\"metadata\": ?\\{\"caso\": ?\"amplitude-saude-empresarial\", ?\"arquivoFonte\": ?\"doc-saude-1\\.png\", ?\"confiancaOcr\": ?0\\.9\\d{0,4}, ?\"valido\": ?true\\}\\}\\n\\{\"instrucao\": ?\"Extraia benefici(?:á|\\\\u00e1)rio, procedimento e valor do recibo m(?:é|\\\\u00e9)dico abaixo\\.\", ?\"entrada\": ?\"Clinica Vida Nova - Recibo\\\\nPaciente/Beneficiario: Fernanda Alves Costa\\\\n\\\\nProcedimento realizado: Exame de Sangue Completo\\\\nValor cobrado: R\\$ 145,90\", ?\"saida\": ?\\{\"beneficiario\": ?\"Fernanda Alves Costa\", ?\"procedimento\": ?\"Exame de Sangue Completo\", ?\"valor\": ?145\\.9\\}, ?\"metadata\": ?\\{\"caso\": ?\"amplitude-saude-empresarial\", ?\"arquivoFonte\": ?\"doc-saude-2\\.png\", ?\"confiancaOcr\": ?0\\.9\\d{0,4}, ?\"valido\": ?true\\}\\}\\n$"
+        }
+      ]
+    },
+    {
+      "name": "stops with an error as soon as Tesseract cannot load the Portuguese model, before testing any document",
+      "program": "extraction-to-jsonl-tool",
+      "commands": {
+        "tesseract": [
+          {
+            "stderr": "Error opening data file /usr/share/tesseract-ocr/5/tessdata/por.traineddata\nPlease make sure the TESSDATA_PREFIX environment variable is set to your \"tessdata\" directory.\nFailed loading language 'por'\nTesseract couldn't load any languages!\nCould not initialize tesseract.\n",
+            "code": 1
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "output",
+          "pattern": "^== Testes: parsing de valor em formato brasileiro ==\\n(?:  \\[OK\\] [^\\n]*\\n){2}\\n== Testes: OCR \\+ parsing contra os 4 documentos reais \\(Tesseract de verdade\\) ==\\n$"
+        }
+      ]
+    },
+    {
+      "name": "sends each document image with one generic prompt to Gemini on Vertex AI with a gcloud token, then grades the four answers against the same answer key as the OCR pipeline, all twelve fields right",
+      "program": "extracao-llm-multimodal-tool",
+      "env": {
+        "GCP_PROJECT_ID": "stackfy-replay",
+        "GOOGLE_VERTEX_BASE_URL": "{replay}"
+      },
+      "commands": {
+        "gcloud": [
+          {
+            "args": ["auth", "print-access-token"],
+            "stdout": "ya29.stackfy-replay\n"
+          }
+        ]
+      },
+      "replay": [
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "{\"segurado\": \"Marcos Vinicius Andrade Pereira\", \"placa\": \"QJK-4F82\", \"valor\": 3210.50}"
+                    }
+                  ]
+                },
+                "finishReason": "STOP"
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 2384,
+              "candidatesTokenCount": 40,
+              "totalTokenCount": 2424,
+              "trafficType": "ON_DEMAND",
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 66
+                },
+                {
+                  "modality": "IMAGE",
+                  "tokenCount": 2318
+                }
+              ],
+              "candidatesTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 40
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "createTime": "2026-08-14T13:02:11.482913Z",
+            "responseId": "rplY0211aJ-stackfy"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "{\"segurado\": \"Beatriz Nogueira Lima\", \"placa\": \"RTA-9B15\", \"valor\": 7940.00}"
+                    }
+                  ]
+                },
+                "finishReason": "STOP"
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 2384,
+              "candidatesTokenCount": 40,
+              "totalTokenCount": 2424,
+              "trafficType": "ON_DEMAND",
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 66
+                },
+                {
+                  "modality": "IMAGE",
+                  "tokenCount": 2318
+                }
+              ],
+              "candidatesTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 40
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "createTime": "2026-08-14T13:02:15.107264Z",
+            "responseId": "rplY0215aJ-stackfy"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "{\"beneficiario\": \"Carlos Eduardo Martins\", \"procedimento\": \"Consulta Cardiologica\", \"valor\": 380.00}"
+                    }
+                  ]
+                },
+                "finishReason": "STOP"
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 2384,
+              "candidatesTokenCount": 40,
+              "totalTokenCount": 2424,
+              "trafficType": "ON_DEMAND",
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 66
+                },
+                {
+                  "modality": "IMAGE",
+                  "tokenCount": 2318
+                }
+              ],
+              "candidatesTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 40
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "createTime": "2026-08-14T13:02:18.950531Z",
+            "responseId": "rplY0218aJ-stackfy"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "{\"beneficiario\": \"Fernanda Alves Costa\", \"procedimento\": \"Exame de Sangue Completo\", \"valor\": 145.90}"
+                    }
+                  ]
+                },
+                "finishReason": "STOP"
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 2384,
+              "candidatesTokenCount": 40,
+              "totalTokenCount": 2424,
+              "trafficType": "ON_DEMAND",
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 66
+                },
+                {
+                  "modality": "IMAGE",
+                  "tokenCount": 2318
+                }
+              ],
+              "candidatesTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 40
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "createTime": "2026-08-14T13:02:22.336078Z",
+            "responseId": "rplY0222aJ-stackfy"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "anyOf": [
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia segurado, placa e valor do orçamento de oficina na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: segurado, placa, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inline_data": {
+                                "mime_type": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{25825}wpb/Dxn11VT7tItFAAAAAElFTkSuQmCC$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  },
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia segurado, placa e valor do orçamento de oficina na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: segurado, placa, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inlineData": {
+                                "mimeType": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{25825}wpb/Dxn11VT7tItFAAAAAElFTkSuQmCC$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "anyOf": [
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia segurado, placa e valor do orçamento de oficina na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: segurado, placa, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inline_data": {
+                                "mime_type": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{25417}l/8P0\\+3p96sQ\\+ZAAAAAASUVORK5CYII=$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  },
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia segurado, placa e valor do orçamento de oficina na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: segurado, placa, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inlineData": {
+                                "mimeType": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{25417}l/8P0\\+3p96sQ\\+ZAAAAAASUVORK5CYII=$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "anyOf": [
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia beneficiário, procedimento e valor do recibo médico na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: beneficiario, procedimento, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inline_data": {
+                                "mime_type": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{23985}5f8CJF1uLCowWPkAAAAASUVORK5CYII=$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  },
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia beneficiário, procedimento e valor do recibo médico na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: beneficiario, procedimento, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inlineData": {
+                                "mimeType": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{23985}5f8CJF1uLCowWPkAAAAASUVORK5CYII=$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "anyOf": [
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia beneficiário, procedimento e valor do recibo médico na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: beneficiario, procedimento, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inline_data": {
+                                "mime_type": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{26177}IEL5P2n4h/z9SlONAAAAAElFTkSuQmCC$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  },
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia beneficiário, procedimento e valor do recibo médico na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: beneficiario, procedimento, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inlineData": {
+                                "mimeType": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{26177}IEL5P2n4h/z9SlONAAAAAElFTkSuQmCC$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "json",
+          "values": [
+            {
+              "segurado": "Marcos Vinicius Andrade Pereira",
+              "placa": "QJK-4F82",
+              "valor": 3210.5
+            },
+            {
+              "segurado": "Beatriz Nogueira Lima",
+              "placa": "RTA-9B15",
+              "valor": 7940
+            },
+            {
+              "beneficiario": "Carlos Eduardo Martins",
+              "procedimento": "Consulta Cardiologica",
+              "valor": 380
+            },
+            {
+              "beneficiario": "Fernanda Alves Costa",
+              "procedimento": "Exame de Sangue Completo",
+              "valor": 145.9
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^== Extração via LLM multimodal \\(Gemini/Vertex AI\\) vs\\. OCR clássico ==\\n\\n--- doc-auto-1\\.png \\(amplitude-auto\\) ---\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n--- doc-auto-1\\.png \\(amplitude-auto\\) ---\\n  extraído: [^\\n]+\\n  acerto: 3/3 campos\\n  latência: \\d+ms · tokens entrada/saída: 2384/40\\n\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n--- doc-auto-2\\.png \\(amplitude-auto\\) ---\\n  extraído: [^\\n]+\\n  acerto: 3/3 campos\\n  latência: \\d+ms · tokens entrada/saída: 2384/40\\n\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n--- doc-saude-1\\.png \\(amplitude-saude-empresarial\\) ---\\n  extraído: [^\\n]+\\n  acerto: 3/3 campos\\n  latência: \\d+ms · tokens entrada/saída: 2384/40\\n\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n--- doc-saude-2\\.png \\(amplitude-saude-empresarial\\) ---\\n  extraído: [^\\n]+\\n  acerto: 3/3 campos\\n  latência: \\d+ms · tokens entrada/saída: 2384/40\\n\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n== Testes: LLM multimodal acerta o gabarito campo a campo ==\\n  \\[OK\\] doc-auto-1\\.png: campo \"segurado\" extraído bate com o esperado\\n  \\[OK\\] doc-auto-1\\.png: campo \"placa\" extraído bate com o esperado\\n  \\[OK\\] doc-auto-1\\.png: campo \"valor\" extraído bate com o esperado\\n  \\[OK\\] doc-auto-2\\.png: campo \"segurado\" extraído bate com o esperado\\n  \\[OK\\] doc-auto-2\\.png: campo \"placa\" extraído bate com o esperado\\n  \\[OK\\] doc-auto-2\\.png: campo \"valor\" extraído bate com o esperado\\n  \\[OK\\] doc-saude-1\\.png: campo \"beneficiario\" extraído bate com o esperado\\n  \\[OK\\] doc-saude-1\\.png: campo \"procedimento\" extraído bate com o esperado\\n  \\[OK\\] doc-saude-1\\.png: campo \"valor\" extraído bate com o esperado\\n  \\[OK\\] doc-saude-2\\.png: campo \"beneficiario\" extraído bate com o esperado\\n  \\[OK\\] doc-saude-2\\.png: campo \"procedimento\" extraído bate com o esperado\\n  \\[OK\\] doc-saude-2\\.png: campo \"valor\" extraído bate com o esperado\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n12/12 testes passaram\\.\\n\\n== Resumo ==\\nAcerto total \\(LLM multimodal\\): 12/12 campos \\(100\\.0%\\)\\nLatência média por documento: \\d+ms\\nTokens totais: 9536 entrada \\+ 160 saída, 4 chamadas\\n\\nCompare com [^\\n]+ \\(OCR clássico\\): mesmo gabarito, mesmas 4 imagens\\.\\n$"
+        }
+      ]
+    },
+    {
+      "name": "accepts an answer that differs from the key only in accents and case, and fails the misread plate and the wrong amount field by field",
+      "program": "extracao-llm-multimodal-tool",
+      "env": {
+        "GCP_PROJECT_ID": "stackfy-replay",
+        "GOOGLE_VERTEX_BASE_URL": "{replay}"
+      },
+      "commands": {
+        "gcloud": [
+          {
+            "args": ["auth", "print-access-token"],
+            "stdout": "ya29.stackfy-replay\n"
+          }
+        ]
+      },
+      "replay": [
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "{\"segurado\": \"Marcos Vinícius Andrade Pereira\", \"placa\": \"QJK-4F82\", \"valor\": 3210.5}"
+                    }
+                  ]
+                },
+                "finishReason": "STOP"
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 2384,
+              "candidatesTokenCount": 40,
+              "totalTokenCount": 2424,
+              "trafficType": "ON_DEMAND",
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 66
+                },
+                {
+                  "modality": "IMAGE",
+                  "tokenCount": 2318
+                }
+              ],
+              "candidatesTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 40
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "createTime": "2026-08-14T13:05:40.219874Z",
+            "responseId": "rplY0540aJ-stackfy"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "{\"segurado\": \"Beatriz Nogueira Lima\", \"placa\": \"RTA-9815\", \"valor\": 7940}"
+                    }
+                  ]
+                },
+                "finishReason": "STOP"
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 2384,
+              "candidatesTokenCount": 38,
+              "totalTokenCount": 2422,
+              "trafficType": "ON_DEMAND",
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 66
+                },
+                {
+                  "modality": "IMAGE",
+                  "tokenCount": 2318
+                }
+              ],
+              "candidatesTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 38
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "createTime": "2026-08-14T13:05:44.871302Z",
+            "responseId": "rplY0544aJ-stackfy"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "{\"beneficiario\": \"CARLOS EDUARDO MARTINS\", \"procedimento\": \"Consulta Cardiológica\", \"valor\": 380}"
+                    }
+                  ]
+                },
+                "finishReason": "STOP"
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 2384,
+              "candidatesTokenCount": 42,
+              "totalTokenCount": 2426,
+              "trafficType": "ON_DEMAND",
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 66
+                },
+                {
+                  "modality": "IMAGE",
+                  "tokenCount": 2318
+                }
+              ],
+              "candidatesTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 42
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "createTime": "2026-08-14T13:05:48.402917Z",
+            "responseId": "rplY0548aJ-stackfy"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "{\"beneficiario\": \"Fernanda Alves Costa\", \"procedimento\": \"Exame de Sangue Completo\", \"valor\": 145.09}"
+                    }
+                  ]
+                },
+                "finishReason": "STOP"
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 2384,
+              "candidatesTokenCount": 41,
+              "totalTokenCount": 2425,
+              "trafficType": "ON_DEMAND",
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 66
+                },
+                {
+                  "modality": "IMAGE",
+                  "tokenCount": 2318
+                }
+              ],
+              "candidatesTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 41
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "createTime": "2026-08-14T13:05:51.993160Z",
+            "responseId": "rplY0551aJ-stackfy"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "anyOf": [
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia segurado, placa e valor do orçamento de oficina na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: segurado, placa, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inline_data": {
+                                "mime_type": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{25825}wpb/Dxn11VT7tItFAAAAAElFTkSuQmCC$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  },
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia segurado, placa e valor do orçamento de oficina na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: segurado, placa, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inlineData": {
+                                "mimeType": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{25825}wpb/Dxn11VT7tItFAAAAAElFTkSuQmCC$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "anyOf": [
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia segurado, placa e valor do orçamento de oficina na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: segurado, placa, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inline_data": {
+                                "mime_type": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{25417}l/8P0\\+3p96sQ\\+ZAAAAAASUVORK5CYII=$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  },
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia segurado, placa e valor do orçamento de oficina na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: segurado, placa, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inlineData": {
+                                "mimeType": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{25417}l/8P0\\+3p96sQ\\+ZAAAAAASUVORK5CYII=$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "anyOf": [
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia beneficiário, procedimento e valor do recibo médico na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: beneficiario, procedimento, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inline_data": {
+                                "mime_type": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{23985}5f8CJF1uLCowWPkAAAAASUVORK5CYII=$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  },
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia beneficiário, procedimento e valor do recibo médico na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: beneficiario, procedimento, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inlineData": {
+                                "mimeType": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{23985}5f8CJF1uLCowWPkAAAAASUVORK5CYII=$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "anyOf": [
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia beneficiário, procedimento e valor do recibo médico na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: beneficiario, procedimento, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inline_data": {
+                                "mime_type": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{26177}IEL5P2n4h/z9SlONAAAAAElFTkSuQmCC$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  },
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia beneficiário, procedimento e valor do recibo médico na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: beneficiario, procedimento, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inlineData": {
+                                "mimeType": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{26177}IEL5P2n4h/z9SlONAAAAAElFTkSuQmCC$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "json",
+          "values": [
+            {
+              "segurado": "Marcos Vinícius Andrade Pereira",
+              "placa": "QJK-4F82",
+              "valor": 3210.5
+            },
+            {
+              "segurado": "Beatriz Nogueira Lima",
+              "placa": "RTA-9815",
+              "valor": 7940
+            },
+            {
+              "beneficiario": "CARLOS EDUARDO MARTINS",
+              "procedimento": "Consulta Cardiológica",
+              "valor": 380
+            },
+            {
+              "beneficiario": "Fernanda Alves Costa",
+              "procedimento": "Exame de Sangue Completo",
+              "valor": 145.09
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "\\n--- doc-auto-1\\.png \\(amplitude-auto\\) ---\\n  extraído: [^\\n]+\\n  acerto: 3/3 campos\\n  latência: \\d+ms · tokens entrada/saída: 2384/40\\n\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n--- doc-auto-2\\.png \\(amplitude-auto\\) ---\\n  extraído: [^\\n]+\\n  acerto: 2/3 campos\\n  latência: \\d+ms · tokens entrada/saída: 2384/38\\n\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n--- doc-saude-1\\.png \\(amplitude-saude-empresarial\\) ---\\n  extraído: [^\\n]+\\n  acerto: 3/3 campos\\n  latência: \\d+ms · tokens entrada/saída: 2384/42\\n\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n--- doc-saude-2\\.png \\(amplitude-saude-empresarial\\) ---\\n  extraído: [^\\n]+\\n  acerto: 2/3 campos\\n  latência: \\d+ms · tokens entrada/saída: 2384/41\\n\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n== Testes: LLM multimodal acerta o gabarito campo a campo ==\\n  \\[OK\\] doc-auto-1\\.png: campo \"segurado\" extraído bate com o esperado\\n  \\[OK\\] doc-auto-1\\.png: campo \"placa\" extraído bate com o esperado\\n  \\[OK\\] doc-auto-1\\.png: campo \"valor\" extraído bate com o esperado\\n  \\[OK\\] doc-auto-2\\.png: campo \"segurado\" extraído bate com o esperado\\n  \\[FALHOU\\] doc-auto-2\\.png: campo \"placa\" extraído bate com o esperado: extraído=([\"'])RTA-9815\\1, esperado=([\"'])RTA-9B15\\2\\n  \\[OK\\] doc-auto-2\\.png: campo \"valor\" extraído bate com o esperado\\n  \\[OK\\] doc-saude-1\\.png: campo \"beneficiario\" extraído bate com o esperado\\n  \\[OK\\] doc-saude-1\\.png: campo \"procedimento\" extraído bate com o esperado\\n  \\[OK\\] doc-saude-1\\.png: campo \"valor\" extraído bate com o esperado\\n  \\[OK\\] doc-saude-2\\.png: campo \"beneficiario\" extraído bate com o esperado\\n  \\[OK\\] doc-saude-2\\.png: campo \"procedimento\" extraído bate com o esperado\\n  \\[FALHOU\\] doc-saude-2\\.png: campo \"valor\" extraído bate com o esperado: extraído=145\\.09, esperado=145\\.9\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n10/12 testes passaram\\.\\n\\n== Resumo ==\\nAcerto total \\(LLM multimodal\\): 10/12 campos \\(83\\.3%\\)\\nLatência média por documento: \\d+ms\\nTokens totais: 9536 entrada \\+ 161 saída, 4 chamadas\\n\\nCompare com [^\\n]+ \\(OCR clássico\\): mesmo gabarito, mesmas 4 imagens\\.\\n$"
+        }
+      ]
+    },
+    {
+      "name": "reports a document whose call Vertex AI rejects with 429, then grades and sums only the three that answered",
+      "program": "extracao-llm-multimodal-tool",
+      "env": {
+        "GCP_PROJECT_ID": "stackfy-replay",
+        "GOOGLE_VERTEX_BASE_URL": "{replay}"
+      },
+      "commands": {
+        "gcloud": [
+          {
+            "args": ["auth", "print-access-token"],
+            "stdout": "ya29.stackfy-replay\n"
+          }
+        ]
+      },
+      "replay": [
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "{\"segurado\": \"Marcos Vinicius Andrade Pereira\", \"placa\": \"QJK-4F82\", \"valor\": 3210.50}"
+                    }
+                  ]
+                },
+                "finishReason": "STOP"
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 2384,
+              "candidatesTokenCount": 40,
+              "totalTokenCount": 2424,
+              "trafficType": "ON_DEMAND",
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 66
+                },
+                {
+                  "modality": "IMAGE",
+                  "tokenCount": 2318
+                }
+              ],
+              "candidatesTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 40
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "createTime": "2026-08-14T13:02:11.482913Z",
+            "responseId": "rplY0211aJ-stackfy"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "{\"segurado\": \"Beatriz Nogueira Lima\", \"placa\": \"RTA-9B15\", \"valor\": 7940.00}"
+                    }
+                  ]
+                },
+                "finishReason": "STOP"
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 2384,
+              "candidatesTokenCount": 40,
+              "totalTokenCount": 2424,
+              "trafficType": "ON_DEMAND",
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 66
+                },
+                {
+                  "modality": "IMAGE",
+                  "tokenCount": 2318
+                }
+              ],
+              "candidatesTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 40
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "createTime": "2026-08-14T13:02:15.107264Z",
+            "responseId": "rplY0215aJ-stackfy"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "{\"beneficiario\": \"Carlos Eduardo Martins\", \"procedimento\": \"Consulta Cardiologica\", \"valor\": 380.00}"
+                    }
+                  ]
+                },
+                "finishReason": "STOP"
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 2384,
+              "candidatesTokenCount": 40,
+              "totalTokenCount": 2424,
+              "trafficType": "ON_DEMAND",
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 66
+                },
+                {
+                  "modality": "IMAGE",
+                  "tokenCount": 2318
+                }
+              ],
+              "candidatesTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 40
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "createTime": "2026-08-14T13:02:18.950531Z",
+            "responseId": "rplY0218aJ-stackfy"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "status": 429,
+          "json": {
+            "error": {
+              "code": 429,
+              "message": "Resource exhausted. Please try again later. Please refer to https://cloud.google.com/vertex-ai/generative-ai/docs/error-code-429 for more details.",
+              "status": "RESOURCE_EXHAUSTED"
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "anyOf": [
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia segurado, placa e valor do orçamento de oficina na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: segurado, placa, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inline_data": {
+                                "mime_type": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{25825}wpb/Dxn11VT7tItFAAAAAElFTkSuQmCC$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  },
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia segurado, placa e valor do orçamento de oficina na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: segurado, placa, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inlineData": {
+                                "mimeType": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{25825}wpb/Dxn11VT7tItFAAAAAElFTkSuQmCC$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "anyOf": [
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia segurado, placa e valor do orçamento de oficina na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: segurado, placa, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inline_data": {
+                                "mime_type": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{25417}l/8P0\\+3p96sQ\\+ZAAAAAASUVORK5CYII=$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  },
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia segurado, placa e valor do orçamento de oficina na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: segurado, placa, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inlineData": {
+                                "mimeType": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{25417}l/8P0\\+3p96sQ\\+ZAAAAAASUVORK5CYII=$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "anyOf": [
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia beneficiário, procedimento e valor do recibo médico na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: beneficiario, procedimento, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inline_data": {
+                                "mime_type": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{23985}5f8CJF1uLCowWPkAAAAASUVORK5CYII=$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  },
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia beneficiário, procedimento e valor do recibo médico na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: beneficiario, procedimento, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inlineData": {
+                                "mimeType": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{23985}5f8CJF1uLCowWPkAAAAASUVORK5CYII=$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "anyOf": [
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia beneficiário, procedimento e valor do recibo médico na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: beneficiario, procedimento, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inline_data": {
+                                "mime_type": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{26177}IEL5P2n4h/z9SlONAAAAAElFTkSuQmCC$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  },
+                  {
+                    "contents": {
+                      "$like": [
+                        {
+                          "role": "user",
+                          "parts": [
+                            {
+                              "text": "Extraia beneficiário, procedimento e valor do recibo médico na imagem. Devolva SOMENTE um JSON válido, sem markdown e sem texto extra, com exatamente estas chaves: beneficiario, procedimento, valor. O campo \"valor\" deve ser um número (não string, sem símbolo de moeda)."
+                            },
+                            {
+                              "inlineData": {
+                                "mimeType": "image/png",
+                                "data": {
+                                  "$pattern": "^iVBORw0KGgo[A-Za-z0-9+/]{26177}IEL5P2n4h/z9SlONAAAAAElFTkSuQmCC$"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "generationConfig": {
+                      "$like": {
+                        "temperature": 0,
+                        "responseMimeType": "application/json"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "\\n--- doc-saude-1\\.png \\(amplitude-saude-empresarial\\) ---\\n  extraído: [^\\n]+\\n  acerto: 3/3 campos\\n  latência: \\d+ms · tokens entrada/saída: 2384/40\\n\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n--- doc-saude-2\\.png \\(amplitude-saude-empresarial\\) ---\\n  \\[FALHOU\\] Vertex AI retornou 429: \\{[^\\n]*\"status\": ?\"RESOURCE_EXHAUSTED\"[^\\n]*\\}\\n\\n1/4 documento\\(s\\) falharam na chamada real: doc-saude-2\\.png -- verifique projeto/API/billing\\.\\n\\n== Testes: LLM multimodal acerta o gabarito campo a campo ==\\n  \\[OK\\] doc-auto-1\\.png: campo \"segurado\" extraído bate com o esperado\\n  \\[OK\\] doc-auto-1\\.png: campo \"placa\" extraído bate com o esperado\\n  \\[OK\\] doc-auto-1\\.png: campo \"valor\" extraído bate com o esperado\\n  \\[OK\\] doc-auto-2\\.png: campo \"segurado\" extraído bate com o esperado\\n  \\[OK\\] doc-auto-2\\.png: campo \"placa\" extraído bate com o esperado\\n  \\[OK\\] doc-auto-2\\.png: campo \"valor\" extraído bate com o esperado\\n  \\[OK\\] doc-saude-1\\.png: campo \"beneficiario\" extraído bate com o esperado\\n  \\[OK\\] doc-saude-1\\.png: campo \"procedimento\" extraído bate com o esperado\\n  \\[OK\\] doc-saude-1\\.png: campo \"valor\" extraído bate com o esperado\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n9/9 testes passaram\\.\\n\\n== Resumo ==\\nAcerto total \\(LLM multimodal\\): 9/9 campos \\(100\\.0%\\)\\nLatência média por documento: \\d+ms\\nTokens totais: 7152 entrada \\+ 120 saída, 4 chamadas\\n\\nCompare com [^\\n]+ \\(OCR clássico\\): mesmo gabarito, mesmas 4 imagens\\.\\n$"
+        }
+      ]
+    },
+    {
+      "name": "fails every document without calling Vertex AI when gcloud has no active account, and exits with an error",
+      "program": "extracao-llm-multimodal-tool",
+      "env": {
+        "GCP_PROJECT_ID": "stackfy-replay",
+        "GOOGLE_VERTEX_BASE_URL": "{replay}"
+      },
+      "commands": {
+        "gcloud": [
+          {
+            "args": ["auth", "print-access-token"],
+            "stderr": "ERROR: (gcloud.auth.print-access-token) You do not currently have an active account selected.\nPlease run:\n\n  $ gcloud auth login\n\nto obtain new credentials.\n\nIf you have already logged in with a different account, run:\n\n  $ gcloud config set account ACCOUNT\n\nto select an already authenticated account to use.\n",
+            "code": 1
+          }
+        ]
+      },
+      "replay": [
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "{\"segurado\": \"Marcos Vinicius Andrade Pereira\", \"placa\": \"QJK-4F82\", \"valor\": 3210.50}"
+                    }
+                  ]
+                },
+                "finishReason": "STOP"
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 2384,
+              "candidatesTokenCount": 40,
+              "totalTokenCount": 2424,
+              "trafficType": "ON_DEMAND",
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 66
+                },
+                {
+                  "modality": "IMAGE",
+                  "tokenCount": 2318
+                }
+              ],
+              "candidatesTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 40
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "createTime": "2026-08-14T13:02:11.482913Z",
+            "responseId": "rplY0211aJ-stackfy"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "{\"segurado\": \"Beatriz Nogueira Lima\", \"placa\": \"RTA-9B15\", \"valor\": 7940.00}"
+                    }
+                  ]
+                },
+                "finishReason": "STOP"
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 2384,
+              "candidatesTokenCount": 40,
+              "totalTokenCount": 2424,
+              "trafficType": "ON_DEMAND",
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 66
+                },
+                {
+                  "modality": "IMAGE",
+                  "tokenCount": 2318
+                }
+              ],
+              "candidatesTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 40
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "createTime": "2026-08-14T13:02:15.107264Z",
+            "responseId": "rplY0215aJ-stackfy"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "{\"beneficiario\": \"Carlos Eduardo Martins\", \"procedimento\": \"Consulta Cardiologica\", \"valor\": 380.00}"
+                    }
+                  ]
+                },
+                "finishReason": "STOP"
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 2384,
+              "candidatesTokenCount": 40,
+              "totalTokenCount": 2424,
+              "trafficType": "ON_DEMAND",
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 66
+                },
+                {
+                  "modality": "IMAGE",
+                  "tokenCount": 2318
+                }
+              ],
+              "candidatesTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 40
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "createTime": "2026-08-14T13:02:18.950531Z",
+            "responseId": "rplY0218aJ-stackfy"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "{\"beneficiario\": \"Fernanda Alves Costa\", \"procedimento\": \"Exame de Sangue Completo\", \"valor\": 145.90}"
+                    }
+                  ]
+                },
+                "finishReason": "STOP"
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 2384,
+              "candidatesTokenCount": 40,
+              "totalTokenCount": 2424,
+              "trafficType": "ON_DEMAND",
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 66
+                },
+                {
+                  "modality": "IMAGE",
+                  "tokenCount": 2318
+                }
+              ],
+              "candidatesTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 40
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "createTime": "2026-08-14T13:02:22.336078Z",
+            "responseId": "rplY0222aJ-stackfy"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "requests",
+          "requests": []
+        },
+        {
+          "type": "output",
+          "pattern": "^== Extração via LLM multimodal \\(Gemini/Vertex AI\\) vs\\. OCR clássico ==\\n\\n--- doc-auto-1\\.png \\(amplitude-auto\\) ---\\n  \\[FALHOU\\] Não consegui obter um token de acesso via gcloud\\. Rode \"gcloud auth login\" nesta máquina antes de rodar a demo ao vivo\\. \\([\\s\\S]*?\\)\\n\\n--- doc-auto-2\\.png \\(amplitude-auto\\) ---\\n  \\[FALHOU\\] Não consegui obter um token de acesso via gcloud\\. Rode \"gcloud auth login\" nesta máquina antes de rodar a demo ao vivo\\. \\([\\s\\S]*?\\)\\n\\n--- doc-saude-1\\.png \\(amplitude-saude-empresarial\\) ---\\n  \\[FALHOU\\] Não consegui obter um token de acesso via gcloud\\. Rode \"gcloud auth login\" nesta máquina antes de rodar a demo ao vivo\\. \\([\\s\\S]*?\\)\\n\\n--- doc-saude-2\\.png \\(amplitude-saude-empresarial\\) ---\\n  \\[FALHOU\\] Não consegui obter um token de acesso via gcloud\\. Rode \"gcloud auth login\" nesta máquina antes de rodar a demo ao vivo\\. \\([\\s\\S]*?\\)\\n\\n4/4 documento\\(s\\) falharam na chamada real: doc-auto-1\\.png, doc-auto-2\\.png, doc-saude-1\\.png, doc-saude-2\\.png -- verifique projeto/API/billing\\.\\n\\n"
+        }
+      ]
+    },
+    {
+      "name": "refuses to start without GCP_PROJECT_ID, before reading any document or calling gcloud",
+      "program": "extracao-llm-multimodal-tool",
+      "env": {
+        "GCP_PROJECT_ID": "",
+        "GOOGLE_VERTEX_BASE_URL": "{replay}"
+      },
+      "commands": {
+        "gcloud": []
+      },
+      "replay": [
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "{\"segurado\": \"Marcos Vinicius Andrade Pereira\", \"placa\": \"QJK-4F82\", \"valor\": 3210.50}"
+                    }
+                  ]
+                },
+                "finishReason": "STOP"
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 2384,
+              "candidatesTokenCount": 40,
+              "totalTokenCount": 2424,
+              "trafficType": "ON_DEMAND",
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 66
+                },
+                {
+                  "modality": "IMAGE",
+                  "tokenCount": 2318
+                }
+              ],
+              "candidatesTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 40
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "createTime": "2026-08-14T13:02:11.482913Z",
+            "responseId": "rplY0211aJ-stackfy"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "{\"segurado\": \"Beatriz Nogueira Lima\", \"placa\": \"RTA-9B15\", \"valor\": 7940.00}"
+                    }
+                  ]
+                },
+                "finishReason": "STOP"
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 2384,
+              "candidatesTokenCount": 40,
+              "totalTokenCount": 2424,
+              "trafficType": "ON_DEMAND",
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 66
+                },
+                {
+                  "modality": "IMAGE",
+                  "tokenCount": 2318
+                }
+              ],
+              "candidatesTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 40
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "createTime": "2026-08-14T13:02:15.107264Z",
+            "responseId": "rplY0215aJ-stackfy"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "{\"beneficiario\": \"Carlos Eduardo Martins\", \"procedimento\": \"Consulta Cardiologica\", \"valor\": 380.00}"
+                    }
+                  ]
+                },
+                "finishReason": "STOP"
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 2384,
+              "candidatesTokenCount": 40,
+              "totalTokenCount": 2424,
+              "trafficType": "ON_DEMAND",
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 66
+                },
+                {
+                  "modality": "IMAGE",
+                  "tokenCount": 2318
+                }
+              ],
+              "candidatesTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 40
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "createTime": "2026-08-14T13:02:18.950531Z",
+            "responseId": "rplY0218aJ-stackfy"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/v1/projects/stackfy-replay/locations/us-central1/publishers/google/models/gemini-2.5-flash:generateContent",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "role": "model",
+                  "parts": [
+                    {
+                      "text": "{\"beneficiario\": \"Fernanda Alves Costa\", \"procedimento\": \"Exame de Sangue Completo\", \"valor\": 145.90}"
+                    }
+                  ]
+                },
+                "finishReason": "STOP"
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 2384,
+              "candidatesTokenCount": 40,
+              "totalTokenCount": 2424,
+              "trafficType": "ON_DEMAND",
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 66
+                },
+                {
+                  "modality": "IMAGE",
+                  "tokenCount": 2318
+                }
+              ],
+              "candidatesTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 40
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "createTime": "2026-08-14T13:02:22.336078Z",
+            "responseId": "rplY0222aJ-stackfy"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "requests",
+          "requests": []
+        },
+        {
+          "type": "output",
+          "pattern": "^$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "GCP_PROJECT_ID"
+        }
+      ]
+    }
+  ]
+}

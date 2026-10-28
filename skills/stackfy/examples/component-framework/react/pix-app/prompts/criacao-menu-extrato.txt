@@ -1,0 +1,1 @@
+Agora, configure a rota 'extrato' no arquivo @routes.tsx apontando para o recém-criado PixHistory. Depois, atualize a nossa barra de navegação lateral no @App.tsx adicionando um novo link para 'Extrato' logo abaixo do link do 'Pix', usando o componente Link oficial do React Router e mantendo as classes de estilo do nosso menu.

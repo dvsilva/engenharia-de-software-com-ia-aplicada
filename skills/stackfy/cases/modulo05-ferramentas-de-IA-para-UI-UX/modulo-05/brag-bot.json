@@ -1,0 +1,1797 @@
+{
+  "module": "modulo05-ferramentas-de-IA-para-UI-UX/modulo-05/brag-bot",
+  "concepts": [
+    "component-framework",
+    "chat-model",
+    "rest-api",
+    "schema-validation",
+    "coding-agent-harness"
+  ],
+  "recorded": "Original run from a copy with Angular 21.2.8, @angular/ssr 21.2.7, Genkit 1.32.0 with @genkit-ai/google-genai 1.32.0, Express 5.2.1, and Node.js 26.12.1, installed with npm ci, and driven in headless Google Chrome. It ran with NG_CLI_ANALYTICS=false npx ng serve --port $PORT --host 127.0.0.1 instead of npm start, which fixes port 4200: the Angular CLI's dev server renders every page on the server and mounts server.ts's Express app, API included. The original's googleAI() plugin always calls https://generativelanguage.googleapis.com, so the copy passes it baseUrl from GOOGLE_GEMINI_BASE_URL, the variable Google's GenAI SDKs read, its only patch, and the cases point that variable to the replay with a placeholder key in GEMINI_API_KEY. Ollama serves no generateContent endpoint, so record.mjs recorded the copy in front of a translator that sent each request to Ollama 0.40.11's chat API with gpt-oss:20b and the response schema as the format, and wrapped each answer in Gemini's documented response. The stand-in filled in fields beyond the schema, which allows them, and the cases expect them, since the server answers the model's object as it came. Gemini's errors and the broken answers are synthesized. Ids are random UUIDs, so the cases check their shape and compare a card's address with the details page's. Angular clears a draft typed before hydration ends, so the page cases type it again until the button takes it, and the replay holds some answers for 1.5 seconds so the cases can read the loading state. Every case passed in each of 3 runs.",
+  "prepare": {
+    "setup": ["npm ci --no-audit --no-fund"],
+    "patches": [
+      {
+        "file": "src/flows.ts",
+        "find": "plugins: [googleAI()],",
+        "replace": "plugins: [googleAI({ baseUrl: process.env['GOOGLE_GEMINI_BASE_URL'] })],"
+      }
+    ]
+  },
+  "originals": [
+    "NG_CLI_ANALYTICS=false npx ng serve --port $PORT --host 127.0.0.1"
+  ],
+  "cases": [
+    {
+      "name": "renders the dashboard and a brag it does not know on the server, and answers 404 to any other path, the API's GET included",
+      "env": {
+        "GOOGLE_GEMINI_BASE_URL": "{replay}",
+        "GEMINI_API_KEY": "test-gemini-key"
+      },
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for gemini-2.5-flash, through a translator that turned the request into a chat with the schema as the format and the answer into Gemini's documented generateContent format",
+          "method": "POST",
+          "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+          "headers": {
+            "content-type": "application/json; charset=UTF-8"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "parts": [
+                    {
+                      "text": "{\n  \"title\": \"Otimização de API de Pedidos com Cache Redis\",\n  \"context\": \"Melhoria de desempenho da API de pedidos na plataforma de e‑commerce.\",\n  \"actionTaken\": \"Implementação de camada de cache Redis na frente do banco de dados PostgreSQL.\",\n  \"businessImpact\": \"Redução do tempo de resposta da API em 10 vezes, resultando em maior throughput e experiência de usuário aprimorada.\",\n  \"metrics\": [\n    \"Tempo médio de resposta da API: de 1,0 s para 0,1 s (10× mais rápido).\",\n    \"Aumento de 25 % na taxa de requisições processadas por segundo.\",\n    \"Redução de 30 % no uso de CPU do servidor PostgreSQL.\"\n  ],\n  \"technologiesUsed\": [\n    \"Redis (in‑memory data store)\",\n    \"PostgreSQL\",\n    \"Node.js/Express (backend)\",\n    \"Docker (containerização)\"\n  ],\n  \"stakeholders\": [\n    \"Diretoria de Tecnologia\",\n    \"Equipe de Produto\",\n    \"Equipe de Infraestrutura\"\n  ],\n  \"futureSteps\": \"Monitorar métricas de cache, ajustar TTL e escalar Redis conforme demanda de pico.\"\n}"
+                    }
+                  ],
+                  "role": "model"
+                },
+                "finishReason": "STOP",
+                "index": 0
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 267,
+              "candidatesTokenCount": 323,
+              "totalTokenCount": 590,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 267
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "responseId": "iMUgBXpCoqJtCP1MbEeG4A"
+          }
+        }
+      ],
+      "serve": {
+        "port": 47570,
+        "ready": "/",
+        "requests": [
+          {
+            "path": "/"
+          },
+          {
+            "path": "/detail/5b0f3c1e-8a42-4d7b-9c1a-2f6e8d4b7a10"
+          },
+          {
+            "path": "/historico"
+          },
+          {
+            "path": "/api/brag"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "headers": {
+                "content-type": "^text/html"
+              },
+              "pattern": "<title>BragBot</title>[\\s\\S]*<h1[^>]*>\\s*Brag-Bot \\| Pós IA UNIPDS\\s*</h1>[\\s\\S]*<textarea[^>]*\\bid=\"achievement\"[\\s\\S]*<button(?=[^>]*\\btype=\"submit\")(?=[^>]*\\bdisabled)[^>]*>[\\s\\S]*Destilar Conquista[\\s\\S]*Últimas Conquistas[\\s\\S]*Nenhum Brag Document gerado ainda"
+            },
+            {
+              "status": 200,
+              "headers": {
+                "content-type": "^text/html"
+              },
+              "pattern": "Voltar ao Dashboard[\\s\\S]*Conquista não encontrada[\\s\\S]*A rota parece ser inválida ou a conquista não existe mais na memória\\.[\\s\\S]*Retornar"
+            },
+            {
+              "status": 404
+            },
+            {
+              "status": 404
+            }
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "turns each draft into a brag with one Gemini call for structured output, and answers the model's object as it came, extra fields included, with a fresh UUID",
+      "env": {
+        "GOOGLE_GEMINI_BASE_URL": "{replay}",
+        "GEMINI_API_KEY": "test-gemini-key"
+      },
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for gemini-2.5-flash, through a translator that turned the request into a chat with the schema as the format and the answer into Gemini's documented generateContent format",
+          "method": "POST",
+          "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+          "headers": {
+            "content-type": "application/json; charset=UTF-8"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "parts": [
+                    {
+                      "text": "{\n  \"title\": \"Otimização de API de Pedidos com Cache Redis\",\n  \"context\": \"Melhoria de desempenho da API de pedidos na plataforma de e‑commerce.\",\n  \"actionTaken\": \"Implementação de camada de cache Redis na frente do banco de dados PostgreSQL.\",\n  \"businessImpact\": \"Redução do tempo de resposta da API em 10 vezes, resultando em maior throughput e experiência de usuário aprimorada.\",\n  \"metrics\": [\n    \"Tempo médio de resposta da API: de 1,0 s para 0,1 s (10× mais rápido).\",\n    \"Aumento de 25 % na taxa de requisições processadas por segundo.\",\n    \"Redução de 30 % no uso de CPU do servidor PostgreSQL.\"\n  ],\n  \"technologiesUsed\": [\n    \"Redis (in‑memory data store)\",\n    \"PostgreSQL\",\n    \"Node.js/Express (backend)\",\n    \"Docker (containerização)\"\n  ],\n  \"stakeholders\": [\n    \"Diretoria de Tecnologia\",\n    \"Equipe de Produto\",\n    \"Equipe de Infraestrutura\"\n  ],\n  \"futureSteps\": \"Monitorar métricas de cache, ajustar TTL e escalar Redis conforme demanda de pico.\"\n}"
+                    }
+                  ],
+                  "role": "model"
+                },
+                "finishReason": "STOP",
+                "index": 0
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 267,
+              "candidatesTokenCount": 323,
+              "totalTokenCount": 590,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 267
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "responseId": "iMUgBXpCoqJtCP1MbEeG4A"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for gemini-2.5-flash, through a translator that turned the request into a chat with the schema as the format and the answer into Gemini's documented generateContent format",
+          "method": "POST",
+          "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+          "headers": {
+            "content-type": "application/json; charset=UTF-8"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "parts": [
+                    {
+                      "text": "{\"title\":\"Rewriting Flaky Checkout Tests\",\"context\":\"Sprint 23, Main Branch\",\"actionTaken\":\"Rewrote checkout test suite using Playwright\",\"businessImpact\":\"Eliminated intermittent failures on main, enabling stable CI pipeline\",\"metrics\":[\n  \"Reduced test flakiness from 30% to 0%\",\n  \"Improved test suite execution time by 15%\"\n],\"technologiesUsed\":[\"Playwright\",\"JavaScript\",\"CI/CD\"],\"skillsDeveloped\":[\"Test Automation\",\"Debugging\",\"Performance Optimization\"],\"nextSteps\":\"Expand Playwright coverage to other critical user flows\"}"
+                    }
+                  ],
+                  "role": "model"
+                },
+                "finishReason": "STOP",
+                "index": 0
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 255,
+              "candidatesTokenCount": 188,
+              "totalTokenCount": 443,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 255
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "responseId": "nuhtWb_T9u0VpCqnIp2rzw"
+          }
+        }
+      ],
+      "serve": {
+        "port": 47570,
+        "ready": "/",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/api/brag",
+            "json": {
+              "definition": "Eu otimizei a API de pedidos ontem e ficou 10x mais rápida porque coloquei Redis na frente do Postgres, a diretoria gostou."
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/brag",
+            "json": {
+              "definition": "I rewrote the flaky checkout tests with Playwright last sprint and the suite stopped failing on main."
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "title": "Otimização de API de Pedidos com Cache Redis",
+                "context": "Melhoria de desempenho da API de pedidos na plataforma de e‑commerce.",
+                "actionTaken": "Implementação de camada de cache Redis na frente do banco de dados PostgreSQL.",
+                "businessImpact": "Redução do tempo de resposta da API em 10 vezes, resultando em maior throughput e experiência de usuário aprimorada.",
+                "metrics": [
+                  "Tempo médio de resposta da API: de 1,0 s para 0,1 s (10× mais rápido).",
+                  "Aumento de 25 % na taxa de requisições processadas por segundo.",
+                  "Redução de 30 % no uso de CPU do servidor PostgreSQL."
+                ],
+                "technologiesUsed": [
+                  "Redis (in‑memory data store)",
+                  "PostgreSQL",
+                  "Node.js/Express (backend)",
+                  "Docker (containerização)"
+                ],
+                "stakeholders": [
+                  "Diretoria de Tecnologia",
+                  "Equipe de Produto",
+                  "Equipe de Infraestrutura"
+                ],
+                "futureSteps": "Monitorar métricas de cache, ajustar TTL e escalar Redis conforme demanda de pico."
+              },
+              "pattern": "\"id\":\\s*\"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\""
+            },
+            {
+              "status": 200,
+              "match": {
+                "title": "Rewriting Flaky Checkout Tests",
+                "context": "Sprint 23, Main Branch",
+                "actionTaken": "Rewrote checkout test suite using Playwright",
+                "businessImpact": "Eliminated intermittent failures on main, enabling stable CI pipeline",
+                "metrics": [
+                  "Reduced test flakiness from 30% to 0%",
+                  "Improved test suite execution time by 15%"
+                ],
+                "technologiesUsed": ["Playwright", "JavaScript", "CI/CD"],
+                "skillsDeveloped": [
+                  "Test Automation",
+                  "Debugging",
+                  "Performance Optimization"
+                ],
+                "nextSteps": "Expand Playwright coverage to other critical user flows"
+              },
+              "pattern": "\"id\":\\s*\"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\""
+            }
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "contents": {
+                  "$like": [
+                    {
+                      "role": "user",
+                      "parts": [
+                        {
+                          "text": {
+                            "$pattern": "^\\s*Persona: Você deve atuar como um \"Senior Career Consultant\" focado em Planos de Desenvolvimento Individual \\(IDP\\) para Engenheiros de Software\\.\nObjetivo: Transformar o rascunho informal do usuário em um \"Brag Document\" executivo\\.\n\nRegra 1: Usar tom profissional, objetivo e focado em impacto, sem adjetivos emocionais\\.\nRegra 2: Se não existirem métricas exatas, infira a natureza da métrica baseada na ação tomada de forma plausível \\(ex: \"tempo de execução não especificado mas otimizado\"\\)\\.\nRegra 3: Siga ESTRITAMENTE o formato do schema JSON fornecido\\.\nRegra 4: O output deve respeitar o idioma original do input\\.\n\nAqui está o rascunho informal do usuário:\nEu otimizei a API de pedidos ontem e ficou 10x mais rápida porque coloquei Redis na frente do Postgres, a diretoria gostou\\.\\s*$"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "generationConfig": {
+                  "$like": {
+                    "temperature": 0.8,
+                    "responseMimeType": "application/json",
+                    "responseJsonSchema": {
+                      "$like": {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string",
+                            "description": "Ação principal + Resultado de alto nível."
+                          },
+                          "context": {
+                            "type": "string",
+                            "description": "Situação ou Problema original. O que estava quebrado, lento, o desafio, etc."
+                          },
+                          "actionTaken": {
+                            "type": "string",
+                            "description": "Ação técnica ou estratégica passo a passo tomada para resolver o problema."
+                          },
+                          "businessImpact": {
+                            "type": "string",
+                            "description": "Qual o impacto de negócio. Tempo ganho, redução de falhas, etc."
+                          },
+                          "metrics": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Apenas dados estritamente quantificáveis. Ex: \"50% reduction\", \"10ms latency\"."
+                          },
+                          "technologiesUsed": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Ferramentas, linguagens, bibliotecas e plataformas mencionadas ou inferidas."
+                          }
+                        },
+                        "required": {
+                          "$includes": [
+                            "title",
+                            "context",
+                            "actionTaken",
+                            "businessImpact",
+                            "metrics",
+                            "technologiesUsed"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "contents": {
+                  "$like": [
+                    {
+                      "role": "user",
+                      "parts": [
+                        {
+                          "text": {
+                            "$pattern": "^\\s*Persona: Você deve atuar como um \"Senior Career Consultant\" focado em Planos de Desenvolvimento Individual \\(IDP\\) para Engenheiros de Software\\.\nObjetivo: Transformar o rascunho informal do usuário em um \"Brag Document\" executivo\\.\n\nRegra 1: Usar tom profissional, objetivo e focado em impacto, sem adjetivos emocionais\\.\nRegra 2: Se não existirem métricas exatas, infira a natureza da métrica baseada na ação tomada de forma plausível \\(ex: \"tempo de execução não especificado mas otimizado\"\\)\\.\nRegra 3: Siga ESTRITAMENTE o formato do schema JSON fornecido\\.\nRegra 4: O output deve respeitar o idioma original do input\\.\n\nAqui está o rascunho informal do usuário:\nI rewrote the flaky checkout tests with Playwright last sprint and the suite stopped failing on main\\.\\s*$"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "generationConfig": {
+                  "$like": {
+                    "temperature": 0.8,
+                    "responseMimeType": "application/json",
+                    "responseJsonSchema": {
+                      "$like": {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string",
+                            "description": "Ação principal + Resultado de alto nível."
+                          },
+                          "context": {
+                            "type": "string",
+                            "description": "Situação ou Problema original. O que estava quebrado, lento, o desafio, etc."
+                          },
+                          "actionTaken": {
+                            "type": "string",
+                            "description": "Ação técnica ou estratégica passo a passo tomada para resolver o problema."
+                          },
+                          "businessImpact": {
+                            "type": "string",
+                            "description": "Qual o impacto de negócio. Tempo ganho, redução de falhas, etc."
+                          },
+                          "metrics": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Apenas dados estritamente quantificáveis. Ex: \"50% reduction\", \"10ms latency\"."
+                          },
+                          "technologiesUsed": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Ferramentas, linguagens, bibliotecas e plataformas mencionadas ou inferidas."
+                          }
+                        },
+                        "required": {
+                          "$includes": [
+                            "title",
+                            "context",
+                            "actionTaken",
+                            "businessImpact",
+                            "metrics",
+                            "technologiesUsed"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rejects a missing, empty, or null definition with 400 and never calls Gemini",
+      "env": {
+        "GOOGLE_GEMINI_BASE_URL": "{replay}",
+        "GEMINI_API_KEY": "test-gemini-key"
+      },
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for gemini-2.5-flash, through a translator that turned the request into a chat with the schema as the format and the answer into Gemini's documented generateContent format",
+          "method": "POST",
+          "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+          "headers": {
+            "content-type": "application/json; charset=UTF-8"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "parts": [
+                    {
+                      "text": "{\n  \"title\": \"Otimização de API de Pedidos com Cache Redis\",\n  \"context\": \"Melhoria de desempenho da API de pedidos na plataforma de e‑commerce.\",\n  \"actionTaken\": \"Implementação de camada de cache Redis na frente do banco de dados PostgreSQL.\",\n  \"businessImpact\": \"Redução do tempo de resposta da API em 10 vezes, resultando em maior throughput e experiência de usuário aprimorada.\",\n  \"metrics\": [\n    \"Tempo médio de resposta da API: de 1,0 s para 0,1 s (10× mais rápido).\",\n    \"Aumento de 25 % na taxa de requisições processadas por segundo.\",\n    \"Redução de 30 % no uso de CPU do servidor PostgreSQL.\"\n  ],\n  \"technologiesUsed\": [\n    \"Redis (in‑memory data store)\",\n    \"PostgreSQL\",\n    \"Node.js/Express (backend)\",\n    \"Docker (containerização)\"\n  ],\n  \"stakeholders\": [\n    \"Diretoria de Tecnologia\",\n    \"Equipe de Produto\",\n    \"Equipe de Infraestrutura\"\n  ],\n  \"futureSteps\": \"Monitorar métricas de cache, ajustar TTL e escalar Redis conforme demanda de pico.\"\n}"
+                    }
+                  ],
+                  "role": "model"
+                },
+                "finishReason": "STOP",
+                "index": 0
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 267,
+              "candidatesTokenCount": 323,
+              "totalTokenCount": 590,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 267
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "responseId": "iMUgBXpCoqJtCP1MbEeG4A"
+          }
+        }
+      ],
+      "serve": {
+        "port": 47570,
+        "ready": "/",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/api/brag",
+            "json": {}
+          },
+          {
+            "method": "POST",
+            "path": "/api/brag",
+            "json": {
+              "definition": ""
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/brag",
+            "json": {
+              "definition": null,
+              "extra": 1
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/brag",
+            "json": {
+              "draft": "Eu otimizei a API de pedidos ontem e ficou 10x mais rápida porque coloquei Redis na frente do Postgres, a diretoria gostou."
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 400,
+              "values": [
+                {
+                  "error": "Definition is required"
+                }
+              ]
+            },
+            {
+              "status": 400,
+              "values": [
+                {
+                  "error": "Definition is required"
+                }
+              ]
+            },
+            {
+              "status": 400,
+              "values": [
+                {
+                  "error": "Definition is required"
+                }
+              ]
+            },
+            {
+              "status": 400,
+              "values": [
+                {
+                  "error": "Definition is required"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "answers 500 without calling Gemini when the body is not JSON or the definition is not text, and logs the error",
+      "env": {
+        "GOOGLE_GEMINI_BASE_URL": "{replay}",
+        "GEMINI_API_KEY": "test-gemini-key"
+      },
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for gemini-2.5-flash, through a translator that turned the request into a chat with the schema as the format and the answer into Gemini's documented generateContent format",
+          "method": "POST",
+          "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+          "headers": {
+            "content-type": "application/json; charset=UTF-8"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "parts": [
+                    {
+                      "text": "{\n  \"title\": \"Otimização de API de Pedidos com Cache Redis\",\n  \"context\": \"Melhoria de desempenho da API de pedidos na plataforma de e‑commerce.\",\n  \"actionTaken\": \"Implementação de camada de cache Redis na frente do banco de dados PostgreSQL.\",\n  \"businessImpact\": \"Redução do tempo de resposta da API em 10 vezes, resultando em maior throughput e experiência de usuário aprimorada.\",\n  \"metrics\": [\n    \"Tempo médio de resposta da API: de 1,0 s para 0,1 s (10× mais rápido).\",\n    \"Aumento de 25 % na taxa de requisições processadas por segundo.\",\n    \"Redução de 30 % no uso de CPU do servidor PostgreSQL.\"\n  ],\n  \"technologiesUsed\": [\n    \"Redis (in‑memory data store)\",\n    \"PostgreSQL\",\n    \"Node.js/Express (backend)\",\n    \"Docker (containerização)\"\n  ],\n  \"stakeholders\": [\n    \"Diretoria de Tecnologia\",\n    \"Equipe de Produto\",\n    \"Equipe de Infraestrutura\"\n  ],\n  \"futureSteps\": \"Monitorar métricas de cache, ajustar TTL e escalar Redis conforme demanda de pico.\"\n}"
+                    }
+                  ],
+                  "role": "model"
+                },
+                "finishReason": "STOP",
+                "index": 0
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 267,
+              "candidatesTokenCount": 323,
+              "totalTokenCount": 590,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 267
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "responseId": "iMUgBXpCoqJtCP1MbEeG4A"
+          }
+        }
+      ],
+      "serve": {
+        "port": 47570,
+        "ready": "/",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/api/brag"
+          },
+          {
+            "method": "POST",
+            "path": "/api/brag",
+            "headers": {
+              "content-type": "application/x-www-form-urlencoded"
+            },
+            "body": "definition=Eu otimizei a API de pedidos ontem e ficou 10x mais rápida porque coloquei Redis na frente do Postgres, a diretoria gostou."
+          },
+          {
+            "method": "POST",
+            "path": "/api/brag",
+            "headers": {
+              "content-type": "text/plain"
+            },
+            "body": "Eu otimizei a API de pedidos ontem e ficou 10x mais rápida porque coloquei Redis na frente do Postgres, a diretoria gostou."
+          },
+          {
+            "method": "POST",
+            "path": "/api/brag",
+            "json": {
+              "definition": 42
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/brag",
+            "json": {
+              "definition": [
+                "Eu otimizei a API de pedidos ontem e ficou 10x mais rápida porque coloquei Redis na frente do Postgres, a diretoria gostou."
+              ]
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 500,
+              "values": [
+                {
+                  "error": "Failed to generate brag"
+                }
+              ]
+            },
+            {
+              "status": 500,
+              "values": [
+                {
+                  "error": "Failed to generate brag"
+                }
+              ]
+            },
+            {
+              "status": 500,
+              "values": [
+                {
+                  "error": "Failed to generate brag"
+                }
+              ]
+            },
+            {
+              "status": 500,
+              "values": [
+                {
+                  "error": "Failed to generate brag"
+                }
+              ]
+            },
+            {
+              "status": 500,
+              "values": [
+                {
+                  "error": "Failed to generate brag"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": []
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Error generating brag"
+        }
+      ]
+    },
+    {
+      "name": "sends a definition of spaces to Gemini, and answers 500 when Gemini fails, answers with text that is not JSON, or breaks the schema",
+      "env": {
+        "GOOGLE_GEMINI_BASE_URL": "{replay}",
+        "GEMINI_API_KEY": "test-gemini-key"
+      },
+      "replay": [
+        {
+          "source": "synthesized from Gemini's documented error format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+          "status": 429,
+          "headers": {
+            "content-type": "application/json; charset=UTF-8"
+          },
+          "json": {
+            "error": {
+              "code": 429,
+              "message": "Resource has been exhausted (e.g. check quota).",
+              "status": "RESOURCE_EXHAUSTED"
+            }
+          }
+        },
+        {
+          "source": "synthesized from Gemini's documented generateContent format, with an answer in prose instead of JSON",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+          "headers": {
+            "content-type": "application/json; charset=UTF-8"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "parts": [
+                    {
+                      "text": "Desculpe, preciso de mais detalhes sobre a conquista para montar o Brag Document."
+                    }
+                  ],
+                  "role": "model"
+                },
+                "finishReason": "STOP",
+                "index": 0
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 262,
+              "candidatesTokenCount": 41,
+              "totalTokenCount": 303,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 262
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "responseId": "kV4dafG2LquXz7IPq8nB2Qg"
+          }
+        },
+        {
+          "source": "synthesized from the recorded answer for the Redis draft, with the metrics as one text and without technologiesUsed",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+          "headers": {
+            "content-type": "application/json; charset=UTF-8"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "parts": [
+                    {
+                      "text": "{\"title\": \"Otimização de API de Pedidos com Cache Redis\", \"context\": \"Melhoria de desempenho da API de pedidos na plataforma de e‑commerce.\", \"actionTaken\": \"Implementação de camada de cache Redis na frente do banco de dados PostgreSQL.\", \"businessImpact\": \"Redução do tempo de resposta da API em 10 vezes, resultando em maior throughput e experiência de usuário aprimorada.\", \"metrics\": \"10x mais rápida\"}"
+                    }
+                  ],
+                  "role": "model"
+                },
+                "finishReason": "STOP",
+                "index": 0
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 262,
+              "candidatesTokenCount": 41,
+              "totalTokenCount": 303,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 262
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "responseId": "kV4dafG2LquXz7IPq8nB2Qg"
+          }
+        }
+      ],
+      "serve": {
+        "port": 47570,
+        "ready": "/",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/api/brag",
+            "json": {
+              "definition": "   "
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/brag",
+            "json": {
+              "definition": "Eu otimizei a API de pedidos ontem e ficou 10x mais rápida porque coloquei Redis na frente do Postgres, a diretoria gostou."
+            }
+          },
+          {
+            "method": "POST",
+            "path": "/api/brag",
+            "json": {
+              "definition": "Eu otimizei a API de pedidos ontem e ficou 10x mais rápida porque coloquei Redis na frente do Postgres, a diretoria gostou."
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 500,
+              "values": [
+                {
+                  "error": "Failed to generate brag"
+                }
+              ]
+            },
+            {
+              "status": 500,
+              "values": [
+                {
+                  "error": "Failed to generate brag"
+                }
+              ]
+            },
+            {
+              "status": 500,
+              "values": [
+                {
+                  "error": "Failed to generate brag"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "contents": {
+                  "$like": [
+                    {
+                      "role": "user",
+                      "parts": [
+                        {
+                          "text": {
+                            "$pattern": "^\\s*Persona: Você deve atuar como um \"Senior Career Consultant\" focado em Planos de Desenvolvimento Individual \\(IDP\\) para Engenheiros de Software\\.\nObjetivo: Transformar o rascunho informal do usuário em um \"Brag Document\" executivo\\.\n\nRegra 1: Usar tom profissional, objetivo e focado em impacto, sem adjetivos emocionais\\.\nRegra 2: Se não existirem métricas exatas, infira a natureza da métrica baseada na ação tomada de forma plausível \\(ex: \"tempo de execução não especificado mas otimizado\"\\)\\.\nRegra 3: Siga ESTRITAMENTE o formato do schema JSON fornecido\\.\nRegra 4: O output deve respeitar o idioma original do input\\.\n\nAqui está o rascunho informal do usuário:\n   \\s*$"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "generationConfig": {
+                  "$like": {
+                    "temperature": 0.8,
+                    "responseMimeType": "application/json",
+                    "responseJsonSchema": {
+                      "$like": {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string",
+                            "description": "Ação principal + Resultado de alto nível."
+                          },
+                          "context": {
+                            "type": "string",
+                            "description": "Situação ou Problema original. O que estava quebrado, lento, o desafio, etc."
+                          },
+                          "actionTaken": {
+                            "type": "string",
+                            "description": "Ação técnica ou estratégica passo a passo tomada para resolver o problema."
+                          },
+                          "businessImpact": {
+                            "type": "string",
+                            "description": "Qual o impacto de negócio. Tempo ganho, redução de falhas, etc."
+                          },
+                          "metrics": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Apenas dados estritamente quantificáveis. Ex: \"50% reduction\", \"10ms latency\"."
+                          },
+                          "technologiesUsed": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Ferramentas, linguagens, bibliotecas e plataformas mencionadas ou inferidas."
+                          }
+                        },
+                        "required": {
+                          "$includes": [
+                            "title",
+                            "context",
+                            "actionTaken",
+                            "businessImpact",
+                            "metrics",
+                            "technologiesUsed"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "contents": {
+                  "$like": [
+                    {
+                      "role": "user",
+                      "parts": [
+                        {
+                          "text": {
+                            "$pattern": "^\\s*Persona: Você deve atuar como um \"Senior Career Consultant\" focado em Planos de Desenvolvimento Individual \\(IDP\\) para Engenheiros de Software\\.\nObjetivo: Transformar o rascunho informal do usuário em um \"Brag Document\" executivo\\.\n\nRegra 1: Usar tom profissional, objetivo e focado em impacto, sem adjetivos emocionais\\.\nRegra 2: Se não existirem métricas exatas, infira a natureza da métrica baseada na ação tomada de forma plausível \\(ex: \"tempo de execução não especificado mas otimizado\"\\)\\.\nRegra 3: Siga ESTRITAMENTE o formato do schema JSON fornecido\\.\nRegra 4: O output deve respeitar o idioma original do input\\.\n\nAqui está o rascunho informal do usuário:\nEu otimizei a API de pedidos ontem e ficou 10x mais rápida porque coloquei Redis na frente do Postgres, a diretoria gostou\\.\\s*$"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "generationConfig": {
+                  "$like": {
+                    "temperature": 0.8,
+                    "responseMimeType": "application/json",
+                    "responseJsonSchema": {
+                      "$like": {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string",
+                            "description": "Ação principal + Resultado de alto nível."
+                          },
+                          "context": {
+                            "type": "string",
+                            "description": "Situação ou Problema original. O que estava quebrado, lento, o desafio, etc."
+                          },
+                          "actionTaken": {
+                            "type": "string",
+                            "description": "Ação técnica ou estratégica passo a passo tomada para resolver o problema."
+                          },
+                          "businessImpact": {
+                            "type": "string",
+                            "description": "Qual o impacto de negócio. Tempo ganho, redução de falhas, etc."
+                          },
+                          "metrics": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Apenas dados estritamente quantificáveis. Ex: \"50% reduction\", \"10ms latency\"."
+                          },
+                          "technologiesUsed": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Ferramentas, linguagens, bibliotecas e plataformas mencionadas ou inferidas."
+                          }
+                        },
+                        "required": {
+                          "$includes": [
+                            "title",
+                            "context",
+                            "actionTaken",
+                            "businessImpact",
+                            "metrics",
+                            "technologiesUsed"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "contents": {
+                  "$like": [
+                    {
+                      "role": "user",
+                      "parts": [
+                        {
+                          "text": {
+                            "$pattern": "^\\s*Persona: Você deve atuar como um \"Senior Career Consultant\" focado em Planos de Desenvolvimento Individual \\(IDP\\) para Engenheiros de Software\\.\nObjetivo: Transformar o rascunho informal do usuário em um \"Brag Document\" executivo\\.\n\nRegra 1: Usar tom profissional, objetivo e focado em impacto, sem adjetivos emocionais\\.\nRegra 2: Se não existirem métricas exatas, infira a natureza da métrica baseada na ação tomada de forma plausível \\(ex: \"tempo de execução não especificado mas otimizado\"\\)\\.\nRegra 3: Siga ESTRITAMENTE o formato do schema JSON fornecido\\.\nRegra 4: O output deve respeitar o idioma original do input\\.\n\nAqui está o rascunho informal do usuário:\nEu otimizei a API de pedidos ontem e ficou 10x mais rápida porque coloquei Redis na frente do Postgres, a diretoria gostou\\.\\s*$"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "generationConfig": {
+                  "$like": {
+                    "temperature": 0.8,
+                    "responseMimeType": "application/json",
+                    "responseJsonSchema": {
+                      "$like": {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string",
+                            "description": "Ação principal + Resultado de alto nível."
+                          },
+                          "context": {
+                            "type": "string",
+                            "description": "Situação ou Problema original. O que estava quebrado, lento, o desafio, etc."
+                          },
+                          "actionTaken": {
+                            "type": "string",
+                            "description": "Ação técnica ou estratégica passo a passo tomada para resolver o problema."
+                          },
+                          "businessImpact": {
+                            "type": "string",
+                            "description": "Qual o impacto de negócio. Tempo ganho, redução de falhas, etc."
+                          },
+                          "metrics": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Apenas dados estritamente quantificáveis. Ex: \"50% reduction\", \"10ms latency\"."
+                          },
+                          "technologiesUsed": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Ferramentas, linguagens, bibliotecas e plataformas mencionadas ou inferidas."
+                          }
+                        },
+                        "required": {
+                          "$includes": [
+                            "title",
+                            "context",
+                            "actionTaken",
+                            "businessImpact",
+                            "metrics",
+                            "technologiesUsed"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Error generating brag"
+        }
+      ]
+    },
+    {
+      "name": "answers 500 without calling Gemini when no API key is set",
+      "env": {
+        "GOOGLE_GEMINI_BASE_URL": "{replay}",
+        "GEMINI_API_KEY": "",
+        "GOOGLE_API_KEY": "",
+        "GOOGLE_GENAI_API_KEY": ""
+      },
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for gemini-2.5-flash, through a translator that turned the request into a chat with the schema as the format and the answer into Gemini's documented generateContent format",
+          "method": "POST",
+          "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+          "headers": {
+            "content-type": "application/json; charset=UTF-8"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "parts": [
+                    {
+                      "text": "{\n  \"title\": \"Otimização de API de Pedidos com Cache Redis\",\n  \"context\": \"Melhoria de desempenho da API de pedidos na plataforma de e‑commerce.\",\n  \"actionTaken\": \"Implementação de camada de cache Redis na frente do banco de dados PostgreSQL.\",\n  \"businessImpact\": \"Redução do tempo de resposta da API em 10 vezes, resultando em maior throughput e experiência de usuário aprimorada.\",\n  \"metrics\": [\n    \"Tempo médio de resposta da API: de 1,0 s para 0,1 s (10× mais rápido).\",\n    \"Aumento de 25 % na taxa de requisições processadas por segundo.\",\n    \"Redução de 30 % no uso de CPU do servidor PostgreSQL.\"\n  ],\n  \"technologiesUsed\": [\n    \"Redis (in‑memory data store)\",\n    \"PostgreSQL\",\n    \"Node.js/Express (backend)\",\n    \"Docker (containerização)\"\n  ],\n  \"stakeholders\": [\n    \"Diretoria de Tecnologia\",\n    \"Equipe de Produto\",\n    \"Equipe de Infraestrutura\"\n  ],\n  \"futureSteps\": \"Monitorar métricas de cache, ajustar TTL e escalar Redis conforme demanda de pico.\"\n}"
+                    }
+                  ],
+                  "role": "model"
+                },
+                "finishReason": "STOP",
+                "index": 0
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 267,
+              "candidatesTokenCount": 323,
+              "totalTokenCount": 590,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 267
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "responseId": "iMUgBXpCoqJtCP1MbEeG4A"
+          }
+        }
+      ],
+      "serve": {
+        "port": 47570,
+        "ready": "/",
+        "requests": [
+          {
+            "method": "POST",
+            "path": "/api/brag",
+            "json": {
+              "definition": "Eu otimizei a API de pedidos ontem e ficou 10x mais rápida porque coloquei Redis na frente do Postgres, a diretoria gostou."
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 500,
+              "values": [
+                {
+                  "error": "Failed to generate brag"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "shows the empty dashboard, enables the button only for a draft with text, shows Destilando... while Gemini answers, and lists the newest brag first",
+      "env": {
+        "GOOGLE_GEMINI_BASE_URL": "{replay}",
+        "GEMINI_API_KEY": "test-gemini-key"
+      },
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for gemini-2.5-flash, through a translator that turned the request into a chat with the schema as the format and the answer into Gemini's documented generateContent format",
+          "method": "POST",
+          "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+          "headers": {
+            "content-type": "application/json; charset=UTF-8"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "parts": [
+                    {
+                      "text": "{\n  \"title\": \"Otimização de API de Pedidos com Cache Redis\",\n  \"context\": \"Melhoria de desempenho da API de pedidos na plataforma de e‑commerce.\",\n  \"actionTaken\": \"Implementação de camada de cache Redis na frente do banco de dados PostgreSQL.\",\n  \"businessImpact\": \"Redução do tempo de resposta da API em 10 vezes, resultando em maior throughput e experiência de usuário aprimorada.\",\n  \"metrics\": [\n    \"Tempo médio de resposta da API: de 1,0 s para 0,1 s (10× mais rápido).\",\n    \"Aumento de 25 % na taxa de requisições processadas por segundo.\",\n    \"Redução de 30 % no uso de CPU do servidor PostgreSQL.\"\n  ],\n  \"technologiesUsed\": [\n    \"Redis (in‑memory data store)\",\n    \"PostgreSQL\",\n    \"Node.js/Express (backend)\",\n    \"Docker (containerização)\"\n  ],\n  \"stakeholders\": [\n    \"Diretoria de Tecnologia\",\n    \"Equipe de Produto\",\n    \"Equipe de Infraestrutura\"\n  ],\n  \"futureSteps\": \"Monitorar métricas de cache, ajustar TTL e escalar Redis conforme demanda de pico.\"\n}"
+                    }
+                  ],
+                  "role": "model"
+                },
+                "finishReason": "STOP",
+                "index": 0
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 267,
+              "candidatesTokenCount": 323,
+              "totalTokenCount": 590,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 267
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "responseId": "iMUgBXpCoqJtCP1MbEeG4A"
+          },
+          "delay": 1500
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for gemini-2.5-flash, through a translator that turned the request into a chat with the schema as the format and the answer into Gemini's documented generateContent format",
+          "method": "POST",
+          "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+          "headers": {
+            "content-type": "application/json; charset=UTF-8"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "parts": [
+                    {
+                      "text": "{\n  \"title\": \"Migração do Pipeline de Deploy\",\n  \"context\": \"Reestruturação do processo de CI/CD para a equipe de Engenharia de Software\",\n  \"actionTaken\": \"Migrar o pipeline de deploy do Jenkins para o GitHub Actions\",\n  \"businessImpact\": \"Redução do tempo de build, aumentando a eficiência do ciclo de desenvolvimento\",\n  \"metrics\": [\n    \"Tempo de build antes da migração: 25 minutos\",\n    \"Tempo de build após a migração: 8 minutos\",\n    \"Redução percentual: 68%\"\n  ],\n  \"technologiesUsed\": [\n    \"GitHub Actions\",\n    \"Jenkins\"\n  ],\n  \"teamBenefit\": \"A equipe reduziu o tempo de espera por builds, permitindo iterações mais rápidas e maior foco em tarefas de desenvolvimento\",\n  \"keyTakeaways\": [\n    \"Demonstrou capacidade de otimizar pipelines de CI/CD\",\n    \"Contribuiu para melhoria contínua dos processos de entrega\"\n  ]\n}"
+                    }
+                  ],
+                  "role": "model"
+                },
+                "finishReason": "STOP",
+                "index": 0
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 268,
+              "candidatesTokenCount": 250,
+              "totalTokenCount": 518,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 268
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "responseId": "kFQx9rO8vBee2E0p7_HmJQ"
+          },
+          "delay": 1500
+        }
+      ],
+      "serve": {
+        "port": 47570,
+        "ready": "/",
+        "page": {
+          "steps": [
+            {
+              "wait": "document.querySelector('form textarea') !== null"
+            },
+            {
+              "read": "[document.title, document.querySelector('h1').textContent.trim(), document.querySelector('header p').textContent.trim(), [...document.querySelectorAll('h2')].map((heading) => heading.textContent.trim())]"
+            },
+            {
+              "read": "[document.querySelector('form textarea').id, document.querySelector('form textarea').labels[0]?.textContent.trim() ?? null, document.querySelector('form textarea').placeholder, document.querySelector('form textarea').rows]"
+            },
+            {
+              "read": "[...document.querySelectorAll('main p')].map((text) => text.textContent.trim()).filter((text) => text.startsWith('Nenhum'))"
+            },
+            {
+              "read": "[document.querySelector('form button[type=submit]').textContent.trim(), document.querySelector('form button[type=submit]').disabled, document.querySelector('form textarea').value]"
+            },
+            {
+              "wait": "(() => { const field = document.querySelector('form textarea'); if (field.value === 'texto' && !document.querySelector('form button[type=submit]').disabled) return true; Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(field, 'texto'); field.dispatchEvent(new Event('input', { bubbles: true })); return false; })()"
+            },
+            {
+              "fill": "form textarea",
+              "value": "   "
+            },
+            {
+              "wait": "document.querySelector('form button[type=submit]').disabled"
+            },
+            {
+              "read": "[document.querySelector('form button[type=submit]').textContent.trim(), document.querySelector('form button[type=submit]').disabled, document.querySelector('form textarea').value]"
+            },
+            {
+              "wait": "(() => { const field = document.querySelector('form textarea'); if (field.value === 'Eu otimizei a API de pedidos ontem e ficou 10x mais rápida porque coloquei Redis na frente do Postgres, a diretoria gostou.' && !document.querySelector('form button[type=submit]').disabled) return true; Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(field, 'Eu otimizei a API de pedidos ontem e ficou 10x mais rápida porque coloquei Redis na frente do Postgres, a diretoria gostou.'); field.dispatchEvent(new Event('input', { bubbles: true })); return false; })()"
+            },
+            {
+              "click": "form button[type=submit]"
+            },
+            {
+              "wait": "document.querySelector('form button[type=submit]').textContent.trim() === 'Destilando...'"
+            },
+            {
+              "read": "[document.querySelector('form button[type=submit]').textContent.trim(), document.querySelector('form button[type=submit]').disabled, document.querySelector('form textarea').value]"
+            },
+            {
+              "read": "document.querySelectorAll('a[href^=\"/detail/\"]').length"
+            },
+            {
+              "wait": "document.querySelectorAll('a[href^=\"/detail/\"]').length === 1"
+            },
+            {
+              "read": "[document.querySelector('form button[type=submit]').textContent.trim(), document.querySelector('form button[type=submit]').disabled, document.querySelector('form textarea').value]"
+            },
+            {
+              "read": "[...document.querySelectorAll('a[href^=\"/detail/\"]')].map((card) => [card.querySelector('h3').textContent.trim(), card.querySelector('p').textContent.trim(), [...card.querySelectorAll('span')].map((tech) => tech.textContent.trim()), /^\\/detail\\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(card.getAttribute('href'))])"
+            },
+            {
+              "read": "[...document.querySelectorAll('main p')].map((text) => text.textContent.trim()).filter((text) => text.startsWith('Nenhum'))"
+            },
+            {
+              "wait": "(() => { const field = document.querySelector('form textarea'); if (field.value === 'Migrei o pipeline de deploy do Jenkins para o GitHub Actions e o tempo de build caiu de 25 para 8 minutos, o time inteiro comemorou.' && !document.querySelector('form button[type=submit]').disabled) return true; Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(field, 'Migrei o pipeline de deploy do Jenkins para o GitHub Actions e o tempo de build caiu de 25 para 8 minutos, o time inteiro comemorou.'); field.dispatchEvent(new Event('input', { bubbles: true })); return false; })()"
+            },
+            {
+              "click": "form button[type=submit]"
+            },
+            {
+              "wait": "document.querySelectorAll('a[href^=\"/detail/\"]').length === 2"
+            },
+            {
+              "read": "[...document.querySelectorAll('a[href^=\"/detail/\"]')].map((card) => [card.querySelector('h3').textContent.trim(), card.querySelector('p').textContent.trim(), [...card.querySelectorAll('span')].map((tech) => tech.textContent.trim()), /^\\/detail\\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(card.getAttribute('href'))])"
+            },
+            {
+              "read": "[location.pathname, [document.querySelector('form button[type=submit]').textContent.trim(), document.querySelector('form button[type=submit]').disabled, document.querySelector('form textarea').value]]"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              "BragBot",
+              "Brag-Bot | Pós IA UNIPDS",
+              "Crie seus \"Brag Documents\" com o poder da Inteligência Artificial.",
+              ["Últimas Conquistas"]
+            ],
+            [
+              "achievement",
+              "Descreva sua conquista de forma informal",
+              "Ex: Eu otimizei a API ontem e ficou 10x mais rápida porque coloquei redis, a diretoria gostou...",
+              5
+            ],
+            [
+              "Nenhum Brag Document gerado ainda.Descreva seu primeiro sucesso acima!"
+            ],
+            ["Destilar Conquista", true, ""],
+            ["Destilar Conquista", true, "   "],
+            ["Destilando...", true, ""],
+            0,
+            ["Destilar Conquista", true, ""],
+            [
+              [
+                "Otimização de API de Pedidos com Cache Redis",
+                "Melhoria de desempenho da API de pedidos na plataforma de e‑commerce.",
+                [
+                  "Redis (in‑memory data store)",
+                  "PostgreSQL",
+                  "Node.js/Express (backend)",
+                  "Docker (containerização)"
+                ],
+                true
+              ]
+            ],
+            [],
+            [
+              [
+                "Migração do Pipeline de Deploy",
+                "Reestruturação do processo de CI/CD para a equipe de Engenharia de Software",
+                ["GitHub Actions", "Jenkins"],
+                true
+              ],
+              [
+                "Otimização de API de Pedidos com Cache Redis",
+                "Melhoria de desempenho da API de pedidos na plataforma de e‑commerce.",
+                [
+                  "Redis (in‑memory data store)",
+                  "PostgreSQL",
+                  "Node.js/Express (backend)",
+                  "Docker (containerização)"
+                ],
+                true
+              ]
+            ],
+            ["/", ["Destilar Conquista", true, ""]]
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "contents": {
+                  "$like": [
+                    {
+                      "role": "user",
+                      "parts": [
+                        {
+                          "text": {
+                            "$pattern": "^\\s*Persona: Você deve atuar como um \"Senior Career Consultant\" focado em Planos de Desenvolvimento Individual \\(IDP\\) para Engenheiros de Software\\.\nObjetivo: Transformar o rascunho informal do usuário em um \"Brag Document\" executivo\\.\n\nRegra 1: Usar tom profissional, objetivo e focado em impacto, sem adjetivos emocionais\\.\nRegra 2: Se não existirem métricas exatas, infira a natureza da métrica baseada na ação tomada de forma plausível \\(ex: \"tempo de execução não especificado mas otimizado\"\\)\\.\nRegra 3: Siga ESTRITAMENTE o formato do schema JSON fornecido\\.\nRegra 4: O output deve respeitar o idioma original do input\\.\n\nAqui está o rascunho informal do usuário:\nEu otimizei a API de pedidos ontem e ficou 10x mais rápida porque coloquei Redis na frente do Postgres, a diretoria gostou\\.\\s*$"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "contents": {
+                  "$like": [
+                    {
+                      "role": "user",
+                      "parts": [
+                        {
+                          "text": {
+                            "$pattern": "^\\s*Persona: Você deve atuar como um \"Senior Career Consultant\" focado em Planos de Desenvolvimento Individual \\(IDP\\) para Engenheiros de Software\\.\nObjetivo: Transformar o rascunho informal do usuário em um \"Brag Document\" executivo\\.\n\nRegra 1: Usar tom profissional, objetivo e focado em impacto, sem adjetivos emocionais\\.\nRegra 2: Se não existirem métricas exatas, infira a natureza da métrica baseada na ação tomada de forma plausível \\(ex: \"tempo de execução não especificado mas otimizado\"\\)\\.\nRegra 3: Siga ESTRITAMENTE o formato do schema JSON fornecido\\.\nRegra 4: O output deve respeitar o idioma original do input\\.\n\nAqui está o rascunho informal do usuário:\nMigrei o pipeline de deploy do Jenkins para o GitHub Actions e o tempo de build caiu de 25 para 8 minutos, o time inteiro comemorou\\.\\s*$"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "opens a brag from its card without reloading, shows its context, impact, and metrics joined by commas, and goes back with the list kept",
+      "env": {
+        "GOOGLE_GEMINI_BASE_URL": "{replay}",
+        "GEMINI_API_KEY": "test-gemini-key"
+      },
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for gemini-2.5-flash, through a translator that turned the request into a chat with the schema as the format and the answer into Gemini's documented generateContent format",
+          "method": "POST",
+          "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+          "headers": {
+            "content-type": "application/json; charset=UTF-8"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "parts": [
+                    {
+                      "text": "{\n  \"title\": \"Migração do Pipeline de Deploy\",\n  \"context\": \"Reestruturação do processo de CI/CD para a equipe de Engenharia de Software\",\n  \"actionTaken\": \"Migrar o pipeline de deploy do Jenkins para o GitHub Actions\",\n  \"businessImpact\": \"Redução do tempo de build, aumentando a eficiência do ciclo de desenvolvimento\",\n  \"metrics\": [\n    \"Tempo de build antes da migração: 25 minutos\",\n    \"Tempo de build após a migração: 8 minutos\",\n    \"Redução percentual: 68%\"\n  ],\n  \"technologiesUsed\": [\n    \"GitHub Actions\",\n    \"Jenkins\"\n  ],\n  \"teamBenefit\": \"A equipe reduziu o tempo de espera por builds, permitindo iterações mais rápidas e maior foco em tarefas de desenvolvimento\",\n  \"keyTakeaways\": [\n    \"Demonstrou capacidade de otimizar pipelines de CI/CD\",\n    \"Contribuiu para melhoria contínua dos processos de entrega\"\n  ]\n}"
+                    }
+                  ],
+                  "role": "model"
+                },
+                "finishReason": "STOP",
+                "index": 0
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 268,
+              "candidatesTokenCount": 250,
+              "totalTokenCount": 518,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 268
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "responseId": "kFQx9rO8vBee2E0p7_HmJQ"
+          }
+        }
+      ],
+      "serve": {
+        "port": 47570,
+        "ready": "/",
+        "page": {
+          "steps": [
+            {
+              "wait": "document.querySelector('form textarea') !== null"
+            },
+            {
+              "read": "(window.sameDocument = true)"
+            },
+            {
+              "wait": "(() => { const field = document.querySelector('form textarea'); if (field.value === 'Migrei o pipeline de deploy do Jenkins para o GitHub Actions e o tempo de build caiu de 25 para 8 minutos, o time inteiro comemorou.' && !document.querySelector('form button[type=submit]').disabled) return true; Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(field, 'Migrei o pipeline de deploy do Jenkins para o GitHub Actions e o tempo de build caiu de 25 para 8 minutos, o time inteiro comemorou.'); field.dispatchEvent(new Event('input', { bubbles: true })); return false; })()"
+            },
+            {
+              "click": "form button[type=submit]"
+            },
+            {
+              "wait": "document.querySelectorAll('a[href^=\"/detail/\"]').length === 1"
+            },
+            {
+              "read": "(window.cardPath = document.querySelectorAll('a[href^=\"/detail/\"]')[0].getAttribute('href')) !== null"
+            },
+            {
+              "click": "a[href^=\"/detail/\"]"
+            },
+            {
+              "wait": "document.querySelector('article h1') !== null"
+            },
+            {
+              "read": "[location.pathname === window.cardPath, window.sameDocument === true]"
+            },
+            {
+              "read": "[...document.querySelectorAll('nav a')].map((link) => [link.textContent.trim(), link.getAttribute('href')])"
+            },
+            {
+              "read": "[document.querySelector('article h1').textContent.trim(), [...document.querySelectorAll('article header span')].map((tech) => tech.textContent.trim())]"
+            },
+            {
+              "read": "[...document.querySelectorAll('article section')].map((section) => [section.querySelector('h2').textContent.trim(), section.querySelector('p').textContent.trim()])"
+            },
+            {
+              "click": "nav a[href=\"/\"]"
+            },
+            {
+              "wait": "document.querySelectorAll('a[href^=\"/detail/\"]').length === 1"
+            },
+            {
+              "read": "[location.pathname, window.sameDocument === true, document.querySelectorAll('a[href^=\"/detail/\"]')[0].getAttribute('href') === window.cardPath]"
+            },
+            {
+              "read": "[...document.querySelectorAll('a[href^=\"/detail/\"]')].map((card) => [card.querySelector('h3').textContent.trim(), card.querySelector('p').textContent.trim(), [...card.querySelectorAll('span')].map((tech) => tech.textContent.trim()), /^\\/detail\\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(card.getAttribute('href'))])"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            true,
+            true,
+            [true, true],
+            [["Voltar ao Dashboard", "/"]],
+            ["Migração do Pipeline de Deploy", ["GitHub Actions", "Jenkins"]],
+            [
+              [
+                "O Contexto",
+                "Reestruturação do processo de CI/CD para a equipe de Engenharia de Software"
+              ],
+              [
+                "O Impacto",
+                "Redução do tempo de build, aumentando a eficiência do ciclo de desenvolvimento"
+              ],
+              [
+                "Métricas e Resultados",
+                "Tempo de build antes da migração: 25 minutos, Tempo de build após a migração: 8 minutos, Redução percentual: 68%"
+              ]
+            ],
+            ["/", true, true],
+            [
+              [
+                "Migração do Pipeline de Deploy",
+                "Reestruturação do processo de CI/CD para a equipe de Engenharia de Software",
+                ["GitHub Actions", "Jenkins"],
+                true
+              ]
+            ]
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "contents": {
+                  "$like": [
+                    {
+                      "role": "user",
+                      "parts": [
+                        {
+                          "text": {
+                            "$pattern": "^\\s*Persona: Você deve atuar como um \"Senior Career Consultant\" focado em Planos de Desenvolvimento Individual \\(IDP\\) para Engenheiros de Software\\.\nObjetivo: Transformar o rascunho informal do usuário em um \"Brag Document\" executivo\\.\n\nRegra 1: Usar tom profissional, objetivo e focado em impacto, sem adjetivos emocionais\\.\nRegra 2: Se não existirem métricas exatas, infira a natureza da métrica baseada na ação tomada de forma plausível \\(ex: \"tempo de execução não especificado mas otimizado\"\\)\\.\nRegra 3: Siga ESTRITAMENTE o formato do schema JSON fornecido\\.\nRegra 4: O output deve respeitar o idioma original do input\\.\n\nAqui está o rascunho informal do usuário:\nMigrei o pipeline de deploy do Jenkins para o GitHub Actions e o tempo de build caiu de 25 para 8 minutos, o time inteiro comemorou\\.\\s*$"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "shows that a brag opened by its address is not found, since brags live only in the page's memory, and returns to the empty dashboard",
+      "env": {
+        "GOOGLE_GEMINI_BASE_URL": "{replay}",
+        "GEMINI_API_KEY": "test-gemini-key"
+      },
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for gemini-2.5-flash, through a translator that turned the request into a chat with the schema as the format and the answer into Gemini's documented generateContent format",
+          "method": "POST",
+          "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+          "headers": {
+            "content-type": "application/json; charset=UTF-8"
+          },
+          "json": {
+            "candidates": [
+              {
+                "content": {
+                  "parts": [
+                    {
+                      "text": "{\n  \"title\": \"Otimização de API de Pedidos com Cache Redis\",\n  \"context\": \"Melhoria de desempenho da API de pedidos na plataforma de e‑commerce.\",\n  \"actionTaken\": \"Implementação de camada de cache Redis na frente do banco de dados PostgreSQL.\",\n  \"businessImpact\": \"Redução do tempo de resposta da API em 10 vezes, resultando em maior throughput e experiência de usuário aprimorada.\",\n  \"metrics\": [\n    \"Tempo médio de resposta da API: de 1,0 s para 0,1 s (10× mais rápido).\",\n    \"Aumento de 25 % na taxa de requisições processadas por segundo.\",\n    \"Redução de 30 % no uso de CPU do servidor PostgreSQL.\"\n  ],\n  \"technologiesUsed\": [\n    \"Redis (in‑memory data store)\",\n    \"PostgreSQL\",\n    \"Node.js/Express (backend)\",\n    \"Docker (containerização)\"\n  ],\n  \"stakeholders\": [\n    \"Diretoria de Tecnologia\",\n    \"Equipe de Produto\",\n    \"Equipe de Infraestrutura\"\n  ],\n  \"futureSteps\": \"Monitorar métricas de cache, ajustar TTL e escalar Redis conforme demanda de pico.\"\n}"
+                    }
+                  ],
+                  "role": "model"
+                },
+                "finishReason": "STOP",
+                "index": 0
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 267,
+              "candidatesTokenCount": 323,
+              "totalTokenCount": 590,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 267
+                }
+              ]
+            },
+            "modelVersion": "gemini-2.5-flash",
+            "responseId": "iMUgBXpCoqJtCP1MbEeG4A"
+          }
+        }
+      ],
+      "serve": {
+        "port": 47570,
+        "ready": "/",
+        "page": {
+          "path": "/detail/5b0f3c1e-8a42-4d7b-9c1a-2f6e8d4b7a10",
+          "steps": [
+            {
+              "wait": "document.querySelector('h2') !== null"
+            },
+            {
+              "read": "[document.title, document.querySelector('h2').textContent.trim(), document.querySelector('h2 + p').textContent.trim(), document.querySelector('article') === null]"
+            },
+            {
+              "read": "[...document.querySelectorAll('a')].map((link) => [link.textContent.trim(), link.getAttribute('href')])"
+            },
+            {
+              "click": "a:not(nav a)"
+            },
+            {
+              "wait": "document.querySelector('form textarea') !== null"
+            },
+            {
+              "read": "[location.pathname, document.querySelectorAll('a[href^=\"/detail/\"]').length]"
+            },
+            {
+              "read": "[...document.querySelectorAll('main p')].map((text) => text.textContent.trim()).filter((text) => text.startsWith('Nenhum'))"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              "BragBot",
+              "Conquista não encontrada",
+              "A rota parece ser inválida ou a conquista não existe mais na memória.",
+              true
+            ],
+            [
+              ["Voltar ao Dashboard", "/"],
+              ["Retornar", "/"]
+            ],
+            ["/", 0],
+            [
+              "Nenhum Brag Document gerado ainda.Descreva seu primeiro sucesso acima!"
+            ]
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "keeps the dashboard as it was when Gemini fails, with the draft already cleared and the button idle again",
+      "env": {
+        "GOOGLE_GEMINI_BASE_URL": "{replay}",
+        "GEMINI_API_KEY": "test-gemini-key"
+      },
+      "replay": [
+        {
+          "source": "synthesized from Gemini's documented error format",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+          "status": 503,
+          "headers": {
+            "content-type": "application/json; charset=UTF-8"
+          },
+          "json": {
+            "error": {
+              "code": 503,
+              "message": "The model is overloaded. Please try again later.",
+              "status": "UNAVAILABLE"
+            }
+          },
+          "delay": 1500
+        }
+      ],
+      "serve": {
+        "port": 47570,
+        "ready": "/",
+        "page": {
+          "steps": [
+            {
+              "wait": "document.querySelector('form textarea') !== null"
+            },
+            {
+              "wait": "(() => { const field = document.querySelector('form textarea'); if (field.value === 'Eu otimizei a API de pedidos ontem e ficou 10x mais rápida porque coloquei Redis na frente do Postgres, a diretoria gostou.' && !document.querySelector('form button[type=submit]').disabled) return true; Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(field, 'Eu otimizei a API de pedidos ontem e ficou 10x mais rápida porque coloquei Redis na frente do Postgres, a diretoria gostou.'); field.dispatchEvent(new Event('input', { bubbles: true })); return false; })()"
+            },
+            {
+              "click": "form button[type=submit]"
+            },
+            {
+              "wait": "document.querySelector('form button[type=submit]').textContent.trim() === 'Destilando...'"
+            },
+            {
+              "read": "[document.querySelector('form button[type=submit]').textContent.trim(), document.querySelector('form button[type=submit]').disabled, document.querySelector('form textarea').value]"
+            },
+            {
+              "wait": "document.querySelector('form button[type=submit]').textContent.trim() === 'Destilar Conquista'"
+            },
+            {
+              "read": "[document.querySelector('form button[type=submit]').textContent.trim(), document.querySelector('form button[type=submit]').disabled, document.querySelector('form textarea').value]"
+            },
+            {
+              "read": "document.querySelectorAll('a[href^=\"/detail/\"]').length"
+            },
+            {
+              "read": "[...document.querySelectorAll('main p')].map((text) => text.textContent.trim()).filter((text) => text.startsWith('Nenhum'))"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            ["Destilando...", true, ""],
+            ["Destilar Conquista", true, ""],
+            0,
+            [
+              "Nenhum Brag Document gerado ainda.Descreva seu primeiro sucesso acima!"
+            ]
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1beta/models/gemini-2.5-flash:generateContent",
+              "body": {
+                "contents": {
+                  "$like": [
+                    {
+                      "role": "user",
+                      "parts": [
+                        {
+                          "text": {
+                            "$pattern": "^\\s*Persona: Você deve atuar como um \"Senior Career Consultant\" focado em Planos de Desenvolvimento Individual \\(IDP\\) para Engenheiros de Software\\.\nObjetivo: Transformar o rascunho informal do usuário em um \"Brag Document\" executivo\\.\n\nRegra 1: Usar tom profissional, objetivo e focado em impacto, sem adjetivos emocionais\\.\nRegra 2: Se não existirem métricas exatas, infira a natureza da métrica baseada na ação tomada de forma plausível \\(ex: \"tempo de execução não especificado mas otimizado\"\\)\\.\nRegra 3: Siga ESTRITAMENTE o formato do schema JSON fornecido\\.\nRegra 4: O output deve respeitar o idioma original do input\\.\n\nAqui está o rascunho informal do usuário:\nEu otimizei a API de pedidos ontem e ficou 10x mais rápida porque coloquei Redis na frente do Postgres, a diretoria gostou\\.\\s*$"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

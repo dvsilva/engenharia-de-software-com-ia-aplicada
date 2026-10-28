@@ -1,0 +1,233 @@
+{
+  "module": "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-12-embeddings-neo4j",
+  "concepts": [
+    "vector-store",
+    "graph-database",
+    "document-chunking",
+    "text-embeddings",
+    "chat-model"
+  ],
+  "recorded": "Both cases passed 11 runs against the unchanged original with Node.js 26.12.1, run as node src/index.ts, the file npm start runs, without its --env-file .env flag, since the lesson ships no environment file and the cases set the variables of the template's .env.example themselves, with Neo4j's address on the cases' own port. The first run downloads Xenova/all-MiniLM-L6-v2 from the Hugging Face hub without a token and takes about two minutes, and later runs read the cache. No model is called, and the OpenRouter variables are read but never used. The service is Neo4j 5.14.0 community with APOC, from the lesson's compose file with an override passed on standard input, which gives the container a name of its own, publishes the browser and Bolt on ports 48127 and 48128, leaves out the bind mounts so nothing is written in the module's folder and every run of the file starts with an empty database, and adds a cypher-shell healthcheck, so the services start only once Neo4j answers queries. The output is compared exactly, apart from where the deletion's confirmation falls among the lines of the chunks being added: the original does not wait for the deletion, so the line prints once, usually after the first chunk's. After each run, the cases ask Neo4j's HTTP API, as neo4j with the password password, what the program stored: how many Chunk nodes and distinct ids, their property names, sources, vector sizes, and text lengths, and the vector indexes. The second case runs over what the first stored.",
+  "prepare": {
+    "setup": ["npm ci --no-audit --no-fund"]
+  },
+  "originals": ["node src/index.ts"],
+  "services": {
+    "up": "docker compose -f docker-compose.yml -f - -p stackfy-exemplo-12-embeddings-neo4j up -d --wait <<'EOF'\nservices:\n  neo4j:\n    container_name: stackfy-exemplo-12-embeddings-neo4j-neo4j\n    ports: !override ['48127:7474', '48128:7687']\n    volumes: !reset []\n    healthcheck:\n      test: ['CMD-SHELL', 'cypher-shell -u neo4j -p password \"RETURN 1\"']\n      interval: 2s\n      timeout: 10s\n      retries: 90\nEOF",
+    "down": "docker compose -f docker-compose.yml -p stackfy-exemplo-12-embeddings-neo4j down -v",
+    "ready": [
+      {
+        "port": 48128
+      },
+      {
+        "port": 48127
+      }
+    ]
+  },
+  "env": {
+    "NEO4J_URI": "bolt://127.0.0.1:48128",
+    "NEO4J_USER": "neo4j",
+    "NEO4J_PASSWORD": "password",
+    "EMBEDDING_MODEL": "Xenova/all-MiniLM-L6-v2",
+    "OPENROUTER_API_KEY": "replay",
+    "NLP_MODEL": "google/gemma-3-27b-it:free",
+    "OPENROUTER_SITE_URL": "http://localhost:3000",
+    "OPENROUTER_SITE_NAME": "My Example"
+  },
+  "cases": [
+    {
+      "name": "with an empty database, loads the 7 pages of the PDF, splits them into 15 chunks, stores each one with its vector under a cosine index, and prints the three chunks closest to each of the six questions",
+      "inspect": [
+        {
+          "method": "POST",
+          "port": 48127,
+          "path": "/db/neo4j/tx/commit",
+          "headers": {
+            "authorization": "Basic bmVvNGo6cGFzc3dvcmQ="
+          },
+          "json": {
+            "statements": [
+              {
+                "statement": "MATCH (chunk:Chunk) WITH chunk ORDER BY size(chunk.text) RETURN count(chunk) AS chunks, count(DISTINCT chunk.id) AS ids, collect(DISTINCT keys(chunk)) AS properties, collect(DISTINCT chunk.source) AS sources, collect(DISTINCT size(chunk.embedding)) AS dimensions, collect(size(chunk.text)) AS lengths"
+              },
+              {
+                "statement": "SHOW INDEXES YIELD name, type, labelsOrTypes, properties, options WHERE type = 'VECTOR' RETURN name, labelsOrTypes, properties, options.indexConfig AS config"
+              }
+            ]
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^🚀 Inicializando sistema de Embeddings com Neo4j\\.\\.\\.\n\n📄 Loaded 7 pages from PDF\n✂️  Split into 15 chunks\n🗑️  Removendo todos os documentos existentes\\.\\.\\.\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 1/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 2/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 3/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 4/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 5/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 6/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 7/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 8/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 9/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 10/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 11/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 12/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 13/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 14/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 15/15\n(?:✅ Documentos removidos com sucesso\n\n)?\n✅ Base de dados populada com sucesso!\n\n🔍 ETAPA 2: Executando buscas por similaridade\\.\\.\\.\n\n\n================================================================================\n📌 PERGUNTA: O que são tensores e como são representados em JavaScript\\?\n================================================================================\n\n📄 Encontrados 3 trechos relevantes:\n\n   1\\.\n      text: No início, te falei sobre a biblioteca TensorFlow\\.js e disse que ela seria a base para as demonstrações deste módulo Então para começar, Tensorflow tem este nome, pois trabalha com Tensores, que\\.\\.\\.\n\n   2\\.\n      text: \\{ nome: \"Carlos\", idade: 40, cor: \"verde\", localizacao: \"Curitiba\" \\} \\]; const categorias = \\[ 'Erick', 'premium', 'Ana', 'medium', 'Carlos', 'basic' \\] Como eu falei, Tensorflow\\.js não entende obj\\.\\.\\.\n\n   3\\.\n      text: Mas para nós, Web developers, na prática, geralmente usamos modelos prontos e podemos até estendê-los, o trabalho de treinar um modelo, gerar o arquivo final para que alguém possa reutilizá-lo d\\.\\.\\.\n\n\n================================================================================\n📌 PERGUNTA: Como converter objetos JavaScript em tensores\\?\n================================================================================\n\n📄 Encontrados 3 trechos relevantes:\n\n   1\\.\n      text: \\{ nome: \"Carlos\", idade: 40, cor: \"verde\", localizacao: \"Curitiba\" \\} \\]; const categorias = \\[ 'Erick', 'premium', 'Ana', 'medium', 'Carlos', 'basic' \\] Como eu falei, Tensorflow\\.js não entende obj\\.\\.\\.\n\n   2\\.\n      text: No início, te falei sobre a biblioteca TensorFlow\\.js e disse que ela seria a base para as demonstrações deste módulo Então para começar, Tensorflow tem este nome, pois trabalha com Tensores, que\\.\\.\\.\n\n   3\\.\n      text: Mas para nós, Web developers, na prática, geralmente usamos modelos prontos e podemos até estendê-los, o trabalho de treinar um modelo, gerar o arquivo final para que alguém possa reutilizá-lo d\\.\\.\\.\n\n\n================================================================================\n📌 PERGUNTA: O que é normalização de dados e por que é necessária\\?\n================================================================================\n\n📄 Encontrados 3 trechos relevantes:\n\n   1\\.\n      text: É assim que a rede decide qual categoria tem mais a ver com aquele perfil\\. Resumindo: O dado entra, passa por um monte de conexões e cálculos, e o modelo te entrega uma resposta — não só dizendo\\.\\.\\.\n\n   2\\.\n      text: opções Agora, precisamos informar o algoritmo, qual é a categoria dos usuários que já temos, e fazemos a normalização, então dado que temos as categorias const categorias = \\[\"premium\", \"medium\",\\.\\.\\.\n\n   3\\.\n      text: acordo com o que você estava esperando Essas saídas então viram a entrada para a próxima camada, cada camada vira como se fosse um filtro do passo anterior, se houver mais de uma camada oculta, \\.\\.\\.\n\n\n================================================================================\n📌 PERGUNTA: Como funciona uma rede neural no TensorFlow\\.js\\?\n================================================================================\n\n📄 Encontrados 3 trechos relevantes:\n\n   1\\.\n      text: Efeito fade Agora que você já entendeu como transformar seus dados em tensores e normalizar tudo para trabalhar entre 0 e 1, chega a parte mais mágica \\(e divertida!\\) do machine learning: as rede\\.\\.\\.\n\n   2\\.\n      text: Mas para nós, Web developers, na prática, geralmente usamos modelos prontos e podemos até estendê-los, o trabalho de treinar um modelo, gerar o arquivo final para que alguém possa reutilizá-lo d\\.\\.\\.\n\n   3\\.\n      text: \\{ nome: \"Carlos\", idade: 40, cor: \"verde\", localizacao: \"Curitiba\" \\} \\]; const categorias = \\[ 'Erick', 'premium', 'Ana', 'medium', 'Carlos', 'basic' \\] Como eu falei, Tensorflow\\.js não entende obj\\.\\.\\.\n\n\n================================================================================\n📌 PERGUNTA: O que significa treinar uma rede neural\\?\n================================================================================\n\n📄 Encontrados 3 trechos relevantes:\n\n   1\\.\n      text: \\] Toda vez que você for trabalhar com processamento de máquina ou machine learning, acontece essa etapa de normalização e conversão dos dados para tensores, é dessa forma que a máquina consegue \\.\\.\\.\n\n   2\\.\n      text: Efeito fade Agora que você já entendeu como transformar seus dados em tensores e normalizar tudo para trabalhar entre 0 e 1, chega a parte mais mágica \\(e divertida!\\) do machine learning: as rede\\.\\.\\.\n\n   3\\.\n      text: Uma rede neural geralmente é representada com imagens como essa\\. Cada input vira um parâmetro — por exemplo, idade, cor e localização da pessoa — e é enviado para a primeira camada do modelo\\. Es\\.\\.\\.\n\n\n================================================================================\n📌 PERGUNTA: o que é hot enconding e quando usar\\?\n================================================================================\n\n📄 Encontrados 3 trechos relevantes:\n\n   1\\.\n      text: É assim que a rede decide qual categoria tem mais a ver com aquele perfil\\. Resumindo: O dado entra, passa por um monte de conexões e cálculos, e o modelo te entrega uma resposta — não só dizendo\\.\\.\\.\n\n   2\\.\n      text: Efeito fade Por que se fala em “treinar” a rede\\? Treinar nada mais é do que mostrar vários exemplos \\(como fizemos com Erick, Ana e Carlos\\), e deixar o algoritmo ajustar sozinho os “pesos” intern\\.\\.\\.\n\n   3\\.\n      text: Uma rede neural geralmente é representada com imagens como essa\\. Cada input vira um parâmetro — por exemplo, idade, cor e localização da pessoa — e é enviado para a primeira camada do modelo\\. Es\\.\\.\\.\n\n\n================================================================================\n✅ Processamento concluído com sucesso!\n\n$"
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:(?!Documentos removidos)[\\s\\S])*✅ Documentos removidos com sucesso\\n\\n(?:(?!Documentos removidos)[\\s\\S])*$"
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "results": {
+                  "$like": [
+                    {
+                      "data": [
+                        {
+                          "row": [
+                            15,
+                            15,
+                            [
+                              {
+                                "$unordered": [
+                                  "id",
+                                  "text",
+                                  "embedding",
+                                  "source"
+                                ]
+                              }
+                            ],
+                            ["./tensores.pdf"],
+                            [384],
+                            [
+                              208, 297, 583, 614, 623, 690, 797, 926, 946, 953,
+                              955, 962, 988, 993, 997
+                            ]
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [
+                            "tensors_index",
+                            ["Chunk"],
+                            ["embedding"],
+                            {
+                              "vector.dimensions": 384,
+                              "vector.similarity_function": "cosine"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "errors": []
+              }
+            }
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": []
+        }
+      ]
+    },
+    {
+      "name": "run again over the chunks the first case stored, deletes them before storing the new ones, so the database still holds the same 15 chunks and the searches print the same results",
+      "inspect": [
+        {
+          "method": "POST",
+          "port": 48127,
+          "path": "/db/neo4j/tx/commit",
+          "headers": {
+            "authorization": "Basic bmVvNGo6cGFzc3dvcmQ="
+          },
+          "json": {
+            "statements": [
+              {
+                "statement": "MATCH (chunk:Chunk) WITH chunk ORDER BY size(chunk.text) RETURN count(chunk) AS chunks, count(DISTINCT chunk.id) AS ids, collect(DISTINCT keys(chunk)) AS properties, collect(DISTINCT chunk.source) AS sources, collect(DISTINCT size(chunk.embedding)) AS dimensions, collect(size(chunk.text)) AS lengths"
+              },
+              {
+                "statement": "SHOW INDEXES YIELD name, type, labelsOrTypes, properties, options WHERE type = 'VECTOR' RETURN name, labelsOrTypes, properties, options.indexConfig AS config"
+              }
+            ]
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^🚀 Inicializando sistema de Embeddings com Neo4j\\.\\.\\.\n\n📄 Loaded 7 pages from PDF\n✂️  Split into 15 chunks\n🗑️  Removendo todos os documentos existentes\\.\\.\\.\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 1/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 2/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 3/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 4/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 5/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 6/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 7/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 8/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 9/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 10/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 11/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 12/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 13/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 14/15\n(?:✅ Documentos removidos com sucesso\n\n)?✅ Adicionando documento 15/15\n(?:✅ Documentos removidos com sucesso\n\n)?\n✅ Base de dados populada com sucesso!\n\n🔍 ETAPA 2: Executando buscas por similaridade\\.\\.\\.\n\n\n================================================================================\n📌 PERGUNTA: O que são tensores e como são representados em JavaScript\\?\n================================================================================\n\n📄 Encontrados 3 trechos relevantes:\n\n   1\\.\n      text: No início, te falei sobre a biblioteca TensorFlow\\.js e disse que ela seria a base para as demonstrações deste módulo Então para começar, Tensorflow tem este nome, pois trabalha com Tensores, que\\.\\.\\.\n\n   2\\.\n      text: \\{ nome: \"Carlos\", idade: 40, cor: \"verde\", localizacao: \"Curitiba\" \\} \\]; const categorias = \\[ 'Erick', 'premium', 'Ana', 'medium', 'Carlos', 'basic' \\] Como eu falei, Tensorflow\\.js não entende obj\\.\\.\\.\n\n   3\\.\n      text: Mas para nós, Web developers, na prática, geralmente usamos modelos prontos e podemos até estendê-los, o trabalho de treinar um modelo, gerar o arquivo final para que alguém possa reutilizá-lo d\\.\\.\\.\n\n\n================================================================================\n📌 PERGUNTA: Como converter objetos JavaScript em tensores\\?\n================================================================================\n\n📄 Encontrados 3 trechos relevantes:\n\n   1\\.\n      text: \\{ nome: \"Carlos\", idade: 40, cor: \"verde\", localizacao: \"Curitiba\" \\} \\]; const categorias = \\[ 'Erick', 'premium', 'Ana', 'medium', 'Carlos', 'basic' \\] Como eu falei, Tensorflow\\.js não entende obj\\.\\.\\.\n\n   2\\.\n      text: No início, te falei sobre a biblioteca TensorFlow\\.js e disse que ela seria a base para as demonstrações deste módulo Então para começar, Tensorflow tem este nome, pois trabalha com Tensores, que\\.\\.\\.\n\n   3\\.\n      text: Mas para nós, Web developers, na prática, geralmente usamos modelos prontos e podemos até estendê-los, o trabalho de treinar um modelo, gerar o arquivo final para que alguém possa reutilizá-lo d\\.\\.\\.\n\n\n================================================================================\n📌 PERGUNTA: O que é normalização de dados e por que é necessária\\?\n================================================================================\n\n📄 Encontrados 3 trechos relevantes:\n\n   1\\.\n      text: É assim que a rede decide qual categoria tem mais a ver com aquele perfil\\. Resumindo: O dado entra, passa por um monte de conexões e cálculos, e o modelo te entrega uma resposta — não só dizendo\\.\\.\\.\n\n   2\\.\n      text: opções Agora, precisamos informar o algoritmo, qual é a categoria dos usuários que já temos, e fazemos a normalização, então dado que temos as categorias const categorias = \\[\"premium\", \"medium\",\\.\\.\\.\n\n   3\\.\n      text: acordo com o que você estava esperando Essas saídas então viram a entrada para a próxima camada, cada camada vira como se fosse um filtro do passo anterior, se houver mais de uma camada oculta, \\.\\.\\.\n\n\n================================================================================\n📌 PERGUNTA: Como funciona uma rede neural no TensorFlow\\.js\\?\n================================================================================\n\n📄 Encontrados 3 trechos relevantes:\n\n   1\\.\n      text: Efeito fade Agora que você já entendeu como transformar seus dados em tensores e normalizar tudo para trabalhar entre 0 e 1, chega a parte mais mágica \\(e divertida!\\) do machine learning: as rede\\.\\.\\.\n\n   2\\.\n      text: Mas para nós, Web developers, na prática, geralmente usamos modelos prontos e podemos até estendê-los, o trabalho de treinar um modelo, gerar o arquivo final para que alguém possa reutilizá-lo d\\.\\.\\.\n\n   3\\.\n      text: \\{ nome: \"Carlos\", idade: 40, cor: \"verde\", localizacao: \"Curitiba\" \\} \\]; const categorias = \\[ 'Erick', 'premium', 'Ana', 'medium', 'Carlos', 'basic' \\] Como eu falei, Tensorflow\\.js não entende obj\\.\\.\\.\n\n\n================================================================================\n📌 PERGUNTA: O que significa treinar uma rede neural\\?\n================================================================================\n\n📄 Encontrados 3 trechos relevantes:\n\n   1\\.\n      text: \\] Toda vez que você for trabalhar com processamento de máquina ou machine learning, acontece essa etapa de normalização e conversão dos dados para tensores, é dessa forma que a máquina consegue \\.\\.\\.\n\n   2\\.\n      text: Efeito fade Agora que você já entendeu como transformar seus dados em tensores e normalizar tudo para trabalhar entre 0 e 1, chega a parte mais mágica \\(e divertida!\\) do machine learning: as rede\\.\\.\\.\n\n   3\\.\n      text: Uma rede neural geralmente é representada com imagens como essa\\. Cada input vira um parâmetro — por exemplo, idade, cor e localização da pessoa — e é enviado para a primeira camada do modelo\\. Es\\.\\.\\.\n\n\n================================================================================\n📌 PERGUNTA: o que é hot enconding e quando usar\\?\n================================================================================\n\n📄 Encontrados 3 trechos relevantes:\n\n   1\\.\n      text: É assim que a rede decide qual categoria tem mais a ver com aquele perfil\\. Resumindo: O dado entra, passa por um monte de conexões e cálculos, e o modelo te entrega uma resposta — não só dizendo\\.\\.\\.\n\n   2\\.\n      text: Efeito fade Por que se fala em “treinar” a rede\\? Treinar nada mais é do que mostrar vários exemplos \\(como fizemos com Erick, Ana e Carlos\\), e deixar o algoritmo ajustar sozinho os “pesos” intern\\.\\.\\.\n\n   3\\.\n      text: Uma rede neural geralmente é representada com imagens como essa\\. Cada input vira um parâmetro — por exemplo, idade, cor e localização da pessoa — e é enviado para a primeira camada do modelo\\. Es\\.\\.\\.\n\n\n================================================================================\n✅ Processamento concluído com sucesso!\n\n$"
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:(?!Documentos removidos)[\\s\\S])*✅ Documentos removidos com sucesso\\n\\n(?:(?!Documentos removidos)[\\s\\S])*$"
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "status": 200,
+              "match": {
+                "results": {
+                  "$like": [
+                    {
+                      "data": [
+                        {
+                          "row": [
+                            15,
+                            15,
+                            [
+                              {
+                                "$unordered": [
+                                  "id",
+                                  "text",
+                                  "embedding",
+                                  "source"
+                                ]
+                              }
+                            ],
+                            ["./tensores.pdf"],
+                            [384],
+                            [
+                              208, 297, 583, 614, 623, 690, 797, 926, 946, 953,
+                              955, 962, 988, 993, 997
+                            ]
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "data": [
+                        {
+                          "row": [
+                            "tensors_index",
+                            ["Chunk"],
+                            ["embedding"],
+                            {
+                              "vector.dimensions": 384,
+                              "vector.similarity_function": "cosine"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "errors": []
+              }
+            }
+          ]
+        },
+        {
+          "type": "requests",
+          "requests": []
+        }
+      ]
+    }
+  ]
+}

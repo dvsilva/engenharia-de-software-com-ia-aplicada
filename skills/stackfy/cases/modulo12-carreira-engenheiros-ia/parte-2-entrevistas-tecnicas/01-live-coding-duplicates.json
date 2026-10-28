@@ -1,0 +1,94 @@
+{
+  "module": "modulo12-carreira-engenheiros-ia/parte-2-entrevistas-tecnicas/01-live-coding-duplicates",
+  "concepts": ["live-coding-exercise"],
+  "recorded": "Every case passed against the original, run unchanged from a copy with Node.js 26.12.1 and nothing to install, where the programs are the suite, test/duplicates.test, run as node --test test/duplicates.test.js, the file npm test finds, and scripts/verify-solution, run as node scripts/verify-solution.js, the script npm run test:solution runs. The suite is checked only by whether it fails, against the starting point, whose duplicates has an empty body, or succeeds, against the reference solution, never by its report, because every test runner prints its own and some fail with their own exit code. The starting point's case leaves SOLUTION out, so the suite takes src/duplicates.js. solution/duplicates only exports its function, so its cases run a driver written for them, which the copy gains as driver.js beside package.json: it takes the list as its only argument, a JSON array, calls the solution's duplicates with it, and prints the result as one line of JSON. The command chooses by {program}. The starting point has no driver case, because what an empty body returns differs per language, from undefined or None to an empty list or a panic. The lists hold small integers only and are compared exactly, in order.",
+  "prepare": { "files": ["driver.js"] },
+  "originals": [
+    "case {program} in test/*) node --test {program}.js ;; solution/*) node driver.js {args} ;; *) node {program}.js ;; esac"
+  ],
+  "cases": [
+    {
+      "name": "the suite fails against the starting point, whose duplicates has an empty body",
+      "program": "test/duplicates.test",
+      "env": { "SOLUTION": null },
+      "expect": [{ "type": "exit", "failure": true }]
+    },
+    {
+      "name": "the verify script runs the suite against the reference solution, and every test passes",
+      "program": "scripts/verify-solution",
+      "expect": [{ "type": "exit", "code": 0 }]
+    },
+    {
+      "name": "the problem's example returns each repeated number once",
+      "program": "solution/duplicates",
+      "args": ["[1,2,2,3,3,3]"],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        { "type": "json", "values": [[2, 3]] }
+      ]
+    },
+    {
+      "name": "an empty list returns an empty list",
+      "program": "solution/duplicates",
+      "args": ["[]"],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        { "type": "json", "values": [[]] }
+      ]
+    },
+    {
+      "name": "a list without repeated numbers returns an empty list",
+      "program": "solution/duplicates",
+      "args": ["[1,2,3]"],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        { "type": "json", "values": [[]] }
+      ]
+    },
+    {
+      "name": "repeated numbers come back in the order they first appear, not sorted",
+      "program": "solution/duplicates",
+      "args": ["[5,1,5,1,2]"],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        { "type": "json", "values": [[5, 1]] }
+      ]
+    },
+    {
+      "name": "negative numbers count like any other",
+      "program": "solution/duplicates",
+      "args": ["[-1,-1,0]"],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        { "type": "json", "values": [[-1]] }
+      ]
+    },
+    {
+      "name": "a number keeps the place of its first appearance, not of its first repetition",
+      "program": "solution/duplicates",
+      "args": ["[1,2,2,1]"],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        { "type": "json", "values": [[1, 2]] }
+      ]
+    },
+    {
+      "name": "a number that appears four times comes back once",
+      "program": "solution/duplicates",
+      "args": ["[7,7,7,7]"],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        { "type": "json", "values": [[7]] }
+      ]
+    },
+    {
+      "name": "a longer list of positive, negative, and zero values keeps each repeated one once, in order of first appearance",
+      "program": "solution/duplicates",
+      "args": ["[10,-2,10,0,3,-2,0,10,4]"],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        { "type": "json", "values": [[10, -2, 0]] }
+      ]
+    }
+  ]
+}

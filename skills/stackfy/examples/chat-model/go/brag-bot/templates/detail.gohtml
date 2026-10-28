@@ -1,0 +1,38 @@
+{{define "back"}}
+<nav><a href="/">Voltar ao Dashboard</a></nav>
+{{end}}
+
+{{define "detail"}}
+<div class="page">
+  {{template "back"}}
+  <article>
+    <header>
+      <h1></h1>
+      <div class="technologies"></div>
+    </header>
+    <section class="context">
+      <h2>O Contexto</h2>
+      <p></p>
+    </section>
+    <section class="impact">
+      <h2>O Impacto</h2>
+      <p></p>
+    </section>
+    <section class="metrics">
+      <h2>Métricas e Resultados</h2>
+      <p></p>
+    </section>
+  </article>
+</div>
+{{end}}
+
+{{define "missing"}}
+<div class="page">
+  {{template "back"}}
+  <div class="missing">
+    <h2>Conquista não encontrada</h2>
+    <p>A rota parece ser inválida ou a conquista não existe mais na memória.</p>
+    <a href="/">Retornar</a>
+  </div>
+</div>
+{{end}}

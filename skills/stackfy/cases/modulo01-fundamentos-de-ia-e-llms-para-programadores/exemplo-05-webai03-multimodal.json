@@ -1,0 +1,1277 @@
+{
+  "module": "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-05-webai03-multimodal",
+  "concepts": ["browser-built-in-ai", "browser-app"],
+  "recorded": "Original served by http-server 14.1.1 with npx http-server@14.1.1 . -p $PORT instead of npm start, which serves port 8080, and opened in headless Google Chrome 152 with no file patched. Chrome 152 exposes LanguageModel, Translator, and LanguageDetector to pages, but a fresh headless profile reports all three downloadable and refuses to create any of them without a user gesture, and pages no longer get params(), so a script that runs before the page's own replaces the three with stand-ins, or removes them, and window.chrome too in the case without the Prompt API. The stand-ins record every call, with prompts' whitespace collapsed, functions and signals named by type, Blobs as their type and size, and an abort only while its stream is open. They answer each availability check with the state the case needs, answer params() with the values Chrome documents, report download progress in three steps, refuse a download with Chrome 152's message in the cases that need it, stream the model's chunks 30 ms apart, holding the first stream after five chunks in the case that stops it, and stream a translation as one chunk per sentence, as Chrome does. The model's answers are those gemma4:12b-mlx gave through Ollama 0.40.11, recorded with record.mjs as a stand-in for Gemini Nano, for the page's system prompt and each question at the case's temperature and top-k, with the case's file attached through Ollama's images field and without its thinking. The translations are gemma4:12b-mlx's at temperature 0, as a stand-in for Chrome's translation model, and the detected languages are synthesized in the documented shape, a list of detectedLanguage and confidence from most to least likely. The image is a 160 by 96 PNG of a red circle and a blue square drawn with Pillow, and the audio is macOS say reading The store opens at nine tomorrow, saved as 8-bit WAV at 8 kHz. The upload step hands each file to the hidden file input as a user's choice would. MutationObservers keep each distinct text the output and the button show, with whitespace collapsed, and console.log is wrapped to keep what the page logs. Every case passed in each of 20 runs.",
+  "originals": ["npx http-server@14.1.1 . -p $PORT"],
+  "cases": [
+    {
+      "name": "shows the model's default parameters, opens the file picker, previews and removes an image, and ignores a blank question",
+      "serve": {
+        "port": 47361,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const config = {\"availability\":[\"available\"],\"translator\":\"available\",\"answers\":[],\"translations\":[],\"detections\":[]}; globalThis.languageModelCalls = []; globalThis.translationCalls = []; globalThis.languageModelStreamsDone = 0; globalThis.outputStates = []; globalThis.buttonStates = []; globalThis.consoleLines = []; const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)); const collapse = (text) => text.replace(/\\s+/g, ' ').trim(); const plain = (key, value) => typeof value === 'function' ? 'function' : value instanceof AbortSignal ? 'AbortSignal' : value instanceof Blob ? { blob: value.type, size: value.size } : (key === 'content' || key === 'value') && typeof value === 'string' ? collapse(value) : value; const clone = (value) => JSON.parse(JSON.stringify(value ?? null, plain)); const record = (call) => languageModelCalls.push(call); const recordTranslation = (call) => translationCalls.push(call); let streams = 0; let checks = 0; let translations = 0; let detections = 0; const stream = (signal) => { const index = streams++; const pending = [...(config.answers[index] ?? [])]; const stall = index === 0 ? config.stallAfter : undefined; let sent = 0; let open = true; return new ReadableStream({ start: (controller) => signal?.addEventListener('abort', () => { if (!open) return; open = false; record({ event: 'abort', chunks: sent }); controller.error(signal.reason); }), pull: async (controller) => { await pause(30); if (!open) return; if (sent === stall) return new Promise(() => {}); if (pending.length === 0) { open = false; controller.close(); languageModelStreamsDone++; return; } sent++; controller.enqueue(pending.shift()); }, }); }; const textStream = (chunks) => { const pending = [...chunks]; return new ReadableStream({ pull: async (controller) => { await pause(30); if (pending.length === 0) return controller.close(); controller.enqueue(pending.shift()); }, }); }; const createSession = () => ({ prompt: async (input) => { record({ method: 'prompt', input: clone(input) }); await pause(50); return 'Hello! How can I help you today?'; }, promptStreaming: (input, options) => { record({ method: 'promptStreaming', input: clone(input), options: clone(options) }); return stream(options?.signal); }, destroy: () => record({ method: 'destroy' }), }); const download = async (monitor, keep) => { const target = new EventTarget(); const listen = target.addEventListener.bind(target); target.addEventListener = (type, listener, options) => { keep({ method: 'monitor.addEventListener', type }); listen(type, listener, options); }; monitor(target); for (const loaded of [0, 0.5, 1]) { await pause(30); target.dispatchEvent(new ProgressEvent('downloadprogress', { loaded, total: 1 })); } }; const LanguageModel = { availability: async (options) => { record({ method: 'availability', options: clone(options) }); return config.availability[Math.min(checks++, config.availability.length - 1)]; }, params: async () => { record({ method: 'params' }); return { defaultTopK: 3, maxTopK: 128, defaultTemperature: 1, maxTemperature: 2 }; }, create: async (options) => { record({ method: 'create', options: clone(options) }); if (config.refuseDownload) throw new DOMException(config.refuseDownload, 'NotAllowedError'); if (typeof options?.monitor === 'function') await download(options.monitor, record); await pause(50); return createSession(); }, }; const Translator = { availability: async (options) => { recordTranslation({ method: 'Translator.availability', options: clone(options) }); return config.translator; }, create: async (options) => { recordTranslation({ method: 'Translator.create', options: clone(options) }); if (config.refuseTranslator) throw new DOMException(config.refuseTranslator, 'NotAllowedError'); if (config.translator === 'downloadable' && typeof options?.monitor === 'function') await download(options.monitor, recordTranslation); await pause(30); return { translate: async (input) => { recordTranslation({ method: 'translate', input }); await pause(30); return (config.translations[translations++] ?? []).join(''); }, translateStreaming: (input) => { recordTranslation({ method: 'translateStreaming', input }); return textStream(config.translations[translations++] ?? []); }, destroy: () => recordTranslation({ method: 'Translator.destroy' }), }; }, }; const LanguageDetector = { availability: async () => { recordTranslation({ method: 'LanguageDetector.availability' }); return 'available'; }, create: async () => { recordTranslation({ method: 'LanguageDetector.create' }); await pause(30); return { detect: async (input) => { recordTranslation({ method: 'detect', input }); await pause(30); return config.detections[detections++] ?? []; }, destroy: () => recordTranslation({ method: 'LanguageDetector.destroy' }), }; }, }; for (const [name, value] of Object.entries({ LanguageModel, Translator, LanguageDetector })) Object.defineProperty(globalThis, name, { value, writable: true, configurable: true }); const log = console.log; console.log = (...values) => { consoleLines.push(values.map(String).join(' ')); log(...values); }; const collapseShown = (text) => text.replace(/\\s+/g, ' ').trim(); const capture = () => { const output = document.getElementById('output'); const button = document.getElementById('ask-button'); if (output && collapseShown(output.innerText) !== outputStates.at(-1)) outputStates.push(collapseShown(output.innerText)); if (!button) return; const state = { text: collapseShown(button.innerText), stop: button.classList.contains('stop-button') }; const last = buttonStates.at(-1); if (last?.text !== state.text || last?.stop !== state.stop) buttonStates.push(state); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true, attributes: true }); })()",
+          "steps": [
+            {
+              "wait": "document.getElementById('topk-value').textContent === '3'"
+            },
+            {
+              "read": "['temperature', 'topK'].map((id) => { const control = document.getElementById(id); return { value: control.value, min: control.min, max: control.max, step: control.step }; })"
+            },
+            {
+              "read": "['temp-value', 'topk-value'].map((id) => document.getElementById(id).textContent)"
+            },
+            {
+              "read": "document.getElementById('year').textContent === String(new Date().getFullYear())"
+            },
+            {
+              "read": "[document.getElementById('ask-button').disabled, document.getElementById('output').innerText]"
+            },
+            {
+              "read": "languageModelCalls"
+            },
+            {
+              "read": "translationCalls"
+            },
+            {
+              "read": "(() => { const input = document.getElementById('file-input'); globalThis.pickerOpenings = 0; input.addEventListener('click', (event) => { event.preventDefault(); pickerOpenings++; }); return [input.accept, input.hidden]; })()"
+            },
+            {
+              "click": "#file-upload-btn"
+            },
+            {
+              "read": "pickerOpenings"
+            },
+            {
+              "read": "(() => { const name = document.getElementById('file-selected-name'); const shown = (element) => element.matches('img, audio') ? `${element.tagName.toLowerCase()}.${element.className}${element.controls ? ' controls' : ''} ${element.src.split(':')[0]}` : `${element.tagName.toLowerCase()}.${element.className} ${element.textContent.trim()}`; return { name: name.textContent, selected: name.classList.contains('selected'), files: document.getElementById('file-input').files.length, preview: [...document.getElementById('file-preview').children].map((info) => [info.className, ...[...info.children].map(shown)]) }; })()"
+            },
+            {
+              "upload": "#file-input",
+              "file": {
+                "name": "shapes.png",
+                "type": "image/png",
+                "base64": "iVBORw0KGgoAAAANSUhEUgAAAKAAAABgAgMAAADnSZEKAAAACVBMVEX////cJiYlY+uX+9jQAAAA7ElEQVR42u2WvQ2DMBCFHwj3LhjII1BkoMwTpWAET8EUFPQgOQX4LzJ+QXFB4dcYnz69u/PZEkBVVdUVNf7rgXV0u1dETU+0AQcxnDs6sAcAwcFGAQAGCvb7IiiovtYz0DUvCdjbvSCgz6iyoD/209ztryPcwc4HuiwoU8NPgWEHqkSNUTpZwjHqtCvhKNOP45/JFAfjYahb1ljBLKijkL5ljUsYMSUctzCylXCMylqKHI+mgznAhZ7OAW606as1Gtq0ddSsFwvOdr+S22NYZteMJpkdOJPMDjS71chv+Jw39KB5I/zvqaqqSusDXXAncgcIGQMAAAAASUVORK5CYII="
+              }
+            },
+            {
+              "wait": "document.querySelector('#file-preview .remove-file-btn') !== null"
+            },
+            {
+              "read": "(() => { const name = document.getElementById('file-selected-name'); const shown = (element) => element.matches('img, audio') ? `${element.tagName.toLowerCase()}.${element.className}${element.controls ? ' controls' : ''} ${element.src.split(':')[0]}` : `${element.tagName.toLowerCase()}.${element.className} ${element.textContent.trim()}`; return { name: name.textContent, selected: name.classList.contains('selected'), files: document.getElementById('file-input').files.length, preview: [...document.getElementById('file-preview').children].map((info) => [info.className, ...[...info.children].map(shown)]) }; })()"
+            },
+            {
+              "click": "#file-preview .remove-file-btn"
+            },
+            {
+              "read": "(() => { const name = document.getElementById('file-selected-name'); const shown = (element) => element.matches('img, audio') ? `${element.tagName.toLowerCase()}.${element.className}${element.controls ? ' controls' : ''} ${element.src.split(':')[0]}` : `${element.tagName.toLowerCase()}.${element.className} ${element.textContent.trim()}`; return { name: name.textContent, selected: name.classList.contains('selected'), files: document.getElementById('file-input').files.length, preview: [...document.getElementById('file-preview').children].map((info) => [info.className, ...[...info.children].map(shown)]) }; })()"
+            },
+            {
+              "select": "#temperature",
+              "value": "1.7"
+            },
+            {
+              "select": "#topK",
+              "value": "50"
+            },
+            {
+              "read": "['temp-value', 'topk-value'].map((id) => document.getElementById(id).textContent)"
+            },
+            {
+              "select": "#question",
+              "value": "   "
+            },
+            {
+              "click": "#ask-button"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 500))"
+            },
+            {
+              "read": "languageModelCalls"
+            },
+            {
+              "read": "translationCalls.filter((call) => ['detect', 'translate', 'translateStreaming'].includes(call.method))"
+            },
+            {
+              "read": "outputStates.filter((state) => state !== '')"
+            },
+            {
+              "read": "buttonStates"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              {
+                "value": "1",
+                "min": "0",
+                "max": "2",
+                "step": "0.1"
+              },
+              {
+                "value": "3",
+                "min": "1",
+                "max": "128",
+                "step": ""
+              }
+            ],
+            ["1", "3"],
+            true,
+            [false, ""],
+            [
+              {
+                "method": "availability",
+                "options": {
+                  "languages": ["en"]
+                }
+              },
+              {
+                "method": "params"
+              }
+            ],
+            [
+              {
+                "method": "Translator.availability",
+                "options": {
+                  "sourceLanguage": "en",
+                  "targetLanguage": "pt"
+                }
+              },
+              {
+                "method": "Translator.create",
+                "options": {
+                  "sourceLanguage": "en",
+                  "targetLanguage": "pt",
+                  "monitor": "function"
+                }
+              },
+              {
+                "method": "LanguageDetector.create"
+              }
+            ],
+            ["image/*,audio/*", true],
+            1,
+            {
+              "name": "",
+              "selected": false,
+              "files": 0,
+              "preview": []
+            },
+            {
+              "name": "✓ shapes.png",
+              "selected": true,
+              "files": 1,
+              "preview": [
+                [
+                  "file-info",
+                  "img.preview-image blob",
+                  "button.remove-file-btn × Remover arquivo"
+                ]
+              ]
+            },
+            {
+              "name": "",
+              "selected": false,
+              "files": 0,
+              "preview": []
+            },
+            ["1.7", "50"],
+            [
+              {
+                "method": "availability",
+                "options": {
+                  "languages": ["en"]
+                }
+              },
+              {
+                "method": "params"
+              }
+            ],
+            [],
+            [],
+            [
+              {
+                "text": "Enviar",
+                "stop": false
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "streams the answer about an attached image from a multimodal session with the chosen parameters, then shows it translated into Portuguese",
+      "serve": {
+        "port": 47361,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const config = {\"availability\":[\"available\"],\"translator\":\"available\",\"answers\":[[\"The\",\" image\",\" shows\",\" a\",\" red\",\" circle\",\" on\",\" the\",\" left\",\" and\",\" a\",\" blue\",\" square\",\" on\",\" the\",\" right\",\" against\",\" a\",\" white\",\" background\",\".\"]],\"translations\":[[\"A imagem mostra um círculo vermelho à esquerda e um quadrado azul à direita sobre um fundo branco.\"]],\"detections\":[[{\"detectedLanguage\":\"en\",\"confidence\":0.9993},{\"detectedLanguage\":\"und\",\"confidence\":0.0004}]]}; globalThis.languageModelCalls = []; globalThis.translationCalls = []; globalThis.languageModelStreamsDone = 0; globalThis.outputStates = []; globalThis.buttonStates = []; globalThis.consoleLines = []; const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)); const collapse = (text) => text.replace(/\\s+/g, ' ').trim(); const plain = (key, value) => typeof value === 'function' ? 'function' : value instanceof AbortSignal ? 'AbortSignal' : value instanceof Blob ? { blob: value.type, size: value.size } : (key === 'content' || key === 'value') && typeof value === 'string' ? collapse(value) : value; const clone = (value) => JSON.parse(JSON.stringify(value ?? null, plain)); const record = (call) => languageModelCalls.push(call); const recordTranslation = (call) => translationCalls.push(call); let streams = 0; let checks = 0; let translations = 0; let detections = 0; const stream = (signal) => { const index = streams++; const pending = [...(config.answers[index] ?? [])]; const stall = index === 0 ? config.stallAfter : undefined; let sent = 0; let open = true; return new ReadableStream({ start: (controller) => signal?.addEventListener('abort', () => { if (!open) return; open = false; record({ event: 'abort', chunks: sent }); controller.error(signal.reason); }), pull: async (controller) => { await pause(30); if (!open) return; if (sent === stall) return new Promise(() => {}); if (pending.length === 0) { open = false; controller.close(); languageModelStreamsDone++; return; } sent++; controller.enqueue(pending.shift()); }, }); }; const textStream = (chunks) => { const pending = [...chunks]; return new ReadableStream({ pull: async (controller) => { await pause(30); if (pending.length === 0) return controller.close(); controller.enqueue(pending.shift()); }, }); }; const createSession = () => ({ prompt: async (input) => { record({ method: 'prompt', input: clone(input) }); await pause(50); return 'Hello! How can I help you today?'; }, promptStreaming: (input, options) => { record({ method: 'promptStreaming', input: clone(input), options: clone(options) }); return stream(options?.signal); }, destroy: () => record({ method: 'destroy' }), }); const download = async (monitor, keep) => { const target = new EventTarget(); const listen = target.addEventListener.bind(target); target.addEventListener = (type, listener, options) => { keep({ method: 'monitor.addEventListener', type }); listen(type, listener, options); }; monitor(target); for (const loaded of [0, 0.5, 1]) { await pause(30); target.dispatchEvent(new ProgressEvent('downloadprogress', { loaded, total: 1 })); } }; const LanguageModel = { availability: async (options) => { record({ method: 'availability', options: clone(options) }); return config.availability[Math.min(checks++, config.availability.length - 1)]; }, params: async () => { record({ method: 'params' }); return { defaultTopK: 3, maxTopK: 128, defaultTemperature: 1, maxTemperature: 2 }; }, create: async (options) => { record({ method: 'create', options: clone(options) }); if (config.refuseDownload) throw new DOMException(config.refuseDownload, 'NotAllowedError'); if (typeof options?.monitor === 'function') await download(options.monitor, record); await pause(50); return createSession(); }, }; const Translator = { availability: async (options) => { recordTranslation({ method: 'Translator.availability', options: clone(options) }); return config.translator; }, create: async (options) => { recordTranslation({ method: 'Translator.create', options: clone(options) }); if (config.refuseTranslator) throw new DOMException(config.refuseTranslator, 'NotAllowedError'); if (config.translator === 'downloadable' && typeof options?.monitor === 'function') await download(options.monitor, recordTranslation); await pause(30); return { translate: async (input) => { recordTranslation({ method: 'translate', input }); await pause(30); return (config.translations[translations++] ?? []).join(''); }, translateStreaming: (input) => { recordTranslation({ method: 'translateStreaming', input }); return textStream(config.translations[translations++] ?? []); }, destroy: () => recordTranslation({ method: 'Translator.destroy' }), }; }, }; const LanguageDetector = { availability: async () => { recordTranslation({ method: 'LanguageDetector.availability' }); return 'available'; }, create: async () => { recordTranslation({ method: 'LanguageDetector.create' }); await pause(30); return { detect: async (input) => { recordTranslation({ method: 'detect', input }); await pause(30); return config.detections[detections++] ?? []; }, destroy: () => recordTranslation({ method: 'LanguageDetector.destroy' }), }; }, }; for (const [name, value] of Object.entries({ LanguageModel, Translator, LanguageDetector })) Object.defineProperty(globalThis, name, { value, writable: true, configurable: true }); const log = console.log; console.log = (...values) => { consoleLines.push(values.map(String).join(' ')); log(...values); }; const collapseShown = (text) => text.replace(/\\s+/g, ' ').trim(); const capture = () => { const output = document.getElementById('output'); const button = document.getElementById('ask-button'); if (output && collapseShown(output.innerText) !== outputStates.at(-1)) outputStates.push(collapseShown(output.innerText)); if (!button) return; const state = { text: collapseShown(button.innerText), stop: button.classList.contains('stop-button') }; const last = buttonStates.at(-1); if (last?.text !== state.text || last?.stop !== state.stop) buttonStates.push(state); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true, attributes: true }); })()",
+          "steps": [
+            {
+              "wait": "document.getElementById('topk-value').textContent === '3'"
+            },
+            {
+              "upload": "#file-input",
+              "file": {
+                "name": "shapes.png",
+                "type": "image/png",
+                "base64": "iVBORw0KGgoAAAANSUhEUgAAAKAAAABgAgMAAADnSZEKAAAACVBMVEX////cJiYlY+uX+9jQAAAA7ElEQVR42u2WvQ2DMBCFHwj3LhjII1BkoMwTpWAET8EUFPQgOQX4LzJ+QXFB4dcYnz69u/PZEkBVVdUVNf7rgXV0u1dETU+0AQcxnDs6sAcAwcFGAQAGCvb7IiiovtYz0DUvCdjbvSCgz6iyoD/209ztryPcwc4HuiwoU8NPgWEHqkSNUTpZwjHqtCvhKNOP45/JFAfjYahb1ljBLKijkL5ljUsYMSUctzCylXCMylqKHI+mgznAhZ7OAW606as1Gtq0ddSsFwvOdr+S22NYZteMJpkdOJPMDjS71chv+Jw39KB5I/zvqaqqSusDXXAncgcIGQMAAAAASUVORK5CYII="
+              }
+            },
+            {
+              "wait": "document.querySelector('#file-preview .remove-file-btn') !== null"
+            },
+            {
+              "select": "#temperature",
+              "value": "0.3"
+            },
+            {
+              "select": "#topK",
+              "value": "5"
+            },
+            {
+              "select": "#question",
+              "value": "In one sentence, what is in this image?"
+            },
+            {
+              "click": "#ask-button"
+            },
+            {
+              "wait": "languageModelStreamsDone === 1 && document.getElementById('ask-button').innerText.trim() === 'Enviar'"
+            },
+            {
+              "read": "languageModelCalls"
+            },
+            {
+              "read": "translationCalls.filter((call) => ['detect', 'translate', 'translateStreaming'].includes(call.method))"
+            },
+            {
+              "read": "outputStates.filter((state) => state !== '')"
+            },
+            {
+              "read": "buttonStates"
+            },
+            {
+              "read": "['temp-value', 'topk-value'].map((id) => document.getElementById(id).textContent)"
+            },
+            {
+              "read": "(() => { const name = document.getElementById('file-selected-name'); const shown = (element) => element.matches('img, audio') ? `${element.tagName.toLowerCase()}.${element.className}${element.controls ? ' controls' : ''} ${element.src.split(':')[0]}` : `${element.tagName.toLowerCase()}.${element.className} ${element.textContent.trim()}`; return { name: name.textContent, selected: name.classList.contains('selected'), files: document.getElementById('file-input').files.length, preview: [...document.getElementById('file-preview').children].map((info) => [info.className, ...[...info.children].map(shown)]) }; })()"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              {
+                "method": "availability",
+                "options": {
+                  "languages": ["en"]
+                }
+              },
+              {
+                "method": "params"
+              },
+              {
+                "method": "create",
+                "options": {
+                  "expectedInputs": [
+                    {
+                      "type": "text",
+                      "languages": ["en"]
+                    },
+                    {
+                      "type": "audio"
+                    },
+                    {
+                      "type": "image"
+                    }
+                  ],
+                  "expectedOutputs": [
+                    {
+                      "type": "text",
+                      "languages": ["en"]
+                    }
+                  ],
+                  "temperature": 0.3,
+                  "topK": 5,
+                  "initialPrompts": [
+                    {
+                      "role": "system",
+                      "content": [
+                        {
+                          "type": "text",
+                          "value": "You are an AI assistant that responds clearly and objectively. Always respond in plain text format instead of markdown."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "method": "promptStreaming",
+                "input": [
+                  {
+                    "role": "user",
+                    "content": [
+                      {
+                        "type": "text",
+                        "value": "In one sentence, what is in this image?"
+                      },
+                      {
+                        "type": "image",
+                        "value": {
+                          "blob": "image/png",
+                          "size": 314
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "options": {
+                  "signal": "AbortSignal"
+                }
+              }
+            ],
+            [
+              {
+                "method": "detect",
+                "input": "The image shows a red circle on the left and a blue square on the right against a white background."
+              },
+              {
+                "method": "translateStreaming",
+                "input": "The image shows a red circle on the left and a blue square on the right against a white background."
+              }
+            ],
+            [
+              "Processing your question...",
+              "The",
+              "The image",
+              "The image shows",
+              "The image shows a",
+              "The image shows a red",
+              "The image shows a red circle",
+              "The image shows a red circle on",
+              "The image shows a red circle on the",
+              "The image shows a red circle on the left",
+              "The image shows a red circle on the left and",
+              "The image shows a red circle on the left and a",
+              "The image shows a red circle on the left and a blue",
+              "The image shows a red circle on the left and a blue square",
+              "The image shows a red circle on the left and a blue square on",
+              "The image shows a red circle on the left and a blue square on the",
+              "The image shows a red circle on the left and a blue square on the right",
+              "The image shows a red circle on the left and a blue square on the right against",
+              "The image shows a red circle on the left and a blue square on the right against a",
+              "The image shows a red circle on the left and a blue square on the right against a white",
+              "The image shows a red circle on the left and a blue square on the right against a white background",
+              "The image shows a red circle on the left and a blue square on the right against a white background.",
+              "Traduzindo resposta...",
+              "A imagem mostra um círculo vermelho à esquerda e um quadrado azul à direita sobre um fundo branco."
+            ],
+            [
+              {
+                "text": "Enviar",
+                "stop": false
+              },
+              {
+                "text": "Parar",
+                "stop": true
+              },
+              {
+                "text": "Enviar",
+                "stop": false
+              }
+            ],
+            ["0.3", "5"],
+            {
+              "name": "✓ shapes.png",
+              "selected": true,
+              "files": 1,
+              "preview": [
+                [
+                  "file-info",
+                  "img.preview-image blob",
+                  "button.remove-file-btn × Remover arquivo"
+                ]
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "stops an answer midway with Parar and shows the abort as an error, then answers about an attached audio from a new session",
+      "serve": {
+        "port": 47361,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const config = {\"availability\":[\"available\"],\"translator\":\"available\",\"answers\":[[\"A\",\" multimodal\",\" model\",\" processes\",\" and\",\" integrates\",\" different\",\" types\",\" of\",\" data\",\",\",\" such\",\" as\",\" text\",\",\",\" images\",\",\",\" audio\",\",\",\" and\",\" video\",\",\",\" to\",\" perform\",\" complex\",\" tasks\",\" like\",\" understanding\",\" context\",\" or\",\" generating\",\" content\",\" across\",\" various\",\" modalities\",\".\"],[\"The\",\" store\",\" opens\",\" at\",\" nine\",\".\"]],\"translations\":[[\"A loja abre às nove.\"]],\"detections\":[[{\"detectedLanguage\":\"en\",\"confidence\":0.9993},{\"detectedLanguage\":\"und\",\"confidence\":0.0004}]],\"stallAfter\":5}; globalThis.languageModelCalls = []; globalThis.translationCalls = []; globalThis.languageModelStreamsDone = 0; globalThis.outputStates = []; globalThis.buttonStates = []; globalThis.consoleLines = []; const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)); const collapse = (text) => text.replace(/\\s+/g, ' ').trim(); const plain = (key, value) => typeof value === 'function' ? 'function' : value instanceof AbortSignal ? 'AbortSignal' : value instanceof Blob ? { blob: value.type, size: value.size } : (key === 'content' || key === 'value') && typeof value === 'string' ? collapse(value) : value; const clone = (value) => JSON.parse(JSON.stringify(value ?? null, plain)); const record = (call) => languageModelCalls.push(call); const recordTranslation = (call) => translationCalls.push(call); let streams = 0; let checks = 0; let translations = 0; let detections = 0; const stream = (signal) => { const index = streams++; const pending = [...(config.answers[index] ?? [])]; const stall = index === 0 ? config.stallAfter : undefined; let sent = 0; let open = true; return new ReadableStream({ start: (controller) => signal?.addEventListener('abort', () => { if (!open) return; open = false; record({ event: 'abort', chunks: sent }); controller.error(signal.reason); }), pull: async (controller) => { await pause(30); if (!open) return; if (sent === stall) return new Promise(() => {}); if (pending.length === 0) { open = false; controller.close(); languageModelStreamsDone++; return; } sent++; controller.enqueue(pending.shift()); }, }); }; const textStream = (chunks) => { const pending = [...chunks]; return new ReadableStream({ pull: async (controller) => { await pause(30); if (pending.length === 0) return controller.close(); controller.enqueue(pending.shift()); }, }); }; const createSession = () => ({ prompt: async (input) => { record({ method: 'prompt', input: clone(input) }); await pause(50); return 'Hello! How can I help you today?'; }, promptStreaming: (input, options) => { record({ method: 'promptStreaming', input: clone(input), options: clone(options) }); return stream(options?.signal); }, destroy: () => record({ method: 'destroy' }), }); const download = async (monitor, keep) => { const target = new EventTarget(); const listen = target.addEventListener.bind(target); target.addEventListener = (type, listener, options) => { keep({ method: 'monitor.addEventListener', type }); listen(type, listener, options); }; monitor(target); for (const loaded of [0, 0.5, 1]) { await pause(30); target.dispatchEvent(new ProgressEvent('downloadprogress', { loaded, total: 1 })); } }; const LanguageModel = { availability: async (options) => { record({ method: 'availability', options: clone(options) }); return config.availability[Math.min(checks++, config.availability.length - 1)]; }, params: async () => { record({ method: 'params' }); return { defaultTopK: 3, maxTopK: 128, defaultTemperature: 1, maxTemperature: 2 }; }, create: async (options) => { record({ method: 'create', options: clone(options) }); if (config.refuseDownload) throw new DOMException(config.refuseDownload, 'NotAllowedError'); if (typeof options?.monitor === 'function') await download(options.monitor, record); await pause(50); return createSession(); }, }; const Translator = { availability: async (options) => { recordTranslation({ method: 'Translator.availability', options: clone(options) }); return config.translator; }, create: async (options) => { recordTranslation({ method: 'Translator.create', options: clone(options) }); if (config.refuseTranslator) throw new DOMException(config.refuseTranslator, 'NotAllowedError'); if (config.translator === 'downloadable' && typeof options?.monitor === 'function') await download(options.monitor, recordTranslation); await pause(30); return { translate: async (input) => { recordTranslation({ method: 'translate', input }); await pause(30); return (config.translations[translations++] ?? []).join(''); }, translateStreaming: (input) => { recordTranslation({ method: 'translateStreaming', input }); return textStream(config.translations[translations++] ?? []); }, destroy: () => recordTranslation({ method: 'Translator.destroy' }), }; }, }; const LanguageDetector = { availability: async () => { recordTranslation({ method: 'LanguageDetector.availability' }); return 'available'; }, create: async () => { recordTranslation({ method: 'LanguageDetector.create' }); await pause(30); return { detect: async (input) => { recordTranslation({ method: 'detect', input }); await pause(30); return config.detections[detections++] ?? []; }, destroy: () => recordTranslation({ method: 'LanguageDetector.destroy' }), }; }, }; for (const [name, value] of Object.entries({ LanguageModel, Translator, LanguageDetector })) Object.defineProperty(globalThis, name, { value, writable: true, configurable: true }); const log = console.log; console.log = (...values) => { consoleLines.push(values.map(String).join(' ')); log(...values); }; const collapseShown = (text) => text.replace(/\\s+/g, ' ').trim(); const capture = () => { const output = document.getElementById('output'); const button = document.getElementById('ask-button'); if (output && collapseShown(output.innerText) !== outputStates.at(-1)) outputStates.push(collapseShown(output.innerText)); if (!button) return; const state = { text: collapseShown(button.innerText), stop: button.classList.contains('stop-button') }; const last = buttonStates.at(-1); if (last?.text !== state.text || last?.stop !== state.stop) buttonStates.push(state); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true, attributes: true }); })()",
+          "steps": [
+            {
+              "wait": "document.getElementById('topk-value').textContent === '3'"
+            },
+            {
+              "select": "#question",
+              "value": "In one sentence, what does a multimodal model do?"
+            },
+            {
+              "click": "#ask-button"
+            },
+            {
+              "wait": "outputStates.at(-1) === \"A multimodal model processes and\""
+            },
+            {
+              "read": "buttonStates.at(-1)"
+            },
+            {
+              "click": "#ask-button"
+            },
+            {
+              "wait": "outputStates.at(-1) === \"Erro: signal is aborted without reason\""
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 500))"
+            },
+            {
+              "read": "outputStates.filter((state) => state !== '')"
+            },
+            {
+              "read": "buttonStates"
+            },
+            {
+              "upload": "#file-input",
+              "file": {
+                "name": "store.wav",
+                "type": "audio/wav",
+                "base64": "UklGRqlNAABXQVZFSlVOSxwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZm10IBAAAAABAAEAQB8AAEAfAAABAAgARkxMUqgPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABkYXRhsT0AAICAgICAf4CAf3+AgYGAgYKAf3+AgH+Af4CBfn+AgIB/gYCAgICBgYGBf39/gH9/gYGBgYGAgYB/fX9/gIKAfn5/fn6Dg4B/f4KBgIGBf35/gICBgYCAgICBgYCAgH9+f39+f3+AgYGAf4OFgoKCgH59f317f4CDg4OEhISEg4OCgYB/gIB+fHp4d3Z2dXR0dHN0dXV0dHV6foGHjZGVlpiamZaSkI6Lh4WEg4F+fXt4dnJwbmlpZ2ZnZmhpaWppaWVkc3+HjZior6urrq6kl5ORjISBg4aDgICAfXdyb2pmYmFhYWJlZ2pqbGtraWNtgIqVnq29uba4tK6bi4qBenRyenp5fHx+enRybGdjYF9fYGNna25wcnJxb2htg46apLHFv7u7ta2VhYJ3cGprdHN3en5/e3Z0bmtlY2JiZGdqbnF0dXVzcWtne4qVoKvCxr2+ubSgiYV7dGtocnR2eXyAfHh2cm5pZWVkZWdpbW9xc3NzcG5oZHaGkp2pwsjAv7u3o4mFfHZsaHJ1dnl7gH15eHRxbGlnZmdoa21wcnNzcnFua2NmeoiUna3FxL++vLigj4uCfHBvdnV2d3t+enl4dXNubGpoaGhqa21ub3BvbmxqZ2Fte4aQmq+8ubu7vLKgm5SKgnp7enZ3dnd2dHRycG5sa2lpaWpra21tbm5tbWppZWRweoGKlKWrq7C0ta2kop2VjYiHg358e3p3dXRzcG9ubGxra2trbGxtbm5vb29ubm1rcHh+hIqVnaCjp6uqpaOhnZeRjouGgoB+fHh2dXNxb25ubWxtbW5ub3BxcXFycnJycnJ0eHyAhIuRlJibn6CenZ2dmpWUkY+MiIaEgn18enh2c3NzcXBvcHFvb3BxcHBxcXFxcXJxdXh6foGHi4yRk5aXmJiYlpaVlJKQj42KiIaEg4B+fHt5d3Z1dHNzcXFycXBwcHJxcHFycnJzdnl6fICDhIaJi4yNj5CQkJCRj4+PjYyLiIeGhYKBgH59e3p5eHh2d3Z1dnZ2dnZ3d3h4eHh5enp6e31/gYGEg4aIiImKjIyLjIuMi4qJiIeGhYSDgYB/f359fHx7enp6enl6enp6ent7e3t7fHx9fX19fn9/fYGEgoOEhoWFhoeGhoeGhYWFhIODgoGAgIB+fX5/fHx9fXx8fX18fX19fn1+fn5+f39/f3+AgYB/f3+Af4CBgYCAgYGAgIGAgICAgICAgICAgIB/f4CAgIGAgIGAgH+AgYB/gYCAf3+Af4CAgIB/f4CAgIGBgICAf4CAf3+AgICAgICAgICAgIB/gIGAgICAgICAgYB/gIGBgICAf36AgICAgIGAf4GAgH+AgIB/gICAgYCAgICAgIGAgICAgICAgICAgICAf4B/gIGAgICAgH+BgICAgH9/gIGAgICBgICAgICAgICAgIB/gICAgICAgICAgICBgICAgICAgICAgH+AgICAgICAgIGAf3+AgX+AgYF/gICBf4CAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAf4CAgICAgICAgICAgICAgICAgIB/gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIB/gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYCAgIB+f4B/gIB9gYGEgYODf3+Bfn6FeX+AgH+AgICBg35+hX6AfYaEfn9/fHyEgYN8goF/gH1+f3yCf4KCgYGCgoN+gYV1f4CBfH9+hH18hYWBgH+BfnyAg3+Bd4h8gIGDf4F6iX6EfIV9gXqBeoKBfIZ7g36CfYd6hYB8hH1/g4F8i3yEfIN/g3GBgXx6foKEfX6Of4V9h4J/foWCgH2Gi36Fg4GCen6Benl5dHpxdHNxcXBvdHNzb3mIhYiMlp2XkpqZlpGKjo2BgoGBfXd1eHNvbmxsa2loaGpsbG1sbHaHiJGUoKamoqajoZuUkouHhoB8fHZ1cW1qaWVlYmBhYWBiYWJlYGFufomSm6q3uLa2trGnnZSPiIN/fHl3dXFvbGpnZmRjYmJjY2RlZ2ZoZGNzh5ijrrW/wLu0raSZjoSAfHx5eHd3dXNvbGpoZ2dlZWVlZmdpaWppZGl+k6izurq/urOroJSJgXp5enp4eHZ1c3Bsa2lpaWloZmdnaWpra2pjbIKasb/Bu7qwqqGYi4J8d3p8fXp7d3d1c21qaWlra2pnZmVoa25taWRxiKa/zMW5raCbl5CFfnd1eHx8e3h1c3JvbWtrbG5ubGpoZ2psb21nbIGdvNDQvquYj42OiIJ5cnJ2ent7d3RycW5ubm5vb25samlrbXBuanGGo8DUz76nk4eIioaAd25scHV6fXx4dnNxcXFycnJvbWtqa21va2+BnLnR1MOrlISBhoaAd2xmaXF5f4F9eHVycnNzc3JwbWtqa21ua3KIpcHU0rugin5+hIR7cWdka3Z9gX95c3Fyc3R1c3FubGtsbW5sb4OhvtLUvqCIfXyEhX1xZ2VteoKEf3hxb3Byc3NycG9tbm1vb2x0jq3G1M2xkn94fIOCd2pjZ3N/hoN7cm1tcHN1dHJwcG9vb3BtcIWlwdHQuJh+dniAg3tuZGZxgYiIfXJra29zdXRxb29wcXJxb3KIqMTRzbOQeHN5gYR7a2JpeImPjH1waGpvc3Ryb25vcXJycW53krTK0cSmhHR1fYJ+cWRjcYSPjoN0ampvc3NwbW5xdXZ0cm5xhafEz8ivj3l4gYR8bmFfbIGPjYJ0bG1zd3Rva21yd3h1cW1uf6C/zMayln97gYN4aV5ebYGQjoF0b3B0dXFraGxzeXp2c3Bwf5++y8Wyl4J7f4B1aGFlcoSPjYF2cXFxb2toaG93e3p3dHFzhqbCy8GslIF8f3xvY2FpeIePin11cnJva2dmaXF5fXt3dHF4j7HHx7ihjH99fXVnX2RxgYyNhHlycXBrZmNmbXd+fnp3c3SDo8DKv6uVhX9+eWtgYW5+i4+IfHNxcGxmYmNrdn+Cf3p2c3yWt8jDsJuMhIJ7bV9ea32Kj4l+dXJybmZgYWp1f4J/end1eY2uxcWzn5CIg3xuX1pmeYiOioF4dHNwaWJiaXN8f356eHZ2hKPByruklIqFfXBhWmJ0hIuKhHx2dXNsZWJncXl9fXp3d3Z7krXJxK6aj4mCdmZbXWx9iIqGgHp4dnBnYWNsdXt9e3l6eHeDocDJuKGTjYd8bV9aY3SCh4aCfnp4dW5mY2hyeXx8eXl6eHmLrMbGsZuRjIV3Z1xdanqEhoSBfXp4c2xkZGt0ent6eXl6d3mOscnDq5iRjYV1Zl1hbn2EhYOAfXp4cmpkZW11enp5eHh5dnmQtcrBp5SPjINyY11kc4CFhYOAfXp3cWlkZm12eXl4eHl6dniNs8vDqJWQj4VzY11kcn+EhIKBfnt3cmplZ252enl3d3l7d3WGq8rJrpaRkYl2ZV1jcX+Dg4KCgHx4c2xnZ252enl3d3l7eHR+n8TNtpqQko17ZlxhcX+Eg4KDgX14cm1oZ2x0eXh3dnh6enR2kLnOv6CQkpSEbFxebXyCgYCChYF6c29qaGpxd3l4d3h6e3dxfaLHy66Sj5eRd19ZZ3qEgX2AhoV+dG9ta2tudXh5eHh6fHp1c4auzMOgi5Kdjm1WXHSHh315goqHem9sbW1sbnN3eHd3eXt5c3SNtsq3l46doIVhV2qDiYB2e4eKf3Jsb29ta291d3Z0dnd3dXByi7PHt5uYpaSIbGh1gIB7e4GEgHhzcnFsaGpwc3NycnR1dXRxb32jxMGmlp2jlX1ydHuAg4SDgHx4dHNwbGlrcXV1c3JzdHR0c3BtfKLDwqeUlZqSg3Zyd4GJi4aAenVzcm9raGtxeHh3c3NzdnZ2dHBwha3Fu6CQj5GMgXZyeYaPj4h/d3JycW9qaW11ent4dHNzdnd2dXNvepu9wa2ZkpCOhnp1eYWOkY2Fe3NvbWtoaGpxdnp4dnNycnR0dXV0bnaYvsi4ppuWk4p7eYGLj5OPiHtxaWdnZGJka3F0cnBtbm1vcHJycm5nd6HFyLyroZ2bin9/iIyQkY2IfHJpamdlYWRob3Jxbm1tbm9wcXBwbmdsj7fIxLWkn56Vh4OFiY+QjoqEeHBraWRiYGRrcXJxb21ubnBwcnJxbmZvk7jJx7ekoJ6UiYaEiI2OjImDeHJtamZjYGRqcHFxbm1ub3BxcnFxbmhmgqfDy8OtpKCaj4mDg4qLiomGfHdva2VjXmBmbXJzcnBxcXNzdHRzcW5naomtyNDDrKWelo2IfoKIiYiJg315cmtoYl9hZ2tyc3JxcXFzdHNzcnBuZ2V+ocDSzbWooJaQin59goOFiIWAfnhxbWdhYWRpbnJxcHBwcnNzc3FwbGphZoOmxNPHsaedl5OKgH+AgYaHhYJ+d3NuaGNjZGpvcXBvbnByc3NycG5raGBohabF0sWzp52ZloyCgH1/hIaFhH97d3JrZ2RmaW1ubm1tbnByc3JwbmtoYGaBocHRyLapnZuZkoiCfHyBhYaFgXx4dG9pZmVoa21tbGttb3Jzc3FuamdgY3qWt8vJuauenJyYkIZ9en2ChoaDfXl0cGtoZ2hqbGxra2xucXJzcW5qaGBjdY+vxca7rKCeoJ6Xi353eH+Fh4R+eHRyb21rampra2pqam1vcXFwbWpmYGR0jKq/w7ytoZ+go5+ThHhzeICGhoB5c3FwcG9ta2ppaWlqbG5wcXFubGdiZ3WNqr7Evq6inZ6hnpKDdG9ze4KEgHlybm1ubm5samlpamtucXR0c3BtZmVtfpmzwsa7q6Cbnp+ajn5xbXF6gYJ+d3Bsa21ub25sa2tsbnFzdXVzcGplaHOKpbzHxLSmnJqdnZWHd21scnuBgHt0b2xtbm9vbmxra2xvc3V3dXJtZ2dvgp62xce6q56am5yWinpuaW12fX98dnBtbG1ub25ta2tsbnF0dnZ0cGlobXyWr8HHvrCjm5ubl4x9cGpqcnh8e3dzb21tbm9vbmxra21wdHd4dnNsaGx4j6i8xcG0qJ+dnJiOf3Jqam51eHp3dXJxcHBvb25ta2trb3J2eHd1cGxudoifs77At66no6GbkYR4cW9wc3R0c3Jxb25ubm1tbGxsbXBzdXZ1dHJvcnmHmKWtr6yqqKelnpWMhH98enl3dXNycG9ubWxsbGtrbG5wcnN0dHRzcnN4gYyWnaChoaOjo6CalI+Kh4SAfnt4dXJwb25tbGxsbGxucHFzdHNzc3R3fIGHi4+SlZiam5qZlpORj42KiISBfnt5d3VzcXBwcHBwcXFyc3V2d3h4enx+gYSHiYuNjo+QkJCPjoyKiYeFg4F/fXt6eHd2dnV1dXV2d3h4eXp6e3x9foCBg4WGh4iJiouLioqJiIeGhYOCgH99fHt6enl5eHh5eXl6ent8fHx8fX5/gIGCg4SFhoeIiIeHh4aFhYSDgYB/fn59fHt7e3p6e3t7fHx8fX19fn5/f4CBgoODhISFhoaGhYWEhIODgoGAf39+fn19fHx8fHx8fH19fX5+fn5/f4CAgYGCgoODhISEhISDg4OCgoGBgH9/f35+fX19fX19fX1+fn5+fn9/f3+AgIGBgYKCg4ODg4ODg4KCgoGBgICAf39/fn5+fn5+fn5+fn5/f39/f3+AgICBgYGBgoKCgoKCgoKCgYGBgYCAgH9/f39/f35+f39/f39/f39/f4CAgICAgIGBgYGBgoKCgYGBgYGBgYCAgIB/f39/f39/f39/f39/f39/f3+AgICAgICBgYGBgYGBgYGBgYGBgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBgICAgICBgYCAgIB/f4GBgYGAgIB/gICAf4B/foCBgICAgH9/gICBgYCAgYB/gICAgYGBgIB+foCCgYKAf39/gICAf32BgH6AgoCAgYOCf35/gICBgX5+gYGAgICAgYKCf35+foCAgYKBgH18f4GBgoOBf3+BgICAgICAg4F/fn6BgX9+fX1+f39+fn58fH1/goB8fn6Gi4WAgIGFg4SGg4GCgYKBgoF+fn58fHx7e3t7e3p6e3x8fH1+gIOFhYWHh4iIiYiIiIeGhISDgH18e3h2dXRzcnJxcnJyc3NzdHV6gIWIi5CVl5iYmJmWlJKOi4iEgH15dXFubGpoZ2dnZmZmZ2ZmZWZteoSNlZ+oq6urq6qln5qWkYuEf3x3cm1qaGZkZGRlZGVkZWVkY2ReY3SHl6Gqub+4sa2qoZWNi4mFfn16eHVuampnZmZmaGlnaGZnZ2dmZV9kfpalrrzKzLiupp2Nf3p/fXt6eXp2cGxoZmZmaGpsbGtqamppaWhoYGmGm6e0wtDGsqqjloV6f4F+fX5/e3RwbGdlZGdnaWtra2pqampqaWpkY36Toa29y8q0raiejIGDh4B+f4B6cm5rZmNiZWZnaWtsa2prbGtsa2xkaoeYorHBzb+vraiZiISMiYKBhIN4cnFuZ2NjZWNjZWhpaWlsbGxsbW1nZ4KTnKm7yb+wr6yhkIqRjYWChYV8dXRxa2VjZGJhYmVmZ2hqbG1tbW1rZHCHkp2rvcK1r66qnZCRkoyFg4WBeXVzcGplZWRjY2VmaGhqa2xsbW1ta2h3iZSeq7i4sK6uqqGbm5aOh4SAeXNwbWllY2NiYmJjZGVmZ2hqa2tsamp1gYmSnqmrqqywsq6rqqWckouFfnhyb2plYmBgYGBhYWJjZGVnaWlqaWdrdn+Ik5+nqKqvtLe1tLGpn5OMhH54cm5pZGFfX2BhYmJjY2NkZWdoaGdkanN7hZCcpaeqrrS4uLm3sKaakYiBe3Vwa2VhXl1dXmBhYmNjZGZnaWlpZ2dvdn6Ik56jp6ywtrm5urWuo5iQh4B5c25oY19dXF1eYGFiY2RlZ2hqampnaXF3f4mUnqOnrLG3uLq5ta2jmZCIgHp0bmhjYF1dXV5gYWJjZGVnaGlqaWdpb3V9h5KboaarsLW3ubm1r6ack4qDfHZwamRgXVxcXV5fYWJkZWdpamtraWpudHqDjZedo6itsra4ureyqqKZkIiBe3VvamVhX15eXl9gYWJjZGZnaWloaW5yeICKk5qgpaqvs7W3tbGrpJ2Vj4iCfHZxbGdkYWBfXl5eX2BiY2VoamxtbnJ2e4GIj5WanqKmqausq6mloJuWkYuGgXx3cm5qZ2VjYmFhYWJjZWdpa2xucHN3en+EiI2QlJeanZ6foJ+dm5iVko6KhoJ+e3d0cW9tbGtrampra2xtbnBxcnN1dnl7foGEh4qMj5CSk5SUlZSTkpCPjIqIhYKAfnx6eHZ1dHNycnJycnNzdHR1dXZ3d3h7fH+Bg4WHiYuNjo6QkZGRkJCPjYuJiIWDgX9+fHp5eHd2dnV1dXV2dnZ2d3h4eHl6enp+f4GChYaHiYqLi4yMjYyMi4qJh4aEg4KBgH9+fX18e3t7e3t7e3t8e3x8fH19fX19fn1/gYGBgoODhISEhISEhISEg4ODgoKBgICAgH9/f39+fn5+fn5+fn5+f39/f39/f3+Af39/gH+AgYGBgoKCgoKCgoKCgoGBgYGAgICAgIB/f39/f39/f39/f39/f4B/gICAf4CAgH+AgICAgIGAf4CAgICAgICAgICAgICAgIB/gICAgICAgICAgICAgICAgICAgICAgICAgH+AgICAf4CAgICAgICAgICAgICAf4CAgICAgICAgICAgICAgICAf4CAgICAgICAgICAgICAgICAgICAgIF/f4CAgH+AgYGAgIGBgICAgH9/gIGAf4CBgICAgICAgYGAgICBgH9/gIB/f4B/fn2AgH9/f4B/f39/gH6DhYKBgoODgYOCgoKAgoGAgH1/fn5+ent7e3p4e3p7eXl8e3t6e357f4iJiYmOkY2Ojo6Lh4eGgn9+fnl1dnVzcXBxcG5vb3Bvb3FycnJydXyEi5GYoaWmpqakn5iUkImEfnx6dXNxb25saWpoZ2VkZWVlZmdpaWhnb32IkZmotbe2tbWzpZqVj4p+eHl3dnBuc3FvbWptamZlZGVmZWdpampqZWZ4iZafqb/Hwbm0tKeQhIGAeW5vd3l4dHd8enRxcHFrZ2VlZ2ZoaWxtbWtqYnCGl6OrvtDFuq+rooV2dXRzaG14e3x4fIF7d3JxcGpnZmZoaGptb3Fwb25nZHqPnaiwyc2+tKqmlHdzcHFsZnF6e316f354dXFvbWloaGlsbnFzdXV0cnBrYnCJmKWtv9HDt66mm31vcGxsZWx4en59fn95dnJvbWtpamtucHN1dnd2dXJva2JtiJimsL/Txbeuo5h7bG5qamZseHt+gICAe3d0cG5sa2xtcXN2eHp6end0b2xmYHeRn623ytG7saabiW5qamZnaXR9fYOCgXx3dHFtbm1vcHR4e35/f357d3Rva2hhbYydqrbD0MCvppeHb2ZoY2Vrcnx+hIaCfXh1cWtsbW5wdHp9gIODgn97dnJtamhjaIaYpLK+yb+wqpuLd25tZWVqb3V3foF9e3h1cm1ubm5wcnd5fH+AgH59endzcW5taXCFkp2quL+4tbCklYaBeG5tbW5vb3Z1dHRzc29ub29vcXN2d3l7e3t6eXd2dHNycHB0fYaOl6KoqaysqaKbmJGKhoOBfXt7end0dHJxcG9xcHByc3R0dXZ1dnZ2dnV1dXV0c3Z7fYGGjZOVmJyenZyamJaSkI2LiIWDgX99e3p4d3Z1dXV1dXV1dXV2dnZ2d3Z2dnd3d3h6fH6AhIaIi42Oj5CQkI+OjYyKiYiGhIKBf358e3p5eXh4eHh4eHh4eHh5eXl5enp6enp6e3t8fX+Bg4SGiImKi4yMjIyLi4qJiIeFhIKBgH9+fXx7e3p6enp6enp6e3t7e3x8fHx8fX19fX19fn+AgYKDhYaHiImJiYmJiYiHhoWEg4KBgH9/fn18fHx7e3t7e3t8fHx8fH19fX19fn5+fn5+fn5/f4CAgYKDg4SFhYaGhoaGhoWFhISDgoGAf35+fXx8fHx7e3x8fHx9fX1+fn5/f39/gICAgICAgICAgIGBgYKDg4SEhIWFhYSEhIODgoGAgH9+fn19fX18fHx9fX19fn5+f39/gICAgICAgIGAgIGBgYKCgoODg4ODg4ODg4KCgYGAgH9/fn5+fX19fX19fX5+fn5/f39/f4CAgICAgICBgYKDhIWFhoaGhoWFhYSDgoB/fn18e3p6enl5eXp6ent8fH19fn5/f4CAgICAgIGChIaIiouLi4uLiomIhoWDgX9+fHt6eXh3d3Z2d3d3eHl5ent8fH1+fn5/f4CBg4WIi42OkJCQkI+OjYuJhoSBf317eXZ1c3NycnJycnNzdHV2d3h4eXl5eXt+gYWKjpKWmJqdnp+enJmVkYyHg356dnNwbmtqaWlpamprbG1vcHFyc3NycnR3e4CGjZOYnaGlqaytramln5mSjIaAenRvamZjYWFgYGFiYmRlZmdpamppaGltcXeAiZGXnqWrsba5urm1r6efl5CIgXpzbWZiX11cXF1dXmBhY2VmaGhpaGdpbnN6g4yUmqGorbS4u7y5tK2lnZSMhHx0bWZgXFpZWVpbXF5fYWNlZ2hqamlqbnJ5gYqSmJ+mq7G3u728uLKpoZiPh393b2hiXVpZWFlaW11eYGNlZ2lqa2tqbXJ3foeQl52kqrC2u76+urWtpJuRiYF5cmpkX1tZWVlaXF1fYGJkZmhqa2tqbHF2fYaPmJ6kq7G2u72+urSso5qRiYF5cmtlYF1aWlpbXF5fYGJkZWdpamtqa3B1e4SOl52jqrC0uLu9urWupZyTi4N8dW9pZGBdXFtcXF1eX2BiY2VnaGloaW91e4SOl52jqq+0uLq7uLOspJyUjIaAenRva2ZkYWBeXV1dXF1eX2BhYmNkYWNwe4ONmaaprbK0tbGwraejnpqUjouEf3t1cWtoZWNhYF5fXl9gYWNlZmhoaGhkZnyOnKWvu7iwq6aknJaXmZuZlI+JgXlxbGdmZWZnZ2ZkYmFhYmNlZmlpampoYneYrLKutbarn5WVkIyQmqSimIuBeXFqZmVnam1vbWlkYV9hYmVoamxtbm1nZoipvbarrqyllo6PjY6VoaihkoN5c21oZmZpbW9wbGhiYGBjZWhqbW5wbm5jcZq4w7Cnp6efkIuMjZKbp6iciHlzb2tnZmhscHJwa2ZhYGJlaWtubnFwb2pig6vHwaiio6WYi4mKjpWgqqSSfXFvbmtoaGxwc3NvamRhYWVpbG1vcHJvb2VokrrOu6Gdn6KSiYeLkJmkqp6JdW1tb2xqam5zdXNvaGNhY2ZrbXBwcnJwbmJyosXPsJqYn5+Ph4eMk5ynp5h/bmlub25rbHF1dnNtZmJhZWltb3BxcnFwbWJ7rczOp5aUoJ2NhoWMlJ+npJB5ampvcW5rbnN4eHNsZWBhZmxwcnJzc3NwbWKCs9DMoI6OnZuMg4SMlJ+loYtyY2Zvc3BtbnR5eXNrY2BjanF1dXR0dHRxb2R9sc/Pn4SEl52Pg4KJk56lo41wXV9ud3dwbnR6fHduZWFianJ4eHV0dHVxcGRwpcjTqYSAkZ+VhYGGj5ujppV3X1xqeHlzbnN5fnhxZ2JiaXJ4eXd1dHRycGhklcDTuoqAi56aioCFipigqJyAY1pkdnp2bnB3fXt0a2RiZ293enh0c3JzcGxefbTQzJmBhZidkIGEh5GdpaSLblpfb3x4cm92e314cGhiZWt2ent1c3FzcG5ha6bK1amEgpOdlYSDh42aoqaUdl5ca3l6c3B0e316cmpkY2hyeHp4c3JycW1mYJXC1LqLgY6cl4eAh4mVnaWcgGVcZnZ6dnFzeX17dWxlYmdveHp5dHNycm1oXYi90sOSg42ZlYiBiImQmqSiiGtdZHF4dHF0eX16dm1mYWVsd3l5dXRycWxqXXy3zseYhY6Zk4aAi4uOmKOlj3BgZHF3c3F0eX17dm9oYmJqcnl5dnNycGxqXHSxycSej5eZi4KDjoqJmaSmkHZnaGxwbnJ1e3t5dG9nYmNpcXZ3dXRyb2tmWn+2wbumpaGRgYWIjoWRn6WdjXpvaGdpam90eHp4dG5oZGRobnJ0dXRybWleYpu1uLa2sZ6HhYeIhoman56Vh3ZsZWZlaW50d3h2c21oZmZqbnJ0dXRxbWZci66yucC8qJCIioOEhZWbm5ePfXJpZmRlanB0dnd1cWtpaGlscHJ0c3FtZl2Jqq28yMCqk4yJf4KGk5aXlo9+dGtnY2RpbnF1dnVwbGlnaGpucHFxb21iZ5ilrMTNu6eWkoN9g4mQkZSSiHt0bGdkZ2lsb3Jzcm9ua2pqbG5vb29taGCFn6C708ayppqLe4KHiYuRkYqAfHVuamppaWttbm5vbmxqampqamxsbGlifpWWt9DEvbimlImKiIaKjImFgH14c3FvbWtqamppamlpaGhoaWpqamplY4CJlLjDvsS5qJyWkYyNjYiHg358eXd1c3Bta2lnZ2ZmZmZmZmdoaGhoYGyAgZ22tr/DtKqjnZWTk4uIhX57enh4d3VxbmxoZ2ZlZWRjY2RlZmZnYmR3eYunq7bAt7KsqKKdnZSNiX97eHV1c3JvbGpmZWRjY2NjY2RmZ2hpZ2l1eoecoqu0s7KxsK2qpp6WjoV/eXVyb2toZWNhYWFiY2NjZGRlZmZlaHB2gY6XoKarrrC0trWzrqadk4qCfHZxbGdiX11cXV1fYGBhYmNkZmZlanF4go2XnqSqrrG1uLm3squhl46Ffnhxa2ZhXVpZWVpcXV9gYmNlZmhoa3F4gYyVnaOprbC1ubq5ta6lm5GIgXp0bWdhXVlYWFlaXF5fYWNlZmhoam91fIaQmaClq6+zuLq7uLOroZeNhX53cWpkXlpYV1hZW11eYGJkZWhpaWxyeIGLlJyjqK2wtbm7uravppyTioJ6dG1mYFtYVlVWWFtdX2FjZmhrbG1wdXuDjZadpKmtsbW5urm1r6edlIuDfHVvaGJdWVdXWFlbXF5gYWRmaGprb3R6gouUnKKnq6+ztri4ta+on5aOh4B5cmxmYV1aWVlaW1xdX2FjZWdpa29zeH+HjpSan6SorK+ysrCtp6Gak4yGgHp0bmlkYV9dXV1dXl9hY2Vnamxvcnd8gYeNkpebn6KlqKmqqaainpmUj4qFgHt2cW1pZ2VjYmJiY2RlZ2lrbnBzdnl9gYaKjpGUl5qcnZ6enZuZlpOQjIiFgX16d3Rxb25sbGtsbG1ub3Fyc3V2eHp8foGDhoiKjI2Pj5CRkZCQj46MioiGhIJ/fXt6eHd2dXR0dHR0dXZ3eHh5ent8fn+AgoOEhoeHiImJiYqKiYmJiIeFhIOBgH99fHt6eXl4eHh4eHl5enp7fHx9fn5/gIGCg4SEhYWGhoaGhoaGhoWFhIOCgYB/fn59fHx7e3t7e3t7fHx8fX19fn5/f4CBgYKDg4OEhISEhISEhISEg4OCgYGAf39+fn19fXx8fHx8fHx8fH19fX1+f3+AgYKCg4SEhIWFhYWFhYSEg4ODgYGAgH9/fn96gHx+e4B6f3p+gHqAfH1/fX93g3uHjYGHeYeGgIh9g3qDiIB9goOAfoOBfH6Egnp/g3t9hYF8fISAfISFe4CBgX2Dgn2Bg4B8hIB7f4OAe4GDfX6Dgn58hIJ+gYd/fn+EfHyDf3qBf4N9hoB/gIB8hHyFeoOBgH2HfIJ/gYCBfIN+foB8hYJ8h399f36GfXyGf31+g4V5goSCeYKDfnuDgIF6hYB+gYGBgICDf32BfoB/goCAf36CgICBgn99gYN+foSCfoKBfH+AfH+AgnyCg4J9goR7gICAgH5+g32Ge4OCfX2DfoN8hIR8f4J/f3+Bgn99g4B+gYKBgXqGfnyAg32CfIl7foWCeoV9g3uBhHx/hH1/gYB/foR9gH+BfoB/gnqDgnx/hnuBh3+CgX+FfICIeoKDe4SBe4V7f4B7gXx6gnd/fHmBenuBeIF/eIN9gIx/h4+Ei4iIjIOIioGDgX5/enx3d3hyc3Nyc3BydHN1dHZ3dnt/gImLkZWVmp2ZnJqWlI6LiIGAenh0cW9ta2pnaGhmZ2hqaGttbG10e4GFkZmfoqisrampp6GZlI6IgH15dHBta2hkZWNiYmFhYmJjZWZmZ2Rsen+Ilqaur7W8u7axrqebk4yFfnp2c29samdmY2JjX19gXmJhY2dmZ2lhZniBi5iqubm5wcG7samkmIuEf3l1dHNybW5samdlZmRiYWNkZmhsbW9tbmhidoeOna69xr6+wLernZKIfHNwbG1ucnRzcnJxb2tqaWdlZmdpbG9xc3Nxb2phb4iSoK++ysK6t66hkYV+eHNycnV3eXd1cW9raWZmZWdmaWtvcXR0dXRycGtmboWToKy3wb63sauimI+Lh4SBfn17eHRwa2hlYmJhYmNlZ2lrbW9wcXFxcW9scYCNmaKpsLOwr6uoo52ZlpGMh4N/enVwbGhlY2JiYmNkZmdpa2xub29wb25vdHuDi5Oboqerr7K0s7CtqaKakoqDfHZwa2ZjYF5eXl5fYWNlZ2lrbW9wcHFvb3V8goiOlZyjqK60uLq6t7Sup5+Xj4d/d3BpZF9cWlhYWFlaXV9iZGdqbG5vcHBvcnl/g4mPlp6kqrG3ury7uLSup56WjoV8c2pjXllWVFNTVFZZXGBjZ2psb3BxcnFwdHuAhYqQl56kqrG2ubu5t7KspJyTioB3bWVeWVVSUlJTVFZaXWFkaGtucXN0dHNydn2Dh42SmJ+mrLO4u7y7uLOspJuSiH91bGRdWFRRUVFSVVhbX2Nmam1wc3R1dnVzd36EiY6TmaGor7W7vb68uLOtpJuSiX91bGRdWFVTU1NUVlldYGRoa25xc3V2dnZ0d3+FipCUmqGor7W7vb68uLOso5qRiH91bGReWVZUU1NUVlhbX2Nmam1wcnR1dnVzdX2EiY+TmKCmrbO5u7y6trGro5qRiYB2bWVeWVVSUVFSU1ZaXWFlaW1vcnR1dnZ0dXyDiY6Slp2kq7G3uru5t7KspJuSiX91bGNcVlNRUFFSVFdbX2Nmam1vcXN0dHRycXN6g42VnKGmrbK4vL67tq+oopqSioJ8dXBqZmFfXV1cXFxeX2JkZ2hrbW9wcXFycXBxcXOClqy8wsC6sq6sq6adk4uGhIOBfHhybmtoZmRjY2RmaGlqa2xtbnBxcXJxcXBwb2ppgJu6zc/DtKaenp6bkouGh4qKhX51bmpoZ2dlZmZpamtra2xtb3BycXJxcnFxb25mb4+vzdXJsZ+SkpeZlI2GhoqOjIN4bGdkZWVlZmdrbG9tbWttbnBycnNyc3JycG9sZXSYu9bXwKGNg4mWm5WKhIWPlJGDdGdjZWhqamlqbXBxcW5tbXBydXV0c3N0c3Nwb2ZwlbvY3MKbhHyHmqObjIKCjpiWhnNkYGZuc3Jta2xwc3NwbWtucnZ3dnNxcXJzcnFsZoGs0N/PqIR6gJWmpJKCf4iXm412ZF5lcnl4cmxrb3R0cWxqbHF2eHZzcXFyc3Jwb2htlcDb2bqNdnqKoKqdh32Bj5uWf2dbXmx7f3lvaWpxdnVva2pudXl5dnJwcXNzcnBwaXSgyNrNqHxvfpOlp5N7d4SWnpFzWlZhdoODd21pbnV5dW5qa3J5fHl2cnFzdXVzcnFrfq/V3MKWbm2Hnaefh3R8jp2bhWVUW2x+hH5ybG51eXhxbGtwd3x7eHRzc3V1dHNxcGqGueDdvZBtcoqfopiDeIKVnpV+Y1licnx+d3Buc3d4dG5qbHN4e3l2dHR0dXRzcHFubIzB49m1iW11jZ6bkYF+ipqbjXZiXWZzeHZwbnF1eHRva2xxdnl5d3V0dXV1cnFwc29wkcTi0q2Eb3ePnJeKgIOQnZqHcGFha3N1cW1uc3d2cWtqbXN4enl3d3d3dXRzc3R1cXCOxOXVq4RxeI+dlomFjZidlIBsY2dvcm9ra3B2eHVva2xxdnl5eHd4eXh3dXV2dnd0boG04+G3jHV2iJiWi4WOm6CVgG1laG9yb2xtc3h4dG5rbHF2eHl5ent7enh2dXZ3d3dxcpLI5tKlg3l+ipCLhoqXn5qKeGxnaGtqZ2dsc3d2cWxqa290dnh5ent7eXh2dXV3eHhzdJLC386oioGDiYyJhouWn5uNfXBoZmdnZmVqcXV1cW1qa25xdHZ4eXp6enh3d3d4eXl1coOu2Ny8mImIiouLiImQm56Wh3htaGZmZWRnbXN2dHBsa2xvcnV3eXp7e3p5eHd3d3d4dXKDrNbavJuOjYyLjIyKjJSbmIp7bmdlZWVlZmtxdHRwbGpqbXF0dnd5ent6eXd1dnZ3eHdyd5O+1senlJKTkpGRjIeKl52VhHNpZWVmZmVnbHFzcm5qaWtvc3V3eHl6eXh3dnV2d3h5d3N3kbvWy6uXlZiYlpSNhIaUnpiGdGpmZmdnZmdrcXVzb2xrbHB0dnd4eXt8e3l3d3d5eXl5d3N5l8PYx6eXmJqYlpOKgoaUm5J/b2dkZWdnZWZqcHNybmtqbHB0dnh5enp6eXh2dnZ3eHl5eHR2jbbSyauYl5uZlpSMgoSSnJWCcWdkZWZmZWVpb3Rzb2tqbHB0dnd4eXp7enl3d3d4eXp6endzepjC1cSmmJqdmpeUi4OHlp2TgHBpZ2doaGZnbHJ0c29sa25xdXd4eXt8e3l3dnZ3eHp6enl4c3iUwNbHqJibnZiUkYqDh5SbkYBxaWZmZ2ZlZ2xydXNva2pscHR2d3h5ent5d3Z2d3h5enl5eXZzgabL0LedmZ2blJGOiIaQm5mKeG1oZ2dmZWZqcXR0cG1sbXBzdXd4e3x8enl3dnZ3eHl6enp5dnF8oczWvqGan5uRjIyKipGbmIp6cGtqaGdmaG50d3VxbmxtcHJ1d3p7e3p4dnV1dXZ4eXl5eXh3cnKHtNTMrZyenZCEhYmMkZiZkIJ3b2lnZmRlaXF1dnNwbm5vcXN2eHp7enl3dXR0dXZ3eHl6enl4dXB4mcPQvqysrJ+Pi4yLjpWZlIuBeHFubGlnaW5zdHJvbm5wcnR2eHl5eXh2dHNzdHR1dnZ2dnZ2dXRxbn6kycu1pKGfmZGKhIeSnJuShnpybm1raWhtdHl6eHNwb3J0dnd5e3x7eXd1dHR1dnd4eXl5eXh4eHh3c3eWwdTDqZiTkpKKgYOToKGXi31ybGtqamtwdXp7eHNvbnBzdnl8f39/fHl2dnZ3eHl6ent6enl5eHl5eXl1dY21zsWul46PkYZ+g5Wkp5uJeXBqZWNjaXB4fHx4cm1qa21yd3yAgoF+end1dXZ4e3x9fHt5eXh4eHl6e3t6eHOBpcfKt56OjZGKf4KUpquhjXtwaWRiZWtze359eHJtamptcnh9gYOCf3t4dXV2eHp8fX19fHt5eXl6enx8fXx7d3OEqcXDsJiKjI+Gf4ibrK6ginluZ2NiZm13fX98d3BramtwdXt/g4OCfnt3dXV2eHp8fX18e3h4d3h5e3x9fX18enZygqbCxLKZiouNh4KJmKisoY17bmdkZGhudn2Af3lybGlqbXN5foKDgn97d3Z2d3l7fH18fHp5eHd4eHp7fH19fHp5dXKEp8PGtZmJiYuIhoqWpKmgjnxuZ2Znam50en5+enNtamxwdXp+gYKBfnt4dnZ3eXt9fn59fHt6enp6e3x9fX18fHp5dnOEpL/Jup2LhoiLioiPmqKiloJxZmRlaWxwdnt+fHdxbWxvc3d7f4GCgH56eHZ3eHp7fH19fXx7enp6e3t8fX18fHt6eXZzgZy1xLujkYiGioiIjZafo5qLeWxmZWdqbXN5fX56dG9tbnF1en2AgoKAfXp4d3h5e3x9fXx8e3p6eXp6e3x9fX18e3p5dXSCmrPBu6eViYaIh4eLkpufmY19b2lmZmpscXh7fXx2cW5tcHN3en6AgYF/fHp5eHl7e31+fX19fHt6enp7e3x8fHx8e3p5dXaDmbG/uqmYioeIh4iMkpqdmY+Ac2tnZ2lscXZ6fXt3cm5ucHN3en2AgYB/fHt5eXp6e319fX18e3t6ent7fHx8fHx7e3p5eHV3g5arubirm4yHhoeJjZGXm5qTh3twamhoa25yd3p7eXZycXFzdnl7fn9/f359fHp7e3t9fX19fHx8e3t7e3x8fH18fHt7e3l3dnqFlqizs6ubj4iHio2PkJGSkpCKg3lxa2hoam1wc3V2dnV0dHV3d3h5ent9fX5/f39+fn5+fn59fXx9fX19fn19fX19fHx8e3p5d3mAjJunrKqglY2Jio6PkI+NjY6Ni4V9dW1paGlsb3Fyc3R0dXZ2d3d4eHl6e31+f4CAgIB/f39/f35+fn5+fn5+fn5+fX19fXx7eXh7gYyYoaWjnJSOi4uOj4+OjIuLi4qHgXlybWpqa25wcXJyc3R1dnd4eHh4eXp8fX+AgICAgICAgIB/f39/f39/f39/f39+fn18e3p7foSMlZuenJeSjYyMjo+PjoyLiomIhIB6dXFvbm9wcHFwcHFyc3V2d3d3d3h5e31+f39/f4CBgYGBgYGBgYGBgICBgYGBgH99fX+ChouOj46Ni4qKioqKiomJiIeGhYSCf317eXh4eHd3dnZ2dnd3eHh4eXp6e3x9fX5/f4CAgICBgYGBgYGBgYGBgICAf4CBg4aIioqJiIeHiIiIiIeGhoaGhYSDgX9+fXx7e3p5eXl5eHh4eXl6enp7e3t8fX5+f39/gICAgYGBgYGBgYGBgYCAgIGCg4WHiIiHhoaGhoeHh4aFhYSEhIOCgH99fHx8fHt7enp5eXp6ent7e3t8fHx9fX5+f39/gICAgYGBgYGBgYGBgICAgYKEhYaGhoWEhYWGhoaFhISEhISDgoB/fn19fXx8e3t6enp7e3t7e3x8fH19fn5+f39/f4CAgICAgYGBgYGBgYCAgYKDhIWGhYWEhISFhYWFhISDg4OCgoGAf39+fX19fHx8fHt7fHx8fHx8fX19fn5/f39/f4CAgICBgYCAgICBgICAgYKDg4SEhIODg4SEhISDg4ODgoKCgYCAf39+fn59fX19fX19fX19fX1+fn5+f39/f3+AgICAgICBgYGBgYGBgICBgYKCgoKCgoKCgoKCgoKCgoGBgYGBgIB/f39/fn5+fn5+fn5+fn5+fn5/f39/f3+AgICAgICAgICAgICBgICAgIGBgYGBgYGBgYGBgYGBgYGBgYCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA="
+              }
+            },
+            {
+              "wait": "document.querySelector('#file-preview .remove-file-btn') !== null"
+            },
+            {
+              "read": "(() => { const name = document.getElementById('file-selected-name'); const shown = (element) => element.matches('img, audio') ? `${element.tagName.toLowerCase()}.${element.className}${element.controls ? ' controls' : ''} ${element.src.split(':')[0]}` : `${element.tagName.toLowerCase()}.${element.className} ${element.textContent.trim()}`; return { name: name.textContent, selected: name.classList.contains('selected'), files: document.getElementById('file-input').files.length, preview: [...document.getElementById('file-preview').children].map((info) => [info.className, ...[...info.children].map(shown)]) }; })()"
+            },
+            {
+              "select": "#temperature",
+              "value": "0.8"
+            },
+            {
+              "select": "#topK",
+              "value": "20"
+            },
+            {
+              "select": "#question",
+              "value": "In one sentence, what does this audio say?"
+            },
+            {
+              "click": "#ask-button"
+            },
+            {
+              "wait": "languageModelStreamsDone === 1 && document.getElementById('ask-button').innerText.trim() === 'Enviar'"
+            },
+            {
+              "read": "languageModelCalls"
+            },
+            {
+              "read": "translationCalls.filter((call) => ['detect', 'translate', 'translateStreaming'].includes(call.method))"
+            },
+            {
+              "read": "outputStates.slice(outputStates.indexOf(\"Erro: signal is aborted without reason\") + 1).filter((state) => state !== '')"
+            },
+            {
+              "read": "buttonStates"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            {
+              "text": "Parar",
+              "stop": true
+            },
+            [
+              "Processing your question...",
+              "A",
+              "A multimodal",
+              "A multimodal model",
+              "A multimodal model processes",
+              "A multimodal model processes and",
+              "Erro: signal is aborted without reason"
+            ],
+            [
+              {
+                "text": "Enviar",
+                "stop": false
+              },
+              {
+                "text": "Parar",
+                "stop": true
+              },
+              {
+                "text": "Enviar",
+                "stop": false
+              }
+            ],
+            {
+              "name": "✓ store.wav",
+              "selected": true,
+              "files": 1,
+              "preview": [
+                [
+                  "file-info",
+                  "audio.preview-audio controls blob",
+                  "button.remove-file-btn × Remover arquivo"
+                ]
+              ]
+            },
+            [
+              {
+                "method": "availability",
+                "options": {
+                  "languages": ["en"]
+                }
+              },
+              {
+                "method": "params"
+              },
+              {
+                "method": "create",
+                "options": {
+                  "expectedInputs": [
+                    {
+                      "type": "text",
+                      "languages": ["en"]
+                    },
+                    {
+                      "type": "audio"
+                    },
+                    {
+                      "type": "image"
+                    }
+                  ],
+                  "expectedOutputs": [
+                    {
+                      "type": "text",
+                      "languages": ["en"]
+                    }
+                  ],
+                  "temperature": 1,
+                  "topK": 3,
+                  "initialPrompts": [
+                    {
+                      "role": "system",
+                      "content": [
+                        {
+                          "type": "text",
+                          "value": "You are an AI assistant that responds clearly and objectively. Always respond in plain text format instead of markdown."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "method": "promptStreaming",
+                "input": [
+                  {
+                    "role": "user",
+                    "content": [
+                      {
+                        "type": "text",
+                        "value": "In one sentence, what does a multimodal model do?"
+                      }
+                    ]
+                  }
+                ],
+                "options": {
+                  "signal": "AbortSignal"
+                }
+              },
+              {
+                "event": "abort",
+                "chunks": 5
+              },
+              {
+                "method": "destroy"
+              },
+              {
+                "method": "create",
+                "options": {
+                  "expectedInputs": [
+                    {
+                      "type": "text",
+                      "languages": ["en"]
+                    },
+                    {
+                      "type": "audio"
+                    },
+                    {
+                      "type": "image"
+                    }
+                  ],
+                  "expectedOutputs": [
+                    {
+                      "type": "text",
+                      "languages": ["en"]
+                    }
+                  ],
+                  "temperature": 0.8,
+                  "topK": 20,
+                  "initialPrompts": [
+                    {
+                      "role": "system",
+                      "content": [
+                        {
+                          "type": "text",
+                          "value": "You are an AI assistant that responds clearly and objectively. Always respond in plain text format instead of markdown."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "method": "promptStreaming",
+                "input": [
+                  {
+                    "role": "user",
+                    "content": [
+                      {
+                        "type": "text",
+                        "value": "In one sentence, what does this audio say?"
+                      },
+                      {
+                        "type": "audio",
+                        "value": {
+                          "blob": "audio/wav",
+                          "size": 19889
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "options": {
+                  "signal": "AbortSignal"
+                }
+              }
+            ],
+            [
+              {
+                "method": "detect",
+                "input": "The store opens at nine."
+              },
+              {
+                "method": "translateStreaming",
+                "input": "The store opens at nine."
+              }
+            ],
+            [
+              "Processing your question...",
+              "The",
+              "The store",
+              "The store opens",
+              "The store opens at",
+              "The store opens at nine",
+              "The store opens at nine.",
+              "Traduzindo resposta...",
+              "A loja abre às nove."
+            ],
+            [
+              {
+                "text": "Enviar",
+                "stop": false
+              },
+              {
+                "text": "Parar",
+                "stop": true
+              },
+              {
+                "text": "Enviar",
+                "stop": false
+              },
+              {
+                "text": "Parar",
+                "stop": true
+              },
+              {
+                "text": "Enviar",
+                "stop": false
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "keeps an answer the detector finds already in Portuguese without translating it",
+      "serve": {
+        "port": 47361,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const config = {\"availability\":[\"available\"],\"translator\":\"available\",\"answers\":[[\"Um\",\" modelo\",\" multimodal\",\" é\",\" um\",\" sistema\",\" de\",\" intelig\",\"ência\",\" artificial\",\" capaz\",\" de\",\" process\",\"ar\",\",\",\" compreender\",\" e\",\" gerar\",\" informações\",\" a\",\" partir\",\" de\",\" diferentes\",\" tipos\",\" de\",\" dados\",\" simult\",\"aneamente\",\",\",\" como\",\" texto\",\",\",\" imagens\",\",\",\" á\",\"udio\",\" e\",\" vídeo\",\".\"]],\"translations\":[],\"detections\":[[{\"detectedLanguage\":\"pt\",\"confidence\":0.9987},{\"detectedLanguage\":\"und\",\"confidence\":0.0008}]]}; globalThis.languageModelCalls = []; globalThis.translationCalls = []; globalThis.languageModelStreamsDone = 0; globalThis.outputStates = []; globalThis.buttonStates = []; globalThis.consoleLines = []; const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)); const collapse = (text) => text.replace(/\\s+/g, ' ').trim(); const plain = (key, value) => typeof value === 'function' ? 'function' : value instanceof AbortSignal ? 'AbortSignal' : value instanceof Blob ? { blob: value.type, size: value.size } : (key === 'content' || key === 'value') && typeof value === 'string' ? collapse(value) : value; const clone = (value) => JSON.parse(JSON.stringify(value ?? null, plain)); const record = (call) => languageModelCalls.push(call); const recordTranslation = (call) => translationCalls.push(call); let streams = 0; let checks = 0; let translations = 0; let detections = 0; const stream = (signal) => { const index = streams++; const pending = [...(config.answers[index] ?? [])]; const stall = index === 0 ? config.stallAfter : undefined; let sent = 0; let open = true; return new ReadableStream({ start: (controller) => signal?.addEventListener('abort', () => { if (!open) return; open = false; record({ event: 'abort', chunks: sent }); controller.error(signal.reason); }), pull: async (controller) => { await pause(30); if (!open) return; if (sent === stall) return new Promise(() => {}); if (pending.length === 0) { open = false; controller.close(); languageModelStreamsDone++; return; } sent++; controller.enqueue(pending.shift()); }, }); }; const textStream = (chunks) => { const pending = [...chunks]; return new ReadableStream({ pull: async (controller) => { await pause(30); if (pending.length === 0) return controller.close(); controller.enqueue(pending.shift()); }, }); }; const createSession = () => ({ prompt: async (input) => { record({ method: 'prompt', input: clone(input) }); await pause(50); return 'Hello! How can I help you today?'; }, promptStreaming: (input, options) => { record({ method: 'promptStreaming', input: clone(input), options: clone(options) }); return stream(options?.signal); }, destroy: () => record({ method: 'destroy' }), }); const download = async (monitor, keep) => { const target = new EventTarget(); const listen = target.addEventListener.bind(target); target.addEventListener = (type, listener, options) => { keep({ method: 'monitor.addEventListener', type }); listen(type, listener, options); }; monitor(target); for (const loaded of [0, 0.5, 1]) { await pause(30); target.dispatchEvent(new ProgressEvent('downloadprogress', { loaded, total: 1 })); } }; const LanguageModel = { availability: async (options) => { record({ method: 'availability', options: clone(options) }); return config.availability[Math.min(checks++, config.availability.length - 1)]; }, params: async () => { record({ method: 'params' }); return { defaultTopK: 3, maxTopK: 128, defaultTemperature: 1, maxTemperature: 2 }; }, create: async (options) => { record({ method: 'create', options: clone(options) }); if (config.refuseDownload) throw new DOMException(config.refuseDownload, 'NotAllowedError'); if (typeof options?.monitor === 'function') await download(options.monitor, record); await pause(50); return createSession(); }, }; const Translator = { availability: async (options) => { recordTranslation({ method: 'Translator.availability', options: clone(options) }); return config.translator; }, create: async (options) => { recordTranslation({ method: 'Translator.create', options: clone(options) }); if (config.refuseTranslator) throw new DOMException(config.refuseTranslator, 'NotAllowedError'); if (config.translator === 'downloadable' && typeof options?.monitor === 'function') await download(options.monitor, recordTranslation); await pause(30); return { translate: async (input) => { recordTranslation({ method: 'translate', input }); await pause(30); return (config.translations[translations++] ?? []).join(''); }, translateStreaming: (input) => { recordTranslation({ method: 'translateStreaming', input }); return textStream(config.translations[translations++] ?? []); }, destroy: () => recordTranslation({ method: 'Translator.destroy' }), }; }, }; const LanguageDetector = { availability: async () => { recordTranslation({ method: 'LanguageDetector.availability' }); return 'available'; }, create: async () => { recordTranslation({ method: 'LanguageDetector.create' }); await pause(30); return { detect: async (input) => { recordTranslation({ method: 'detect', input }); await pause(30); return config.detections[detections++] ?? []; }, destroy: () => recordTranslation({ method: 'LanguageDetector.destroy' }), }; }, }; for (const [name, value] of Object.entries({ LanguageModel, Translator, LanguageDetector })) Object.defineProperty(globalThis, name, { value, writable: true, configurable: true }); const log = console.log; console.log = (...values) => { consoleLines.push(values.map(String).join(' ')); log(...values); }; const collapseShown = (text) => text.replace(/\\s+/g, ' ').trim(); const capture = () => { const output = document.getElementById('output'); const button = document.getElementById('ask-button'); if (output && collapseShown(output.innerText) !== outputStates.at(-1)) outputStates.push(collapseShown(output.innerText)); if (!button) return; const state = { text: collapseShown(button.innerText), stop: button.classList.contains('stop-button') }; const last = buttonStates.at(-1); if (last?.text !== state.text || last?.stop !== state.stop) buttonStates.push(state); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true, attributes: true }); })()",
+          "steps": [
+            {
+              "wait": "document.getElementById('topk-value').textContent === '3'"
+            },
+            {
+              "select": "#temperature",
+              "value": "0.5"
+            },
+            {
+              "select": "#topK",
+              "value": "10"
+            },
+            {
+              "select": "#question",
+              "value": "Em uma frase, o que é um modelo multimodal?"
+            },
+            {
+              "click": "#ask-button"
+            },
+            {
+              "wait": "languageModelStreamsDone === 1 && document.getElementById('ask-button').innerText.trim() === 'Enviar'"
+            },
+            {
+              "read": "languageModelCalls"
+            },
+            {
+              "read": "translationCalls.filter((call) => ['detect', 'translate', 'translateStreaming'].includes(call.method))"
+            },
+            {
+              "read": "outputStates.filter((state) => state !== '')"
+            },
+            {
+              "read": "buttonStates"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              {
+                "method": "availability",
+                "options": {
+                  "languages": ["en"]
+                }
+              },
+              {
+                "method": "params"
+              },
+              {
+                "method": "create",
+                "options": {
+                  "expectedInputs": [
+                    {
+                      "type": "text",
+                      "languages": ["en"]
+                    },
+                    {
+                      "type": "audio"
+                    },
+                    {
+                      "type": "image"
+                    }
+                  ],
+                  "expectedOutputs": [
+                    {
+                      "type": "text",
+                      "languages": ["en"]
+                    }
+                  ],
+                  "temperature": 0.5,
+                  "topK": 10,
+                  "initialPrompts": [
+                    {
+                      "role": "system",
+                      "content": [
+                        {
+                          "type": "text",
+                          "value": "You are an AI assistant that responds clearly and objectively. Always respond in plain text format instead of markdown."
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "method": "promptStreaming",
+                "input": [
+                  {
+                    "role": "user",
+                    "content": [
+                      {
+                        "type": "text",
+                        "value": "Em uma frase, o que é um modelo multimodal?"
+                      }
+                    ]
+                  }
+                ],
+                "options": {
+                  "signal": "AbortSignal"
+                }
+              }
+            ],
+            [
+              {
+                "method": "detect",
+                "input": "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de diferentes tipos de dados simultaneamente, como texto, imagens, áudio e vídeo."
+              }
+            ],
+            [
+              "Processing your question...",
+              "Um",
+              "Um modelo",
+              "Um modelo multimodal",
+              "Um modelo multimodal é",
+              "Um modelo multimodal é um",
+              "Um modelo multimodal é um sistema",
+              "Um modelo multimodal é um sistema de",
+              "Um modelo multimodal é um sistema de intelig",
+              "Um modelo multimodal é um sistema de inteligência",
+              "Um modelo multimodal é um sistema de inteligência artificial",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de process",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar,",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de diferentes",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de diferentes tipos",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de diferentes tipos de",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de diferentes tipos de dados",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de diferentes tipos de dados simult",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de diferentes tipos de dados simultaneamente",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de diferentes tipos de dados simultaneamente,",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de diferentes tipos de dados simultaneamente, como",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de diferentes tipos de dados simultaneamente, como texto",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de diferentes tipos de dados simultaneamente, como texto,",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de diferentes tipos de dados simultaneamente, como texto, imagens",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de diferentes tipos de dados simultaneamente, como texto, imagens,",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de diferentes tipos de dados simultaneamente, como texto, imagens, á",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de diferentes tipos de dados simultaneamente, como texto, imagens, áudio",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de diferentes tipos de dados simultaneamente, como texto, imagens, áudio e",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de diferentes tipos de dados simultaneamente, como texto, imagens, áudio e vídeo",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de diferentes tipos de dados simultaneamente, como texto, imagens, áudio e vídeo.",
+              "Traduzindo resposta...",
+              "Um modelo multimodal é um sistema de inteligência artificial capaz de processar, compreender e gerar informações a partir de diferentes tipos de dados simultaneamente, como texto, imagens, áudio e vídeo."
+            ],
+            [
+              {
+                "text": "Enviar",
+                "stop": false
+              },
+              {
+                "text": "Parar",
+                "stop": true
+              },
+              {
+                "text": "Enviar",
+                "stop": false
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "explains that it needs Google Chrome with the Prompt API enabled and disables Enviar",
+      "serve": {
+        "port": 47361,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const config = {\"availability\":[\"available\"],\"translator\":\"available\",\"answers\":[],\"translations\":[],\"detections\":[],\"api\":false}; globalThis.languageModelCalls = []; globalThis.translationCalls = []; globalThis.languageModelStreamsDone = 0; globalThis.outputStates = []; globalThis.buttonStates = []; globalThis.consoleLines = []; delete globalThis.chrome; delete globalThis.LanguageModel; delete globalThis.Translator; delete globalThis.LanguageDetector; const log = console.log; console.log = (...values) => { consoleLines.push(values.map(String).join(' ')); log(...values); }; const collapseShown = (text) => text.replace(/\\s+/g, ' ').trim(); const capture = () => { const output = document.getElementById('output'); const button = document.getElementById('ask-button'); if (output && collapseShown(output.innerText) !== outputStates.at(-1)) outputStates.push(collapseShown(output.innerText)); if (!button) return; const state = { text: collapseShown(button.innerText), stop: button.classList.contains('stop-button') }; const last = buttonStates.at(-1); if (last?.text !== state.text || last?.stop !== state.stop) buttonStates.push(state); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true, attributes: true }); })()",
+          "steps": [
+            {
+              "wait": "document.getElementById('ask-button').disabled"
+            },
+            {
+              "read": "document.getElementById('output').innerText.split('\\n')"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              "⚠️ Este recurso só funciona no Google Chrome ou Chrome Canary (versão recente).",
+              "⚠️ As APIs nativas de IA não estão ativas.",
+              "Ative a seguinte flag em chrome://flags/:",
+              "- Prompt API for Gemini Nano (chrome://flags/#prompt-api-for-gemini-nano)",
+              "Depois reinicie o Chrome e tente novamente."
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "explains that the Translation and Language Detection APIs are missing and disables Enviar",
+      "serve": {
+        "port": 47361,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const config = {\"availability\":[\"available\"],\"translator\":\"available\",\"answers\":[],\"translations\":[],\"detections\":[],\"translation\":false}; globalThis.languageModelCalls = []; globalThis.translationCalls = []; globalThis.languageModelStreamsDone = 0; globalThis.outputStates = []; globalThis.buttonStates = []; globalThis.consoleLines = []; const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)); const collapse = (text) => text.replace(/\\s+/g, ' ').trim(); const plain = (key, value) => typeof value === 'function' ? 'function' : value instanceof AbortSignal ? 'AbortSignal' : value instanceof Blob ? { blob: value.type, size: value.size } : (key === 'content' || key === 'value') && typeof value === 'string' ? collapse(value) : value; const clone = (value) => JSON.parse(JSON.stringify(value ?? null, plain)); const record = (call) => languageModelCalls.push(call); const recordTranslation = (call) => translationCalls.push(call); let streams = 0; let checks = 0; let translations = 0; let detections = 0; const stream = (signal) => { const index = streams++; const pending = [...(config.answers[index] ?? [])]; const stall = index === 0 ? config.stallAfter : undefined; let sent = 0; let open = true; return new ReadableStream({ start: (controller) => signal?.addEventListener('abort', () => { if (!open) return; open = false; record({ event: 'abort', chunks: sent }); controller.error(signal.reason); }), pull: async (controller) => { await pause(30); if (!open) return; if (sent === stall) return new Promise(() => {}); if (pending.length === 0) { open = false; controller.close(); languageModelStreamsDone++; return; } sent++; controller.enqueue(pending.shift()); }, }); }; const textStream = (chunks) => { const pending = [...chunks]; return new ReadableStream({ pull: async (controller) => { await pause(30); if (pending.length === 0) return controller.close(); controller.enqueue(pending.shift()); }, }); }; const createSession = () => ({ prompt: async (input) => { record({ method: 'prompt', input: clone(input) }); await pause(50); return 'Hello! How can I help you today?'; }, promptStreaming: (input, options) => { record({ method: 'promptStreaming', input: clone(input), options: clone(options) }); return stream(options?.signal); }, destroy: () => record({ method: 'destroy' }), }); const download = async (monitor, keep) => { const target = new EventTarget(); const listen = target.addEventListener.bind(target); target.addEventListener = (type, listener, options) => { keep({ method: 'monitor.addEventListener', type }); listen(type, listener, options); }; monitor(target); for (const loaded of [0, 0.5, 1]) { await pause(30); target.dispatchEvent(new ProgressEvent('downloadprogress', { loaded, total: 1 })); } }; const LanguageModel = { availability: async (options) => { record({ method: 'availability', options: clone(options) }); return config.availability[Math.min(checks++, config.availability.length - 1)]; }, params: async () => { record({ method: 'params' }); return { defaultTopK: 3, maxTopK: 128, defaultTemperature: 1, maxTemperature: 2 }; }, create: async (options) => { record({ method: 'create', options: clone(options) }); if (config.refuseDownload) throw new DOMException(config.refuseDownload, 'NotAllowedError'); if (typeof options?.monitor === 'function') await download(options.monitor, record); await pause(50); return createSession(); }, }; const Translator = { availability: async (options) => { recordTranslation({ method: 'Translator.availability', options: clone(options) }); return config.translator; }, create: async (options) => { recordTranslation({ method: 'Translator.create', options: clone(options) }); if (config.refuseTranslator) throw new DOMException(config.refuseTranslator, 'NotAllowedError'); if (config.translator === 'downloadable' && typeof options?.monitor === 'function') await download(options.monitor, recordTranslation); await pause(30); return { translate: async (input) => { recordTranslation({ method: 'translate', input }); await pause(30); return (config.translations[translations++] ?? []).join(''); }, translateStreaming: (input) => { recordTranslation({ method: 'translateStreaming', input }); return textStream(config.translations[translations++] ?? []); }, destroy: () => recordTranslation({ method: 'Translator.destroy' }), }; }, }; const LanguageDetector = { availability: async () => { recordTranslation({ method: 'LanguageDetector.availability' }); return 'available'; }, create: async () => { recordTranslation({ method: 'LanguageDetector.create' }); await pause(30); return { detect: async (input) => { recordTranslation({ method: 'detect', input }); await pause(30); return config.detections[detections++] ?? []; }, destroy: () => recordTranslation({ method: 'LanguageDetector.destroy' }), }; }, }; for (const [name, value] of Object.entries({ LanguageModel, Translator, LanguageDetector })) Object.defineProperty(globalThis, name, { value, writable: true, configurable: true }); delete globalThis.Translator; delete globalThis.LanguageDetector; const log = console.log; console.log = (...values) => { consoleLines.push(values.map(String).join(' ')); log(...values); }; const collapseShown = (text) => text.replace(/\\s+/g, ' ').trim(); const capture = () => { const output = document.getElementById('output'); const button = document.getElementById('ask-button'); if (output && collapseShown(output.innerText) !== outputStates.at(-1)) outputStates.push(collapseShown(output.innerText)); if (!button) return; const state = { text: collapseShown(button.innerText), stop: button.classList.contains('stop-button') }; const last = buttonStates.at(-1); if (last?.text !== state.text || last?.stop !== state.stop) buttonStates.push(state); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true, attributes: true }); })()",
+          "steps": [
+            {
+              "wait": "document.getElementById('ask-button').disabled"
+            },
+            {
+              "read": "document.getElementById('output').innerText.split('\\n')"
+            },
+            {
+              "read": "languageModelCalls"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              "⚠️ A API de Tradução não está ativa.",
+              "Ative a seguinte flag em chrome://flags/:",
+              "- Translation API (chrome://flags/#translation-api)",
+              "⚠️ A API de Detecção de Idioma não está ativa.",
+              "Ative a seguinte flag em chrome://flags/:",
+              "- Language Detection API (chrome://flags/#language-detector-api)"
+            ],
+            []
+          ]
+        }
+      ]
+    },
+    {
+      "name": "says the device cannot run the model and disables Enviar",
+      "serve": {
+        "port": 47361,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const config = {\"availability\":[\"unavailable\"],\"translator\":\"available\",\"answers\":[],\"translations\":[],\"detections\":[]}; globalThis.languageModelCalls = []; globalThis.translationCalls = []; globalThis.languageModelStreamsDone = 0; globalThis.outputStates = []; globalThis.buttonStates = []; globalThis.consoleLines = []; const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)); const collapse = (text) => text.replace(/\\s+/g, ' ').trim(); const plain = (key, value) => typeof value === 'function' ? 'function' : value instanceof AbortSignal ? 'AbortSignal' : value instanceof Blob ? { blob: value.type, size: value.size } : (key === 'content' || key === 'value') && typeof value === 'string' ? collapse(value) : value; const clone = (value) => JSON.parse(JSON.stringify(value ?? null, plain)); const record = (call) => languageModelCalls.push(call); const recordTranslation = (call) => translationCalls.push(call); let streams = 0; let checks = 0; let translations = 0; let detections = 0; const stream = (signal) => { const index = streams++; const pending = [...(config.answers[index] ?? [])]; const stall = index === 0 ? config.stallAfter : undefined; let sent = 0; let open = true; return new ReadableStream({ start: (controller) => signal?.addEventListener('abort', () => { if (!open) return; open = false; record({ event: 'abort', chunks: sent }); controller.error(signal.reason); }), pull: async (controller) => { await pause(30); if (!open) return; if (sent === stall) return new Promise(() => {}); if (pending.length === 0) { open = false; controller.close(); languageModelStreamsDone++; return; } sent++; controller.enqueue(pending.shift()); }, }); }; const textStream = (chunks) => { const pending = [...chunks]; return new ReadableStream({ pull: async (controller) => { await pause(30); if (pending.length === 0) return controller.close(); controller.enqueue(pending.shift()); }, }); }; const createSession = () => ({ prompt: async (input) => { record({ method: 'prompt', input: clone(input) }); await pause(50); return 'Hello! How can I help you today?'; }, promptStreaming: (input, options) => { record({ method: 'promptStreaming', input: clone(input), options: clone(options) }); return stream(options?.signal); }, destroy: () => record({ method: 'destroy' }), }); const download = async (monitor, keep) => { const target = new EventTarget(); const listen = target.addEventListener.bind(target); target.addEventListener = (type, listener, options) => { keep({ method: 'monitor.addEventListener', type }); listen(type, listener, options); }; monitor(target); for (const loaded of [0, 0.5, 1]) { await pause(30); target.dispatchEvent(new ProgressEvent('downloadprogress', { loaded, total: 1 })); } }; const LanguageModel = { availability: async (options) => { record({ method: 'availability', options: clone(options) }); return config.availability[Math.min(checks++, config.availability.length - 1)]; }, params: async () => { record({ method: 'params' }); return { defaultTopK: 3, maxTopK: 128, defaultTemperature: 1, maxTemperature: 2 }; }, create: async (options) => { record({ method: 'create', options: clone(options) }); if (config.refuseDownload) throw new DOMException(config.refuseDownload, 'NotAllowedError'); if (typeof options?.monitor === 'function') await download(options.monitor, record); await pause(50); return createSession(); }, }; const Translator = { availability: async (options) => { recordTranslation({ method: 'Translator.availability', options: clone(options) }); return config.translator; }, create: async (options) => { recordTranslation({ method: 'Translator.create', options: clone(options) }); if (config.refuseTranslator) throw new DOMException(config.refuseTranslator, 'NotAllowedError'); if (config.translator === 'downloadable' && typeof options?.monitor === 'function') await download(options.monitor, recordTranslation); await pause(30); return { translate: async (input) => { recordTranslation({ method: 'translate', input }); await pause(30); return (config.translations[translations++] ?? []).join(''); }, translateStreaming: (input) => { recordTranslation({ method: 'translateStreaming', input }); return textStream(config.translations[translations++] ?? []); }, destroy: () => recordTranslation({ method: 'Translator.destroy' }), }; }, }; const LanguageDetector = { availability: async () => { recordTranslation({ method: 'LanguageDetector.availability' }); return 'available'; }, create: async () => { recordTranslation({ method: 'LanguageDetector.create' }); await pause(30); return { detect: async (input) => { recordTranslation({ method: 'detect', input }); await pause(30); return config.detections[detections++] ?? []; }, destroy: () => recordTranslation({ method: 'LanguageDetector.destroy' }), }; }, }; for (const [name, value] of Object.entries({ LanguageModel, Translator, LanguageDetector })) Object.defineProperty(globalThis, name, { value, writable: true, configurable: true }); const log = console.log; console.log = (...values) => { consoleLines.push(values.map(String).join(' ')); log(...values); }; const collapseShown = (text) => text.replace(/\\s+/g, ' ').trim(); const capture = () => { const output = document.getElementById('output'); const button = document.getElementById('ask-button'); if (output && collapseShown(output.innerText) !== outputStates.at(-1)) outputStates.push(collapseShown(output.innerText)); if (!button) return; const state = { text: collapseShown(button.innerText), stop: button.classList.contains('stop-button') }; const last = buttonStates.at(-1); if (last?.text !== state.text || last?.stop !== state.stop) buttonStates.push(state); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true, attributes: true }); })()",
+          "steps": [
+            {
+              "wait": "document.getElementById('ask-button').disabled"
+            },
+            {
+              "read": "document.getElementById('output').innerText.split('\\n')"
+            },
+            {
+              "read": "languageModelCalls"
+            },
+            {
+              "read": "translationCalls"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              "⚠️ O seu dispositivo não suporta modelos de linguagem nativos de IA."
+            ],
+            [
+              {
+                "method": "availability",
+                "options": {
+                  "languages": ["en"]
+                }
+              }
+            ],
+            [
+              {
+                "method": "Translator.availability",
+                "options": {
+                  "sourceLanguage": "en",
+                  "targetLanguage": "pt"
+                }
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "asks to wait while the model downloads and disables Enviar",
+      "serve": {
+        "port": 47361,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const config = {\"availability\":[\"downloading\"],\"translator\":\"available\",\"answers\":[],\"translations\":[],\"detections\":[]}; globalThis.languageModelCalls = []; globalThis.translationCalls = []; globalThis.languageModelStreamsDone = 0; globalThis.outputStates = []; globalThis.buttonStates = []; globalThis.consoleLines = []; const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)); const collapse = (text) => text.replace(/\\s+/g, ' ').trim(); const plain = (key, value) => typeof value === 'function' ? 'function' : value instanceof AbortSignal ? 'AbortSignal' : value instanceof Blob ? { blob: value.type, size: value.size } : (key === 'content' || key === 'value') && typeof value === 'string' ? collapse(value) : value; const clone = (value) => JSON.parse(JSON.stringify(value ?? null, plain)); const record = (call) => languageModelCalls.push(call); const recordTranslation = (call) => translationCalls.push(call); let streams = 0; let checks = 0; let translations = 0; let detections = 0; const stream = (signal) => { const index = streams++; const pending = [...(config.answers[index] ?? [])]; const stall = index === 0 ? config.stallAfter : undefined; let sent = 0; let open = true; return new ReadableStream({ start: (controller) => signal?.addEventListener('abort', () => { if (!open) return; open = false; record({ event: 'abort', chunks: sent }); controller.error(signal.reason); }), pull: async (controller) => { await pause(30); if (!open) return; if (sent === stall) return new Promise(() => {}); if (pending.length === 0) { open = false; controller.close(); languageModelStreamsDone++; return; } sent++; controller.enqueue(pending.shift()); }, }); }; const textStream = (chunks) => { const pending = [...chunks]; return new ReadableStream({ pull: async (controller) => { await pause(30); if (pending.length === 0) return controller.close(); controller.enqueue(pending.shift()); }, }); }; const createSession = () => ({ prompt: async (input) => { record({ method: 'prompt', input: clone(input) }); await pause(50); return 'Hello! How can I help you today?'; }, promptStreaming: (input, options) => { record({ method: 'promptStreaming', input: clone(input), options: clone(options) }); return stream(options?.signal); }, destroy: () => record({ method: 'destroy' }), }); const download = async (monitor, keep) => { const target = new EventTarget(); const listen = target.addEventListener.bind(target); target.addEventListener = (type, listener, options) => { keep({ method: 'monitor.addEventListener', type }); listen(type, listener, options); }; monitor(target); for (const loaded of [0, 0.5, 1]) { await pause(30); target.dispatchEvent(new ProgressEvent('downloadprogress', { loaded, total: 1 })); } }; const LanguageModel = { availability: async (options) => { record({ method: 'availability', options: clone(options) }); return config.availability[Math.min(checks++, config.availability.length - 1)]; }, params: async () => { record({ method: 'params' }); return { defaultTopK: 3, maxTopK: 128, defaultTemperature: 1, maxTemperature: 2 }; }, create: async (options) => { record({ method: 'create', options: clone(options) }); if (config.refuseDownload) throw new DOMException(config.refuseDownload, 'NotAllowedError'); if (typeof options?.monitor === 'function') await download(options.monitor, record); await pause(50); return createSession(); }, }; const Translator = { availability: async (options) => { recordTranslation({ method: 'Translator.availability', options: clone(options) }); return config.translator; }, create: async (options) => { recordTranslation({ method: 'Translator.create', options: clone(options) }); if (config.refuseTranslator) throw new DOMException(config.refuseTranslator, 'NotAllowedError'); if (config.translator === 'downloadable' && typeof options?.monitor === 'function') await download(options.monitor, recordTranslation); await pause(30); return { translate: async (input) => { recordTranslation({ method: 'translate', input }); await pause(30); return (config.translations[translations++] ?? []).join(''); }, translateStreaming: (input) => { recordTranslation({ method: 'translateStreaming', input }); return textStream(config.translations[translations++] ?? []); }, destroy: () => recordTranslation({ method: 'Translator.destroy' }), }; }, }; const LanguageDetector = { availability: async () => { recordTranslation({ method: 'LanguageDetector.availability' }); return 'available'; }, create: async () => { recordTranslation({ method: 'LanguageDetector.create' }); await pause(30); return { detect: async (input) => { recordTranslation({ method: 'detect', input }); await pause(30); return config.detections[detections++] ?? []; }, destroy: () => recordTranslation({ method: 'LanguageDetector.destroy' }), }; }, }; for (const [name, value] of Object.entries({ LanguageModel, Translator, LanguageDetector })) Object.defineProperty(globalThis, name, { value, writable: true, configurable: true }); const log = console.log; console.log = (...values) => { consoleLines.push(values.map(String).join(' ')); log(...values); }; const collapseShown = (text) => text.replace(/\\s+/g, ' ').trim(); const capture = () => { const output = document.getElementById('output'); const button = document.getElementById('ask-button'); if (output && collapseShown(output.innerText) !== outputStates.at(-1)) outputStates.push(collapseShown(output.innerText)); if (!button) return; const state = { text: collapseShown(button.innerText), stop: button.classList.contains('stop-button') }; const last = buttonStates.at(-1); if (last?.text !== state.text || last?.stop !== state.stop) buttonStates.push(state); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true, attributes: true }); })()",
+          "steps": [
+            {
+              "wait": "document.getElementById('ask-button').disabled"
+            },
+            {
+              "read": "document.getElementById('output').innerText.split('\\n')"
+            },
+            {
+              "read": "languageModelCalls"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              "⚠️ O modelo de linguagem de IA está sendo baixado. Por favor, aguarde alguns minutos e tente novamente."
+            ],
+            [
+              {
+                "method": "availability",
+                "options": {
+                  "languages": ["en"]
+                }
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "downloads the model and the translator while logging their progress, then shows the parameters",
+      "serve": {
+        "port": 47361,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const config = {\"availability\":[\"downloadable\",\"available\"],\"translator\":\"downloadable\",\"answers\":[],\"translations\":[],\"detections\":[]}; globalThis.languageModelCalls = []; globalThis.translationCalls = []; globalThis.languageModelStreamsDone = 0; globalThis.outputStates = []; globalThis.buttonStates = []; globalThis.consoleLines = []; const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)); const collapse = (text) => text.replace(/\\s+/g, ' ').trim(); const plain = (key, value) => typeof value === 'function' ? 'function' : value instanceof AbortSignal ? 'AbortSignal' : value instanceof Blob ? { blob: value.type, size: value.size } : (key === 'content' || key === 'value') && typeof value === 'string' ? collapse(value) : value; const clone = (value) => JSON.parse(JSON.stringify(value ?? null, plain)); const record = (call) => languageModelCalls.push(call); const recordTranslation = (call) => translationCalls.push(call); let streams = 0; let checks = 0; let translations = 0; let detections = 0; const stream = (signal) => { const index = streams++; const pending = [...(config.answers[index] ?? [])]; const stall = index === 0 ? config.stallAfter : undefined; let sent = 0; let open = true; return new ReadableStream({ start: (controller) => signal?.addEventListener('abort', () => { if (!open) return; open = false; record({ event: 'abort', chunks: sent }); controller.error(signal.reason); }), pull: async (controller) => { await pause(30); if (!open) return; if (sent === stall) return new Promise(() => {}); if (pending.length === 0) { open = false; controller.close(); languageModelStreamsDone++; return; } sent++; controller.enqueue(pending.shift()); }, }); }; const textStream = (chunks) => { const pending = [...chunks]; return new ReadableStream({ pull: async (controller) => { await pause(30); if (pending.length === 0) return controller.close(); controller.enqueue(pending.shift()); }, }); }; const createSession = () => ({ prompt: async (input) => { record({ method: 'prompt', input: clone(input) }); await pause(50); return 'Hello! How can I help you today?'; }, promptStreaming: (input, options) => { record({ method: 'promptStreaming', input: clone(input), options: clone(options) }); return stream(options?.signal); }, destroy: () => record({ method: 'destroy' }), }); const download = async (monitor, keep) => { const target = new EventTarget(); const listen = target.addEventListener.bind(target); target.addEventListener = (type, listener, options) => { keep({ method: 'monitor.addEventListener', type }); listen(type, listener, options); }; monitor(target); for (const loaded of [0, 0.5, 1]) { await pause(30); target.dispatchEvent(new ProgressEvent('downloadprogress', { loaded, total: 1 })); } }; const LanguageModel = { availability: async (options) => { record({ method: 'availability', options: clone(options) }); return config.availability[Math.min(checks++, config.availability.length - 1)]; }, params: async () => { record({ method: 'params' }); return { defaultTopK: 3, maxTopK: 128, defaultTemperature: 1, maxTemperature: 2 }; }, create: async (options) => { record({ method: 'create', options: clone(options) }); if (config.refuseDownload) throw new DOMException(config.refuseDownload, 'NotAllowedError'); if (typeof options?.monitor === 'function') await download(options.monitor, record); await pause(50); return createSession(); }, }; const Translator = { availability: async (options) => { recordTranslation({ method: 'Translator.availability', options: clone(options) }); return config.translator; }, create: async (options) => { recordTranslation({ method: 'Translator.create', options: clone(options) }); if (config.refuseTranslator) throw new DOMException(config.refuseTranslator, 'NotAllowedError'); if (config.translator === 'downloadable' && typeof options?.monitor === 'function') await download(options.monitor, recordTranslation); await pause(30); return { translate: async (input) => { recordTranslation({ method: 'translate', input }); await pause(30); return (config.translations[translations++] ?? []).join(''); }, translateStreaming: (input) => { recordTranslation({ method: 'translateStreaming', input }); return textStream(config.translations[translations++] ?? []); }, destroy: () => recordTranslation({ method: 'Translator.destroy' }), }; }, }; const LanguageDetector = { availability: async () => { recordTranslation({ method: 'LanguageDetector.availability' }); return 'available'; }, create: async () => { recordTranslation({ method: 'LanguageDetector.create' }); await pause(30); return { detect: async (input) => { recordTranslation({ method: 'detect', input }); await pause(30); return config.detections[detections++] ?? []; }, destroy: () => recordTranslation({ method: 'LanguageDetector.destroy' }), }; }, }; for (const [name, value] of Object.entries({ LanguageModel, Translator, LanguageDetector })) Object.defineProperty(globalThis, name, { value, writable: true, configurable: true }); const log = console.log; console.log = (...values) => { consoleLines.push(values.map(String).join(' ')); log(...values); }; const collapseShown = (text) => text.replace(/\\s+/g, ' ').trim(); const capture = () => { const output = document.getElementById('output'); const button = document.getElementById('ask-button'); if (output && collapseShown(output.innerText) !== outputStates.at(-1)) outputStates.push(collapseShown(output.innerText)); if (!button) return; const state = { text: collapseShown(button.innerText), stop: button.classList.contains('stop-button') }; const last = buttonStates.at(-1); if (last?.text !== state.text || last?.stop !== state.stop) buttonStates.push(state); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true, attributes: true }); })()",
+          "steps": [
+            {
+              "wait": "document.getElementById('topk-value').textContent === '3'"
+            },
+            {
+              "read": "languageModelCalls"
+            },
+            {
+              "read": "translationCalls"
+            },
+            {
+              "read": "consoleLines.filter((line) => /downloaded \\d+%$/i.test(line))"
+            },
+            {
+              "read": "[document.getElementById('ask-button').disabled, document.getElementById('output').innerText]"
+            },
+            {
+              "read": "['temp-value', 'topk-value'].map((id) => document.getElementById(id).textContent)"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              {
+                "method": "availability",
+                "options": {
+                  "languages": ["en"]
+                }
+              },
+              {
+                "method": "create",
+                "options": {
+                  "expectedInputLanguages": ["en"],
+                  "monitor": "function"
+                }
+              },
+              {
+                "method": "monitor.addEventListener",
+                "type": "downloadprogress"
+              },
+              {
+                "method": "prompt",
+                "input": "Hello"
+              },
+              {
+                "method": "destroy"
+              },
+              {
+                "method": "availability",
+                "options": {
+                  "languages": ["en"]
+                }
+              },
+              {
+                "method": "params"
+              }
+            ],
+            [
+              {
+                "method": "Translator.availability",
+                "options": {
+                  "sourceLanguage": "en",
+                  "targetLanguage": "pt"
+                }
+              },
+              {
+                "method": "Translator.create",
+                "options": {
+                  "sourceLanguage": "en",
+                  "targetLanguage": "pt",
+                  "monitor": "function"
+                }
+              },
+              {
+                "method": "monitor.addEventListener",
+                "type": "downloadprogress"
+              },
+              {
+                "method": "LanguageDetector.create"
+              }
+            ],
+            [
+              "Downloaded 0%",
+              "Downloaded 50%",
+              "Downloaded 100%",
+              "Translator downloaded 0%",
+              "Translator downloaded 50%",
+              "Translator downloaded 100%"
+            ],
+            [false, ""],
+            ["1", "3"]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "shows why the model could not be downloaded and disables Enviar",
+      "serve": {
+        "port": 47361,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const config = {\"availability\":[\"downloadable\"],\"translator\":\"available\",\"answers\":[],\"translations\":[],\"detections\":[],\"refuseDownload\":\"Requires a user gesture when availability is \\\"downloading\\\" or \\\"downloadable\\\".\"}; globalThis.languageModelCalls = []; globalThis.translationCalls = []; globalThis.languageModelStreamsDone = 0; globalThis.outputStates = []; globalThis.buttonStates = []; globalThis.consoleLines = []; const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)); const collapse = (text) => text.replace(/\\s+/g, ' ').trim(); const plain = (key, value) => typeof value === 'function' ? 'function' : value instanceof AbortSignal ? 'AbortSignal' : value instanceof Blob ? { blob: value.type, size: value.size } : (key === 'content' || key === 'value') && typeof value === 'string' ? collapse(value) : value; const clone = (value) => JSON.parse(JSON.stringify(value ?? null, plain)); const record = (call) => languageModelCalls.push(call); const recordTranslation = (call) => translationCalls.push(call); let streams = 0; let checks = 0; let translations = 0; let detections = 0; const stream = (signal) => { const index = streams++; const pending = [...(config.answers[index] ?? [])]; const stall = index === 0 ? config.stallAfter : undefined; let sent = 0; let open = true; return new ReadableStream({ start: (controller) => signal?.addEventListener('abort', () => { if (!open) return; open = false; record({ event: 'abort', chunks: sent }); controller.error(signal.reason); }), pull: async (controller) => { await pause(30); if (!open) return; if (sent === stall) return new Promise(() => {}); if (pending.length === 0) { open = false; controller.close(); languageModelStreamsDone++; return; } sent++; controller.enqueue(pending.shift()); }, }); }; const textStream = (chunks) => { const pending = [...chunks]; return new ReadableStream({ pull: async (controller) => { await pause(30); if (pending.length === 0) return controller.close(); controller.enqueue(pending.shift()); }, }); }; const createSession = () => ({ prompt: async (input) => { record({ method: 'prompt', input: clone(input) }); await pause(50); return 'Hello! How can I help you today?'; }, promptStreaming: (input, options) => { record({ method: 'promptStreaming', input: clone(input), options: clone(options) }); return stream(options?.signal); }, destroy: () => record({ method: 'destroy' }), }); const download = async (monitor, keep) => { const target = new EventTarget(); const listen = target.addEventListener.bind(target); target.addEventListener = (type, listener, options) => { keep({ method: 'monitor.addEventListener', type }); listen(type, listener, options); }; monitor(target); for (const loaded of [0, 0.5, 1]) { await pause(30); target.dispatchEvent(new ProgressEvent('downloadprogress', { loaded, total: 1 })); } }; const LanguageModel = { availability: async (options) => { record({ method: 'availability', options: clone(options) }); return config.availability[Math.min(checks++, config.availability.length - 1)]; }, params: async () => { record({ method: 'params' }); return { defaultTopK: 3, maxTopK: 128, defaultTemperature: 1, maxTemperature: 2 }; }, create: async (options) => { record({ method: 'create', options: clone(options) }); if (config.refuseDownload) throw new DOMException(config.refuseDownload, 'NotAllowedError'); if (typeof options?.monitor === 'function') await download(options.monitor, record); await pause(50); return createSession(); }, }; const Translator = { availability: async (options) => { recordTranslation({ method: 'Translator.availability', options: clone(options) }); return config.translator; }, create: async (options) => { recordTranslation({ method: 'Translator.create', options: clone(options) }); if (config.refuseTranslator) throw new DOMException(config.refuseTranslator, 'NotAllowedError'); if (config.translator === 'downloadable' && typeof options?.monitor === 'function') await download(options.monitor, recordTranslation); await pause(30); return { translate: async (input) => { recordTranslation({ method: 'translate', input }); await pause(30); return (config.translations[translations++] ?? []).join(''); }, translateStreaming: (input) => { recordTranslation({ method: 'translateStreaming', input }); return textStream(config.translations[translations++] ?? []); }, destroy: () => recordTranslation({ method: 'Translator.destroy' }), }; }, }; const LanguageDetector = { availability: async () => { recordTranslation({ method: 'LanguageDetector.availability' }); return 'available'; }, create: async () => { recordTranslation({ method: 'LanguageDetector.create' }); await pause(30); return { detect: async (input) => { recordTranslation({ method: 'detect', input }); await pause(30); return config.detections[detections++] ?? []; }, destroy: () => recordTranslation({ method: 'LanguageDetector.destroy' }), }; }, }; for (const [name, value] of Object.entries({ LanguageModel, Translator, LanguageDetector })) Object.defineProperty(globalThis, name, { value, writable: true, configurable: true }); const log = console.log; console.log = (...values) => { consoleLines.push(values.map(String).join(' ')); log(...values); }; const collapseShown = (text) => text.replace(/\\s+/g, ' ').trim(); const capture = () => { const output = document.getElementById('output'); const button = document.getElementById('ask-button'); if (output && collapseShown(output.innerText) !== outputStates.at(-1)) outputStates.push(collapseShown(output.innerText)); if (!button) return; const state = { text: collapseShown(button.innerText), stop: button.classList.contains('stop-button') }; const last = buttonStates.at(-1); if (last?.text !== state.text || last?.stop !== state.stop) buttonStates.push(state); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true, attributes: true }); })()",
+          "steps": [
+            {
+              "wait": "document.getElementById('ask-button').disabled"
+            },
+            {
+              "read": "document.getElementById('output').innerText.split('\\n')"
+            },
+            {
+              "read": "languageModelCalls"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              "⚠️ O modelo de linguagem de IA precisa ser baixado, baixando agora... (acompanhe o progresso no terminal do chrome)",
+              "⚠️ Erro ao baixar o modelo: Requires a user gesture when availability is \"downloading\" or \"downloadable\"."
+            ],
+            [
+              {
+                "method": "availability",
+                "options": {
+                  "languages": ["en"]
+                }
+              },
+              {
+                "method": "create",
+                "options": {
+                  "expectedInputLanguages": ["en"],
+                  "monitor": "function"
+                }
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "says the translation APIs could not start when the translator refuses to download, and disables Enviar",
+      "serve": {
+        "port": 47361,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const config = {\"availability\":[\"available\"],\"translator\":\"downloadable\",\"answers\":[],\"translations\":[],\"detections\":[],\"refuseTranslator\":\"Requires a user gesture when availability is \\\"downloading\\\" or \\\"downloadable\\\".\"}; globalThis.languageModelCalls = []; globalThis.translationCalls = []; globalThis.languageModelStreamsDone = 0; globalThis.outputStates = []; globalThis.buttonStates = []; globalThis.consoleLines = []; const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)); const collapse = (text) => text.replace(/\\s+/g, ' ').trim(); const plain = (key, value) => typeof value === 'function' ? 'function' : value instanceof AbortSignal ? 'AbortSignal' : value instanceof Blob ? { blob: value.type, size: value.size } : (key === 'content' || key === 'value') && typeof value === 'string' ? collapse(value) : value; const clone = (value) => JSON.parse(JSON.stringify(value ?? null, plain)); const record = (call) => languageModelCalls.push(call); const recordTranslation = (call) => translationCalls.push(call); let streams = 0; let checks = 0; let translations = 0; let detections = 0; const stream = (signal) => { const index = streams++; const pending = [...(config.answers[index] ?? [])]; const stall = index === 0 ? config.stallAfter : undefined; let sent = 0; let open = true; return new ReadableStream({ start: (controller) => signal?.addEventListener('abort', () => { if (!open) return; open = false; record({ event: 'abort', chunks: sent }); controller.error(signal.reason); }), pull: async (controller) => { await pause(30); if (!open) return; if (sent === stall) return new Promise(() => {}); if (pending.length === 0) { open = false; controller.close(); languageModelStreamsDone++; return; } sent++; controller.enqueue(pending.shift()); }, }); }; const textStream = (chunks) => { const pending = [...chunks]; return new ReadableStream({ pull: async (controller) => { await pause(30); if (pending.length === 0) return controller.close(); controller.enqueue(pending.shift()); }, }); }; const createSession = () => ({ prompt: async (input) => { record({ method: 'prompt', input: clone(input) }); await pause(50); return 'Hello! How can I help you today?'; }, promptStreaming: (input, options) => { record({ method: 'promptStreaming', input: clone(input), options: clone(options) }); return stream(options?.signal); }, destroy: () => record({ method: 'destroy' }), }); const download = async (monitor, keep) => { const target = new EventTarget(); const listen = target.addEventListener.bind(target); target.addEventListener = (type, listener, options) => { keep({ method: 'monitor.addEventListener', type }); listen(type, listener, options); }; monitor(target); for (const loaded of [0, 0.5, 1]) { await pause(30); target.dispatchEvent(new ProgressEvent('downloadprogress', { loaded, total: 1 })); } }; const LanguageModel = { availability: async (options) => { record({ method: 'availability', options: clone(options) }); return config.availability[Math.min(checks++, config.availability.length - 1)]; }, params: async () => { record({ method: 'params' }); return { defaultTopK: 3, maxTopK: 128, defaultTemperature: 1, maxTemperature: 2 }; }, create: async (options) => { record({ method: 'create', options: clone(options) }); if (config.refuseDownload) throw new DOMException(config.refuseDownload, 'NotAllowedError'); if (typeof options?.monitor === 'function') await download(options.monitor, record); await pause(50); return createSession(); }, }; const Translator = { availability: async (options) => { recordTranslation({ method: 'Translator.availability', options: clone(options) }); return config.translator; }, create: async (options) => { recordTranslation({ method: 'Translator.create', options: clone(options) }); if (config.refuseTranslator) throw new DOMException(config.refuseTranslator, 'NotAllowedError'); if (config.translator === 'downloadable' && typeof options?.monitor === 'function') await download(options.monitor, recordTranslation); await pause(30); return { translate: async (input) => { recordTranslation({ method: 'translate', input }); await pause(30); return (config.translations[translations++] ?? []).join(''); }, translateStreaming: (input) => { recordTranslation({ method: 'translateStreaming', input }); return textStream(config.translations[translations++] ?? []); }, destroy: () => recordTranslation({ method: 'Translator.destroy' }), }; }, }; const LanguageDetector = { availability: async () => { recordTranslation({ method: 'LanguageDetector.availability' }); return 'available'; }, create: async () => { recordTranslation({ method: 'LanguageDetector.create' }); await pause(30); return { detect: async (input) => { recordTranslation({ method: 'detect', input }); await pause(30); return config.detections[detections++] ?? []; }, destroy: () => recordTranslation({ method: 'LanguageDetector.destroy' }), }; }, }; for (const [name, value] of Object.entries({ LanguageModel, Translator, LanguageDetector })) Object.defineProperty(globalThis, name, { value, writable: true, configurable: true }); const log = console.log; console.log = (...values) => { consoleLines.push(values.map(String).join(' ')); log(...values); }; const collapseShown = (text) => text.replace(/\\s+/g, ' ').trim(); const capture = () => { const output = document.getElementById('output'); const button = document.getElementById('ask-button'); if (output && collapseShown(output.innerText) !== outputStates.at(-1)) outputStates.push(collapseShown(output.innerText)); if (!button) return; const state = { text: collapseShown(button.innerText), stop: button.classList.contains('stop-button') }; const last = buttonStates.at(-1); if (last?.text !== state.text || last?.stop !== state.stop) buttonStates.push(state); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true, attributes: true }); })()",
+          "steps": [
+            {
+              "wait": "document.getElementById('ask-button').disabled"
+            },
+            {
+              "read": "document.getElementById('output').innerText.split('\\n')"
+            },
+            {
+              "read": "languageModelCalls"
+            },
+            {
+              "read": "translationCalls"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            ["⚠️ Erro ao inicializar APIs de tradução."],
+            [
+              {
+                "method": "availability",
+                "options": {
+                  "languages": ["en"]
+                }
+              }
+            ],
+            [
+              {
+                "method": "Translator.availability",
+                "options": {
+                  "sourceLanguage": "en",
+                  "targetLanguage": "pt"
+                }
+              },
+              {
+                "method": "Translator.create",
+                "options": {
+                  "sourceLanguage": "en",
+                  "targetLanguage": "pt",
+                  "monitor": "function"
+                }
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

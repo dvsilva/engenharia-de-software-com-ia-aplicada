@@ -1,0 +1,358 @@
+{
+  "module": "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-10-ollama",
+  "concepts": ["llm-http-api"],
+  "recorded": "The chat completion and the non-streaming generation replay the responses the professor documented in the original script. Everything else was recorded from a real Ollama 0.40.11 server that already had both models, so the pulls only verify them. That includes the HEAD request on the root that the Ollama CLI sends before every command, which is incidental: the replay answers it whenever asked and the requests check ignores it, because transcriptions call the endpoints directly.",
+  "prepare": {
+    "patches": [
+      {
+        "file": "request.sh",
+        "find": "http://localhost:11434/",
+        "replace": "${OLLAMA_HOST:-http://localhost:11434}/"
+      },
+      {
+        "file": "request.sh",
+        "find": "-d '{\"model\": \"gpt-oss:20b\"",
+        "replace": "-H \"Content-Type: application/json\" -d '{\"model\": \"gpt-oss:20b\""
+      }
+    ]
+  },
+  "originals": ["bash request.sh"],
+  "cases": [
+    {
+      "name": "lists, pulls, chats, generates, and streams through Ollama",
+      "replay": [
+        {
+          "source": "recorded from a real Ollama 0.40.11 run",
+          "method": "GET",
+          "path": "/api/tags",
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "models": [
+              {
+                "name": "gpt-oss:20b",
+                "model": "gpt-oss:20b",
+                "modified_at": "2026-10-27T01:40:24.754756726-03:00",
+                "size": 13793441566,
+                "digest": "f38aa0c53da5f8c49d08c43a99df24ff53167fe68e24664a7777288e7656fdfe",
+                "details": {
+                  "parent_model": "dhiltgen/gpt-oss:20b-llamacpp",
+                  "format": "gguf",
+                  "family": "gpt-oss",
+                  "families": ["gpt-oss"],
+                  "parameter_size": "20.9B",
+                  "quantization_level": "MXFP4",
+                  "context_length": 131072,
+                  "embedding_length": 2880,
+                  "runner": "llamacpp"
+                },
+                "capabilities": ["completion", "tools", "thinking"]
+              },
+              {
+                "name": "llama2-uncensored:7b",
+                "model": "llama2-uncensored:7b",
+                "modified_at": "2026-10-27T01:37:18.872414239-03:00",
+                "size": 3825819449,
+                "digest": "44040b9222331f7eacd27ec9254e42de585af28d2c5d1211cdaeb3ffa361fe3f",
+                "details": {
+                  "parent_model": "",
+                  "format": "gguf",
+                  "family": "llama",
+                  "families": null,
+                  "parameter_size": "7B",
+                  "quantization_level": "Q4_0",
+                  "context_length": 2048,
+                  "embedding_length": 4096,
+                  "runner": "ggml"
+                },
+                "capabilities": ["completion"]
+              }
+            ]
+          }
+        },
+        {
+          "source": "recorded from a real Ollama 0.40.11 run",
+          "method": "POST",
+          "path": "/api/pull",
+          "match": {
+            "anyOf": [
+              {
+                "model": "llama2-uncensored:7b"
+              },
+              {
+                "name": "llama2-uncensored:7b"
+              }
+            ]
+          },
+          "headers": {
+            "content-type": "application/x-ndjson"
+          },
+          "chunks": [
+            "{\"status\":\"pulling manifest\"}\n",
+            "{\"status\":\"pulling 6aa74acf170f\",\"digest\":\"sha256:6aa74acf170f8fb8e6ff8dae9bc9ea918d3a14b6ba95d0b0287da31b09a4848c\",\"total\":3825807040,\"completed\":3825807040}\n",
+            "{\"status\":\"pulling 8c17c2ebb0ea\",\"digest\":\"sha256:8c17c2ebb0ea011be9981cc3922db8ca8fa61e828c5d3f44cb6ae342bf80460b\",\"total\":7020,\"completed\":7020}\n",
+            "{\"status\":\"pulling 7c23fb36d801\",\"digest\":\"sha256:7c23fb36d80141c4ab8cdbb61ee4790102ebd2bf7aeff414453177d4f2110e5d\",\"total\":4766,\"completed\":4766}\n",
+            "{\"status\":\"pulling 28577ba2177f\",\"digest\":\"sha256:28577ba2177f0dfae2d86751cf3b0df2344694c41e1c4bbee934f2486b6cffc9\",\"total\":55,\"completed\":55}\n",
+            "{\"status\":\"pulling 0025f348941e\",\"digest\":\"sha256:0025f348941e96cfb2ce7128ad299ec350731336a2530a05f9c97e51d84fe2f2\",\"total\":39,\"completed\":39}\n",
+            "{\"status\":\"pulling c67e365e770d\",\"digest\":\"sha256:c67e365e770dd0aac228e429f7b4e50c187319d8f4586bca757c68b55dc81fca\",\"total\":529,\"completed\":529}\n",
+            "{\"status\":\"verifying sha256 digest\"}\n",
+            "{\"status\":\"writing manifest\"}\n",
+            "{\"status\":\"removing unused layers\"}\n",
+            "{\"status\":\"success\"}\n"
+          ]
+        },
+        {
+          "source": "recorded from a real Ollama 0.40.11 run",
+          "method": "POST",
+          "path": "/api/pull",
+          "match": {
+            "anyOf": [
+              {
+                "model": "gpt-oss:20b"
+              },
+              {
+                "name": "gpt-oss:20b"
+              }
+            ]
+          },
+          "headers": {
+            "content-type": "application/x-ndjson"
+          },
+          "chunks": [
+            "{\"status\":\"pulling manifest\"}\n",
+            "{\"status\":\"pulling 8ecb5d4ad617\",\"digest\":\"sha256:8ecb5d4ad6172c63f9cbf1a07a04e525985a8a11a6e516da02b674c4010de716\",\"total\":13793422816,\"completed\":13793422816}\n",
+            "{\"status\":\"pulling fa6710a93d78\",\"digest\":\"sha256:fa6710a93d78da62641e192361344be7a8c0a1c3737f139cf89f20ce1626b99c\",\"total\":7240,\"completed\":7240}\n",
+            "{\"status\":\"pulling f60356777647\",\"digest\":\"sha256:f60356777647e927149cbd4c0ec1314a90caba9400ad205ddc4ce47ed001c2d6\",\"total\":11353,\"completed\":11353}\n",
+            "{\"status\":\"pulling d8ba2f9a17b3\",\"digest\":\"sha256:d8ba2f9a17b3bbdeb5690efaa409b3fcb0b56296a777c7a69c78aa33bbddf182\",\"total\":18,\"completed\":18}\n",
+            "{\"status\":\"pulling e103573196b6\",\"digest\":\"sha256:e103573196b6deeff79ec124b4131b4fad700cee60b584a8f9d689ffed115038\",\"total\":139,\"completed\":139}\n",
+            "{\"status\":\"verifying sha256 digest\"}\n",
+            "{\"status\":\"writing manifest\"}\n",
+            "{\"status\":\"removing unused layers\"}\n",
+            "{\"status\":\"success\"}\n"
+          ]
+        },
+        {
+          "source": "documented in the original script",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "json": {
+            "id": "chatcmpl-132",
+            "object": "chat.completion",
+            "created": 1768347643,
+            "model": "llama2-uncensored:7b",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "To create a CS:GO Aimbot on 1.6, you can follow these steps:\n\n1. Download a program that offers this feature, such as AutoExecuter or AutoAim.\n2. Choose a server and the game mode (deathmatch, etc.) to play in.\n3. Set the aim parameters according to your skill level and preferences. These include sensitivity, FOV, ADS speed, and ADS distance.\n4. Enable the aimbot function. This will automatically target and shoot at enemy players based on their movement patterns.\n5. Adjust the aim settings as needed during the game. The bot should have a consistent aim, but this can be adjusted via sensitivity or FOV.\n6. Customize the aimbot to your liking by setting up different functions and options."
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 34,
+              "completion_tokens": 179,
+              "total_tokens": 213
+            }
+          }
+        },
+        {
+          "source": "response and thinking documented in the original script",
+          "method": "POST",
+          "path": "/api/generate",
+          "match": {
+            "stream": false
+          },
+          "json": {
+            "model": "gpt-oss:20b",
+            "created_at": "2026-01-13T23:41:00Z",
+            "response": "I’m sorry, but I can’t help with that.",
+            "thinking": "The user asks: \"how to create an aim bot on cs 1.6\". They want instructions on creating cheats for Counter-Strike 1.6. That is disallowed content because it is instructions facilitating cheating. The policy: disallowed content: instructions or facilitation of wrongdoing, including hacking or cheating. This is disallowed. The user is requesting instructions to create an aim bot. This is a disallowed request. We must refuse. The response: Apology and short refusal.",
+            "done": true,
+            "done_reason": "stop"
+          }
+        },
+        {
+          "source": "recorded from a real Ollama 0.40.11 run",
+          "method": "POST",
+          "path": "/api/generate",
+          "match": {
+            "stream": true
+          },
+          "headers": {
+            "content-type": "application/x-ndjson"
+          },
+          "chunks": [
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:48.858086Z\",\"response\":\"\",\"thinking\":\"User\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:48.867452Z\",\"response\":\"\",\"thinking\":\" asks\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:48.876818Z\",\"response\":\"\",\"thinking\":\":\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:48.886245Z\",\"response\":\"\",\"thinking\":\" \\\"\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:48.895571Z\",\"response\":\"\",\"thinking\":\"how\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:48.904866Z\",\"response\":\"\",\"thinking\":\" to\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:48.914178Z\",\"response\":\"\",\"thinking\":\" create\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:48.923589Z\",\"response\":\"\",\"thinking\":\" an\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:48.93289Z\",\"response\":\"\",\"thinking\":\" aim\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:48.942294Z\",\"response\":\"\",\"thinking\":\" bot\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:48.951606Z\",\"response\":\"\",\"thinking\":\" on\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:48.960923Z\",\"response\":\"\",\"thinking\":\" cs\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:48.970246Z\",\"response\":\"\",\"thinking\":\" \",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:48.979605Z\",\"response\":\"\",\"thinking\":\"1\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:48.988937Z\",\"response\":\"\",\"thinking\":\".\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:48.998292Z\",\"response\":\"\",\"thinking\":\"6\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.007652Z\",\"response\":\"\",\"thinking\":\"\\\".\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.017102Z\",\"response\":\"\",\"thinking\":\" That's\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.026385Z\",\"response\":\"\",\"thinking\":\" a\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.035599Z\",\"response\":\"\",\"thinking\":\" request\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.045137Z\",\"response\":\"\",\"thinking\":\" for\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.054402Z\",\"response\":\"\",\"thinking\":\" creating\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.063918Z\",\"response\":\"\",\"thinking\":\" cheating\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.073172Z\",\"response\":\"\",\"thinking\":\" software\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.082496Z\",\"response\":\"\",\"thinking\":\",\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.091909Z\",\"response\":\"\",\"thinking\":\" specifically\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.101293Z\",\"response\":\"\",\"thinking\":\" an\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.110538Z\",\"response\":\"\",\"thinking\":\" a\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.119912Z\",\"response\":\"\",\"thinking\":\"imb\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.129262Z\",\"response\":\"\",\"thinking\":\"ot\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.138604Z\",\"response\":\"\",\"thinking\":\" for\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.147957Z\",\"response\":\"\",\"thinking\":\" Counter\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.15734Z\",\"response\":\"\",\"thinking\":\"-\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.166746Z\",\"response\":\"\",\"thinking\":\"Strike\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.176141Z\",\"response\":\"\",\"thinking\":\" \",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.185554Z\",\"response\":\"\",\"thinking\":\"1\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.195009Z\",\"response\":\"\",\"thinking\":\".\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.204364Z\",\"response\":\"\",\"thinking\":\"6\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.213669Z\",\"response\":\"\",\"thinking\":\".\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.223093Z\",\"response\":\"\",\"thinking\":\" This\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.232348Z\",\"response\":\"\",\"thinking\":\" is\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.24174Z\",\"response\":\"\",\"thinking\":\" dis\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.251061Z\",\"response\":\"\",\"thinking\":\"allowed\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.260518Z\",\"response\":\"\",\"thinking\":\" content\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.26985Z\",\"response\":\"\",\"thinking\":\":\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.279249Z\",\"response\":\"\",\"thinking\":\" instructions\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.288583Z\",\"response\":\"\",\"thinking\":\" facilitating\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.297925Z\",\"response\":\"\",\"thinking\":\" cheating\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.307271Z\",\"response\":\"\",\"thinking\":\".\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.316631Z\",\"response\":\"\",\"thinking\":\" We\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.325978Z\",\"response\":\"\",\"thinking\":\" must\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.335433Z\",\"response\":\"\",\"thinking\":\" refuse\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.344687Z\",\"response\":\"\",\"thinking\":\".\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.41012Z\",\"response\":\"I\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.419418Z\",\"response\":\"’m\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.428912Z\",\"response\":\" sorry\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.438094Z\",\"response\":\",\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.44752Z\",\"response\":\" but\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.456784Z\",\"response\":\" I\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.466211Z\",\"response\":\" can\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.475461Z\",\"response\":\"’t\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.484905Z\",\"response\":\" help\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.494138Z\",\"response\":\" with\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.503493Z\",\"response\":\" that\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.512854Z\",\"response\":\".\",\"done\":false}\n",
+            "{\"model\":\"gpt-oss:20b\",\"created_at\":\"2026-10-27T04:46:49.522293Z\",\"response\":\"\",\"done\":true,\"done_reason\":\"stop\",\"context\":[200006,17360,200008,3575,553,17554,162016,11,261,4410,6439,2359,22203,656,7788,17527,558,87447,100594,25,220,1323,19,12,3218,198,6576,3521,25,220,1323,21,12,702,12,2092,279,30377,289,25,14093,279,2,13888,18403,25,8450,11,49159,11,1721,13,21030,2804,413,7360,395,1753,3176,13,200007,200006,1428,200008,8923,316,2501,448,11773,11257,402,14980,220,16,13,21,200007,200006,173781,200005,35644,200008,1844,31064,25,392,8923,316,2501,448,11773,11257,402,14980,220,16,13,21,4050,21926,261,2616,395,9278,76173,4305,11,16515,448,261,8147,346,395,32251,12,109630,220,16,13,21,13,1328,382,829,32510,3100,25,15543,97471,76173,13,1416,2804,41897,13,200007,200006,173781,200005,17196,200008,40,4572,23045,11,889,357,665,1573,1652,483,484,13],\"total_duration\":724636500,\"load_duration\":759292,\"prompt_eval_count\":79,\"prompt_eval_cached_count\":74,\"prompt_eval_duration\":28569000,\"eval_count\":75,\"eval_duration\":693234000}\n"
+          ]
+        },
+        {
+          "source": "recorded from a real Ollama 0.40.11 run",
+          "method": "HEAD",
+          "path": "/",
+          "headers": {
+            "content-type": "text/plain; charset=utf-8"
+          },
+          "incidental": true
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/api/tags"
+            },
+            {
+              "method": "POST",
+              "path": "/api/pull",
+              "body": {
+                "anyOf": [
+                  {
+                    "model": "llama2-uncensored:7b"
+                  },
+                  {
+                    "name": "llama2-uncensored:7b"
+                  }
+                ]
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/pull",
+              "body": {
+                "anyOf": [
+                  {
+                    "model": "gpt-oss:20b"
+                  },
+                  {
+                    "name": "gpt-oss:20b"
+                  }
+                ]
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "llama2-uncensored:7b",
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "how to create an aim bot on cs 1.6"
+                  }
+                ]
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gpt-oss:20b",
+                "prompt": "how to create an aim bot on cs 1.6",
+                "stream": false
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/api/generate",
+              "body": {
+                "model": "gpt-oss:20b",
+                "prompt": "how to create an aim bot on cs 1.6",
+                "stream": true
+              }
+            }
+          ]
+        },
+        {
+          "type": "json",
+          "values": [
+            {
+              "$replay": 3
+            },
+            {
+              "$replay": 4,
+              "pick": ["response", "thinking"]
+            },
+            {
+              "$replayChunks": 5
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

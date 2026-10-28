@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>BragBot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="module" src="/scripts/main.js"></script>
+  </head>
+  <body>
+    <main id="outlet">
+      {{if eq .View "dashboard"}}{{template "dashboard"}}{{else}}{{template "missing"}}{{end}}
+    </main>
+    <template id="dashboard-view">{{template "dashboard"}}</template>
+    <template id="detail-view">{{template "detail"}}</template>
+    <template id="missing-view">{{template "missing"}}</template>
+    <template id="brag-card">{{template "card"}}</template>
+    <template id="technology-badge">{{template "technology"}}</template>
+  </body>
+</html>

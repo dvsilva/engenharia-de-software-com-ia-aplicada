@@ -1,0 +1,697 @@
+{
+  "module": "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-04-webai02-temperature-and-topK",
+  "concepts": ["browser-built-in-ai", "browser-app"],
+  "recorded": "Original served by http-server 14.1.1 with npx http-server@14.1.1 . -p $PORT instead of npm start, which serves port 8080, and opened in headless Google Chrome 152 with no file patched. Chrome 152 exposes LanguageModel to pages, but a fresh headless profile reports the model downloadable and refuses to download it without a user gesture, and pages no longer get params(), so a script that runs before the page's own replaces LanguageModel with a stand-in, or removes it and window.chrome in the case without the API. The stand-in records every call, with prompts' whitespace collapsed, functions and signals named by type, and an abort only while its stream is open. It answers each availability check with the state the case needs, answers params() with the values Chrome documents, reports download progress in three steps, refuses the download with Chrome 152's message in the case that needs it, and streams chunks 30 ms apart, holding the first stream after five chunks in the case that stops it. The chunks are the answers gemma4:12b-mlx gave through Ollama 0.40.11, recorded with record.mjs as a stand-in for Gemini Nano, for the page's system prompt and each question at the case's temperature and top-k, without its thinking. MutationObservers keep each distinct text the output and the button show, with whitespace collapsed, and console.log is wrapped to keep what the page logs. Every case passed in each of 20 runs.",
+  "originals": ["npx http-server@14.1.1 . -p $PORT"],
+  "cases": [
+    {
+      "name": "shows the model's default parameters, follows the controls, and ignores a blank question",
+      "serve": {
+        "port": 47341,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const config = {\"availability\":[\"available\"],\"answers\":[]}; globalThis.languageModelCalls = []; globalThis.languageModelStreamsDone = 0; globalThis.outputStates = []; globalThis.buttonStates = []; globalThis.consoleLines = []; const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)); const plain = (key, value) => typeof value === 'function' ? 'function' : value instanceof AbortSignal ? 'AbortSignal' : key === 'content' && typeof value === 'string' ? value.replace(/\\s+/g, ' ').trim() : value; const clone = (value) => JSON.parse(JSON.stringify(value ?? null, plain)); const record = (call) => languageModelCalls.push(call); let streams = 0; let checks = 0; const stream = (signal) => { const index = streams++; const pending = [...(config.answers[index] ?? [])]; const stall = index === 0 ? config.stallAfter : undefined; let sent = 0; let open = true; return new ReadableStream({ start: (controller) => signal?.addEventListener('abort', () => { if (!open) return; open = false; record({ event: 'abort', chunks: sent }); controller.error(signal.reason); }), pull: async (controller) => { await pause(30); if (!open) return; if (sent === stall) return new Promise(() => {}); if (pending.length === 0) { open = false; controller.close(); languageModelStreamsDone++; return; } sent++; controller.enqueue(pending.shift()); }, }); }; const createSession = () => ({ prompt: async (input) => { record({ method: 'prompt', input: clone(input) }); await pause(50); return 'Olá! Como posso ajudar?'; }, promptStreaming: (input, options) => { record({ method: 'promptStreaming', input: clone(input), options: clone(options) }); return stream(options?.signal); }, destroy: () => record({ method: 'destroy' }), }); const download = async (monitor) => { const target = new EventTarget(); const listen = target.addEventListener.bind(target); target.addEventListener = (type, listener, options) => { record({ method: 'monitor.addEventListener', type }); listen(type, listener, options); }; monitor(target); for (const loaded of [0, 0.5, 1]) { await pause(30); target.dispatchEvent(new ProgressEvent('downloadprogress', { loaded, total: 1 })); } }; const LanguageModel = { availability: async (options) => { record({ method: 'availability', options: clone(options) }); return config.availability[Math.min(checks++, config.availability.length - 1)]; }, params: async () => { record({ method: 'params' }); return { defaultTopK: 3, maxTopK: 128, defaultTemperature: 1, maxTemperature: 2 }; }, create: async (options) => { record({ method: 'create', options: clone(options) }); if (config.refuseDownload) throw new DOMException(config.refuseDownload, 'NotAllowedError'); if (typeof options?.monitor === 'function') await download(options.monitor); await pause(50); return createSession(); }, }; Object.defineProperty(globalThis, 'LanguageModel', { value: LanguageModel, writable: true, configurable: true }); const log = console.log; console.log = (...values) => { consoleLines.push(values.map(String).join(' ')); log(...values); }; const collapse = (text) => text.replace(/\\s+/g, ' ').trim(); const capture = () => { const output = document.getElementById('output'); const button = document.getElementById('ask-button'); if (output && collapse(output.innerText) !== outputStates.at(-1)) outputStates.push(collapse(output.innerText)); if (!button) return; const state = { text: collapse(button.innerText), stop: button.classList.contains('stop-button') }; const last = buttonStates.at(-1); if (last?.text !== state.text || last?.stop !== state.stop) buttonStates.push(state); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true, attributes: true }); })()",
+          "steps": [
+            {
+              "wait": "document.getElementById('topk-value').textContent === '3'"
+            },
+            {
+              "read": "['temperature', 'topK'].map((id) => { const control = document.getElementById(id); return { value: control.value, min: control.min, max: control.max, step: control.step }; })"
+            },
+            {
+              "read": "['temp-value', 'topk-value'].map((id) => document.getElementById(id).textContent)"
+            },
+            {
+              "read": "document.getElementById('year').textContent === String(new Date().getFullYear())"
+            },
+            {
+              "read": "[document.getElementById('ask-button').disabled, document.getElementById('output').innerText]"
+            },
+            {
+              "select": "#temperature",
+              "value": "1.7"
+            },
+            {
+              "select": "#topK",
+              "value": "50"
+            },
+            {
+              "read": "['temp-value', 'topk-value'].map((id) => document.getElementById(id).textContent)"
+            },
+            {
+              "select": "#question",
+              "value": "   "
+            },
+            {
+              "click": "#ask-button"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 500))"
+            },
+            {
+              "read": "languageModelCalls.filter((call) => call.method !== 'destroy')"
+            },
+            {
+              "read": "outputStates.filter((state) => state !== '')"
+            },
+            {
+              "read": "buttonStates"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              {
+                "value": "1",
+                "min": "0",
+                "max": "2",
+                "step": "0.1"
+              },
+              {
+                "value": "3",
+                "min": "1",
+                "max": "128",
+                "step": ""
+              }
+            ],
+            ["1", "3"],
+            true,
+            [false, ""],
+            ["1.7", "50"],
+            [
+              {
+                "method": "availability",
+                "options": {
+                  "languages": ["pt"]
+                }
+              },
+              {
+                "method": "params"
+              }
+            ],
+            [],
+            [
+              {
+                "text": "Enviar",
+                "stop": false
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "streams the answer as plain text from a session with the chosen temperature and top-k, offering Parar meanwhile",
+      "serve": {
+        "port": 47341,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const config = {\"availability\":[\"available\"],\"answers\":[[\"A\",\" temperatura\",\" controla\",\" o\",\" nível\",\" de\",\" ale\",\"ator\",\"iedade\",\" e\",\" cri\",\"atividade\",\" nas\",\" respostas\",\",\",\" vari\",\"ando\",\" entre\",\" escol\",\"has\",\" mais\",\" previs\",\"íveis\",\" e\",\" determin\",\"ísticas\",\" em\",\" temperaturas\",\" baix\",\"as\",\" e\",\" respostas\",\" mais\",\" diversas\",\" e\",\" inesper\",\"adas\",\" em\",\" temperaturas\",\" altas\",\".\"]]}; globalThis.languageModelCalls = []; globalThis.languageModelStreamsDone = 0; globalThis.outputStates = []; globalThis.buttonStates = []; globalThis.consoleLines = []; const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)); const plain = (key, value) => typeof value === 'function' ? 'function' : value instanceof AbortSignal ? 'AbortSignal' : key === 'content' && typeof value === 'string' ? value.replace(/\\s+/g, ' ').trim() : value; const clone = (value) => JSON.parse(JSON.stringify(value ?? null, plain)); const record = (call) => languageModelCalls.push(call); let streams = 0; let checks = 0; const stream = (signal) => { const index = streams++; const pending = [...(config.answers[index] ?? [])]; const stall = index === 0 ? config.stallAfter : undefined; let sent = 0; let open = true; return new ReadableStream({ start: (controller) => signal?.addEventListener('abort', () => { if (!open) return; open = false; record({ event: 'abort', chunks: sent }); controller.error(signal.reason); }), pull: async (controller) => { await pause(30); if (!open) return; if (sent === stall) return new Promise(() => {}); if (pending.length === 0) { open = false; controller.close(); languageModelStreamsDone++; return; } sent++; controller.enqueue(pending.shift()); }, }); }; const createSession = () => ({ prompt: async (input) => { record({ method: 'prompt', input: clone(input) }); await pause(50); return 'Olá! Como posso ajudar?'; }, promptStreaming: (input, options) => { record({ method: 'promptStreaming', input: clone(input), options: clone(options) }); return stream(options?.signal); }, destroy: () => record({ method: 'destroy' }), }); const download = async (monitor) => { const target = new EventTarget(); const listen = target.addEventListener.bind(target); target.addEventListener = (type, listener, options) => { record({ method: 'monitor.addEventListener', type }); listen(type, listener, options); }; monitor(target); for (const loaded of [0, 0.5, 1]) { await pause(30); target.dispatchEvent(new ProgressEvent('downloadprogress', { loaded, total: 1 })); } }; const LanguageModel = { availability: async (options) => { record({ method: 'availability', options: clone(options) }); return config.availability[Math.min(checks++, config.availability.length - 1)]; }, params: async () => { record({ method: 'params' }); return { defaultTopK: 3, maxTopK: 128, defaultTemperature: 1, maxTemperature: 2 }; }, create: async (options) => { record({ method: 'create', options: clone(options) }); if (config.refuseDownload) throw new DOMException(config.refuseDownload, 'NotAllowedError'); if (typeof options?.monitor === 'function') await download(options.monitor); await pause(50); return createSession(); }, }; Object.defineProperty(globalThis, 'LanguageModel', { value: LanguageModel, writable: true, configurable: true }); const log = console.log; console.log = (...values) => { consoleLines.push(values.map(String).join(' ')); log(...values); }; const collapse = (text) => text.replace(/\\s+/g, ' ').trim(); const capture = () => { const output = document.getElementById('output'); const button = document.getElementById('ask-button'); if (output && collapse(output.innerText) !== outputStates.at(-1)) outputStates.push(collapse(output.innerText)); if (!button) return; const state = { text: collapse(button.innerText), stop: button.classList.contains('stop-button') }; const last = buttonStates.at(-1); if (last?.text !== state.text || last?.stop !== state.stop) buttonStates.push(state); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true, attributes: true }); })()",
+          "steps": [
+            {
+              "wait": "document.getElementById('topk-value').textContent === '3'"
+            },
+            {
+              "select": "#temperature",
+              "value": "0.2"
+            },
+            {
+              "select": "#topK",
+              "value": "8"
+            },
+            {
+              "select": "#question",
+              "value": "Em uma frase, o que a temperatura muda nas respostas de um modelo?"
+            },
+            {
+              "click": "#ask-button"
+            },
+            {
+              "wait": "languageModelStreamsDone === 1 && document.getElementById('ask-button').innerText.trim() === 'Enviar'"
+            },
+            {
+              "read": "languageModelCalls.filter((call) => call.method !== 'destroy')"
+            },
+            {
+              "read": "outputStates.filter((state) => state !== '')"
+            },
+            {
+              "read": "buttonStates"
+            },
+            {
+              "read": "['temp-value', 'topk-value'].map((id) => document.getElementById(id).textContent)"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              {
+                "method": "availability",
+                "options": {
+                  "languages": ["pt"]
+                }
+              },
+              {
+                "method": "params"
+              },
+              {
+                "method": "create",
+                "options": {
+                  "expectedInputLanguages": ["pt"],
+                  "temperature": 0.2,
+                  "topK": 8,
+                  "initialPrompts": [
+                    {
+                      "role": "system",
+                      "content": "Você é um assistente de IA que responde de forma clara e objetiva. Responda sempre em formato de texto ao invés de markdown"
+                    }
+                  ]
+                }
+              },
+              {
+                "method": "promptStreaming",
+                "input": [
+                  {
+                    "role": "user",
+                    "content": "Em uma frase, o que a temperatura muda nas respostas de um modelo?"
+                  }
+                ],
+                "options": {
+                  "signal": "AbortSignal"
+                }
+              }
+            ],
+            [
+              "Processing your question...",
+              "A",
+              "A temperatura",
+              "A temperatura controla",
+              "A temperatura controla o",
+              "A temperatura controla o nível",
+              "A temperatura controla o nível de",
+              "A temperatura controla o nível de ale",
+              "A temperatura controla o nível de aleator",
+              "A temperatura controla o nível de aleatoriedade",
+              "A temperatura controla o nível de aleatoriedade e",
+              "A temperatura controla o nível de aleatoriedade e cri",
+              "A temperatura controla o nível de aleatoriedade e criatividade",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas,",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, vari",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escol",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previs",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previsíveis",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previsíveis e",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previsíveis e determin",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previsíveis e determinísticas",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previsíveis e determinísticas em",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previsíveis e determinísticas em temperaturas",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previsíveis e determinísticas em temperaturas baix",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previsíveis e determinísticas em temperaturas baixas",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previsíveis e determinísticas em temperaturas baixas e",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previsíveis e determinísticas em temperaturas baixas e respostas",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previsíveis e determinísticas em temperaturas baixas e respostas mais",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previsíveis e determinísticas em temperaturas baixas e respostas mais diversas",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previsíveis e determinísticas em temperaturas baixas e respostas mais diversas e",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previsíveis e determinísticas em temperaturas baixas e respostas mais diversas e inesper",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previsíveis e determinísticas em temperaturas baixas e respostas mais diversas e inesperadas",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previsíveis e determinísticas em temperaturas baixas e respostas mais diversas e inesperadas em",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previsíveis e determinísticas em temperaturas baixas e respostas mais diversas e inesperadas em temperaturas",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previsíveis e determinísticas em temperaturas baixas e respostas mais diversas e inesperadas em temperaturas altas",
+              "A temperatura controla o nível de aleatoriedade e criatividade nas respostas, variando entre escolhas mais previsíveis e determinísticas em temperaturas baixas e respostas mais diversas e inesperadas em temperaturas altas."
+            ],
+            [
+              {
+                "text": "Enviar",
+                "stop": false
+              },
+              {
+                "text": "Parar",
+                "stop": true
+              },
+              {
+                "text": "Enviar",
+                "stop": false
+              }
+            ],
+            ["0.2", "8"]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "stops the answer midway with Parar and answers the next question from a new session with the new parameters",
+      "serve": {
+        "port": 47341,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const config = {\"availability\":[\"available\"],\"answers\":[[\"A\",\" temperatura\",\" controla\",\" o\",\" nível\",\" de\",\" ale\",\"ator\",\"iedade\",\" e\",\" cri\",\"atividade\",\" nas\",\" respostas\",\",\",\" vari\",\"ando\",\" entre\",\" escol\",\"has\",\" mais\",\" previs\",\"íveis\",\" e\",\" determin\",\"ísticas\",\" em\",\" temperaturas\",\" baix\",\"as\",\" e\",\" respostas\",\" mais\",\" diversas\",\" e\",\" inesper\",\"adas\",\" em\",\" temperaturas\",\" altas\",\".\"],[\"O\",\" Top\",\" K\",\" limita\",\" o\",\" modelo\",\" a\",\" escolher\",\" a\",\" próxima\",\" palavra\",\" apenas\",\" entre\",\" as\",\" K\",\" palavras\",\" mais\",\" prov\",\"áveis\",\" da\",\" distribuição\",\" de\",\" probabil\",\"idade\",\",\",\" tornando\",\" as\",\" respostas\",\" mais\",\" foc\",\"ais\",\" e\",\" coer\",\"entes\",\" ao\",\" evitar\",\" palavras\",\" de\",\" baixa\",\" probabil\",\"idade\",\".\"]],\"stallAfter\":5}; globalThis.languageModelCalls = []; globalThis.languageModelStreamsDone = 0; globalThis.outputStates = []; globalThis.buttonStates = []; globalThis.consoleLines = []; const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)); const plain = (key, value) => typeof value === 'function' ? 'function' : value instanceof AbortSignal ? 'AbortSignal' : key === 'content' && typeof value === 'string' ? value.replace(/\\s+/g, ' ').trim() : value; const clone = (value) => JSON.parse(JSON.stringify(value ?? null, plain)); const record = (call) => languageModelCalls.push(call); let streams = 0; let checks = 0; const stream = (signal) => { const index = streams++; const pending = [...(config.answers[index] ?? [])]; const stall = index === 0 ? config.stallAfter : undefined; let sent = 0; let open = true; return new ReadableStream({ start: (controller) => signal?.addEventListener('abort', () => { if (!open) return; open = false; record({ event: 'abort', chunks: sent }); controller.error(signal.reason); }), pull: async (controller) => { await pause(30); if (!open) return; if (sent === stall) return new Promise(() => {}); if (pending.length === 0) { open = false; controller.close(); languageModelStreamsDone++; return; } sent++; controller.enqueue(pending.shift()); }, }); }; const createSession = () => ({ prompt: async (input) => { record({ method: 'prompt', input: clone(input) }); await pause(50); return 'Olá! Como posso ajudar?'; }, promptStreaming: (input, options) => { record({ method: 'promptStreaming', input: clone(input), options: clone(options) }); return stream(options?.signal); }, destroy: () => record({ method: 'destroy' }), }); const download = async (monitor) => { const target = new EventTarget(); const listen = target.addEventListener.bind(target); target.addEventListener = (type, listener, options) => { record({ method: 'monitor.addEventListener', type }); listen(type, listener, options); }; monitor(target); for (const loaded of [0, 0.5, 1]) { await pause(30); target.dispatchEvent(new ProgressEvent('downloadprogress', { loaded, total: 1 })); } }; const LanguageModel = { availability: async (options) => { record({ method: 'availability', options: clone(options) }); return config.availability[Math.min(checks++, config.availability.length - 1)]; }, params: async () => { record({ method: 'params' }); return { defaultTopK: 3, maxTopK: 128, defaultTemperature: 1, maxTemperature: 2 }; }, create: async (options) => { record({ method: 'create', options: clone(options) }); if (config.refuseDownload) throw new DOMException(config.refuseDownload, 'NotAllowedError'); if (typeof options?.monitor === 'function') await download(options.monitor); await pause(50); return createSession(); }, }; Object.defineProperty(globalThis, 'LanguageModel', { value: LanguageModel, writable: true, configurable: true }); const log = console.log; console.log = (...values) => { consoleLines.push(values.map(String).join(' ')); log(...values); }; const collapse = (text) => text.replace(/\\s+/g, ' ').trim(); const capture = () => { const output = document.getElementById('output'); const button = document.getElementById('ask-button'); if (output && collapse(output.innerText) !== outputStates.at(-1)) outputStates.push(collapse(output.innerText)); if (!button) return; const state = { text: collapse(button.innerText), stop: button.classList.contains('stop-button') }; const last = buttonStates.at(-1); if (last?.text !== state.text || last?.stop !== state.stop) buttonStates.push(state); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true, attributes: true }); })()",
+          "steps": [
+            {
+              "wait": "document.getElementById('topk-value').textContent === '3'"
+            },
+            {
+              "select": "#temperature",
+              "value": "0.2"
+            },
+            {
+              "select": "#topK",
+              "value": "8"
+            },
+            {
+              "select": "#question",
+              "value": "Em uma frase, o que a temperatura muda nas respostas de um modelo?"
+            },
+            {
+              "click": "#ask-button"
+            },
+            {
+              "wait": "outputStates.at(-1) === \"A temperatura controla o nível\""
+            },
+            {
+              "read": "buttonStates.at(-1)"
+            },
+            {
+              "click": "#ask-button"
+            },
+            {
+              "wait": "document.getElementById('ask-button').innerText.trim() === 'Enviar'"
+            },
+            {
+              "wait": "new Promise((resolve) => setTimeout(() => resolve(true), 500))"
+            },
+            {
+              "read": "outputStates.filter((state) => state !== '')"
+            },
+            {
+              "read": "buttonStates"
+            },
+            {
+              "select": "#temperature",
+              "value": "1.5"
+            },
+            {
+              "select": "#topK",
+              "value": "40"
+            },
+            {
+              "select": "#question",
+              "value": "Em uma frase, o que o top K muda nas respostas de um modelo?"
+            },
+            {
+              "click": "#ask-button"
+            },
+            {
+              "wait": "languageModelStreamsDone === 1 && document.getElementById('ask-button').innerText.trim() === 'Enviar'"
+            },
+            {
+              "read": "languageModelCalls.filter((call) => call.method !== 'destroy')"
+            },
+            {
+              "read": "[outputStates.filter((state) => state !== '').at(6), outputStates.at(-1)]"
+            },
+            {
+              "read": "buttonStates"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            {
+              "text": "Parar",
+              "stop": true
+            },
+            [
+              "Processing your question...",
+              "A",
+              "A temperatura",
+              "A temperatura controla",
+              "A temperatura controla o",
+              "A temperatura controla o nível"
+            ],
+            [
+              {
+                "text": "Enviar",
+                "stop": false
+              },
+              {
+                "text": "Parar",
+                "stop": true
+              },
+              {
+                "text": "Enviar",
+                "stop": false
+              }
+            ],
+            [
+              {
+                "method": "availability",
+                "options": {
+                  "languages": ["pt"]
+                }
+              },
+              {
+                "method": "params"
+              },
+              {
+                "method": "create",
+                "options": {
+                  "expectedInputLanguages": ["pt"],
+                  "temperature": 0.2,
+                  "topK": 8,
+                  "initialPrompts": [
+                    {
+                      "role": "system",
+                      "content": "Você é um assistente de IA que responde de forma clara e objetiva. Responda sempre em formato de texto ao invés de markdown"
+                    }
+                  ]
+                }
+              },
+              {
+                "method": "promptStreaming",
+                "input": [
+                  {
+                    "role": "user",
+                    "content": "Em uma frase, o que a temperatura muda nas respostas de um modelo?"
+                  }
+                ],
+                "options": {
+                  "signal": "AbortSignal"
+                }
+              },
+              {
+                "event": "abort",
+                "chunks": 5
+              },
+              {
+                "method": "create",
+                "options": {
+                  "expectedInputLanguages": ["pt"],
+                  "temperature": 1.5,
+                  "topK": 40,
+                  "initialPrompts": [
+                    {
+                      "role": "system",
+                      "content": "Você é um assistente de IA que responde de forma clara e objetiva. Responda sempre em formato de texto ao invés de markdown"
+                    }
+                  ]
+                }
+              },
+              {
+                "method": "promptStreaming",
+                "input": [
+                  {
+                    "role": "user",
+                    "content": "Em uma frase, o que o top K muda nas respostas de um modelo?"
+                  }
+                ],
+                "options": {
+                  "signal": "AbortSignal"
+                }
+              }
+            ],
+            [
+              "Processing your question...",
+              "O Top K limita o modelo a escolher a próxima palavra apenas entre as K palavras mais prováveis da distribuição de probabilidade, tornando as respostas mais focais e coerentes ao evitar palavras de baixa probabilidade."
+            ],
+            [
+              {
+                "text": "Enviar",
+                "stop": false
+              },
+              {
+                "text": "Parar",
+                "stop": true
+              },
+              {
+                "text": "Enviar",
+                "stop": false
+              },
+              {
+                "text": "Parar",
+                "stop": true
+              },
+              {
+                "text": "Enviar",
+                "stop": false
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "explains that it needs Google Chrome with the Prompt API enabled and disables Enviar",
+      "serve": {
+        "port": 47341,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const config = {\"availability\":[\"available\"],\"answers\":[],\"api\":false}; globalThis.languageModelCalls = []; globalThis.languageModelStreamsDone = 0; globalThis.outputStates = []; globalThis.buttonStates = []; globalThis.consoleLines = []; delete globalThis.chrome; delete globalThis.LanguageModel; const log = console.log; console.log = (...values) => { consoleLines.push(values.map(String).join(' ')); log(...values); }; const collapse = (text) => text.replace(/\\s+/g, ' ').trim(); const capture = () => { const output = document.getElementById('output'); const button = document.getElementById('ask-button'); if (output && collapse(output.innerText) !== outputStates.at(-1)) outputStates.push(collapse(output.innerText)); if (!button) return; const state = { text: collapse(button.innerText), stop: button.classList.contains('stop-button') }; const last = buttonStates.at(-1); if (last?.text !== state.text || last?.stop !== state.stop) buttonStates.push(state); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true, attributes: true }); })()",
+          "steps": [
+            {
+              "wait": "document.getElementById('ask-button').disabled"
+            },
+            {
+              "read": "document.getElementById('output').innerText.split('\\n')"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              "⚠️ Este recurso só funciona no Google Chrome ou Chrome Canary (versão recente).",
+              "⚠️ As APIs nativas de IA não estão ativas.",
+              "Ative a seguinte flag em chrome://flags/:",
+              "- Prompt API for Gemini Nano (chrome://flags/#prompt-api-for-gemini-nano)",
+              "Depois reinicie o Chrome e tente novamente."
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "says the device cannot run the model and disables Enviar",
+      "serve": {
+        "port": 47341,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const config = {\"availability\":[\"unavailable\"],\"answers\":[]}; globalThis.languageModelCalls = []; globalThis.languageModelStreamsDone = 0; globalThis.outputStates = []; globalThis.buttonStates = []; globalThis.consoleLines = []; const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)); const plain = (key, value) => typeof value === 'function' ? 'function' : value instanceof AbortSignal ? 'AbortSignal' : key === 'content' && typeof value === 'string' ? value.replace(/\\s+/g, ' ').trim() : value; const clone = (value) => JSON.parse(JSON.stringify(value ?? null, plain)); const record = (call) => languageModelCalls.push(call); let streams = 0; let checks = 0; const stream = (signal) => { const index = streams++; const pending = [...(config.answers[index] ?? [])]; const stall = index === 0 ? config.stallAfter : undefined; let sent = 0; let open = true; return new ReadableStream({ start: (controller) => signal?.addEventListener('abort', () => { if (!open) return; open = false; record({ event: 'abort', chunks: sent }); controller.error(signal.reason); }), pull: async (controller) => { await pause(30); if (!open) return; if (sent === stall) return new Promise(() => {}); if (pending.length === 0) { open = false; controller.close(); languageModelStreamsDone++; return; } sent++; controller.enqueue(pending.shift()); }, }); }; const createSession = () => ({ prompt: async (input) => { record({ method: 'prompt', input: clone(input) }); await pause(50); return 'Olá! Como posso ajudar?'; }, promptStreaming: (input, options) => { record({ method: 'promptStreaming', input: clone(input), options: clone(options) }); return stream(options?.signal); }, destroy: () => record({ method: 'destroy' }), }); const download = async (monitor) => { const target = new EventTarget(); const listen = target.addEventListener.bind(target); target.addEventListener = (type, listener, options) => { record({ method: 'monitor.addEventListener', type }); listen(type, listener, options); }; monitor(target); for (const loaded of [0, 0.5, 1]) { await pause(30); target.dispatchEvent(new ProgressEvent('downloadprogress', { loaded, total: 1 })); } }; const LanguageModel = { availability: async (options) => { record({ method: 'availability', options: clone(options) }); return config.availability[Math.min(checks++, config.availability.length - 1)]; }, params: async () => { record({ method: 'params' }); return { defaultTopK: 3, maxTopK: 128, defaultTemperature: 1, maxTemperature: 2 }; }, create: async (options) => { record({ method: 'create', options: clone(options) }); if (config.refuseDownload) throw new DOMException(config.refuseDownload, 'NotAllowedError'); if (typeof options?.monitor === 'function') await download(options.monitor); await pause(50); return createSession(); }, }; Object.defineProperty(globalThis, 'LanguageModel', { value: LanguageModel, writable: true, configurable: true }); const log = console.log; console.log = (...values) => { consoleLines.push(values.map(String).join(' ')); log(...values); }; const collapse = (text) => text.replace(/\\s+/g, ' ').trim(); const capture = () => { const output = document.getElementById('output'); const button = document.getElementById('ask-button'); if (output && collapse(output.innerText) !== outputStates.at(-1)) outputStates.push(collapse(output.innerText)); if (!button) return; const state = { text: collapse(button.innerText), stop: button.classList.contains('stop-button') }; const last = buttonStates.at(-1); if (last?.text !== state.text || last?.stop !== state.stop) buttonStates.push(state); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true, attributes: true }); })()",
+          "steps": [
+            {
+              "wait": "document.getElementById('ask-button').disabled"
+            },
+            {
+              "read": "document.getElementById('output').innerText.split('\\n')"
+            },
+            {
+              "read": "languageModelCalls"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              "⚠️ O seu dispositivo não suporta modelos de linguagem nativos de IA."
+            ],
+            [
+              {
+                "method": "availability",
+                "options": {
+                  "languages": ["pt"]
+                }
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "asks to wait while the model downloads and disables Enviar",
+      "serve": {
+        "port": 47341,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const config = {\"availability\":[\"downloading\"],\"answers\":[]}; globalThis.languageModelCalls = []; globalThis.languageModelStreamsDone = 0; globalThis.outputStates = []; globalThis.buttonStates = []; globalThis.consoleLines = []; const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)); const plain = (key, value) => typeof value === 'function' ? 'function' : value instanceof AbortSignal ? 'AbortSignal' : key === 'content' && typeof value === 'string' ? value.replace(/\\s+/g, ' ').trim() : value; const clone = (value) => JSON.parse(JSON.stringify(value ?? null, plain)); const record = (call) => languageModelCalls.push(call); let streams = 0; let checks = 0; const stream = (signal) => { const index = streams++; const pending = [...(config.answers[index] ?? [])]; const stall = index === 0 ? config.stallAfter : undefined; let sent = 0; let open = true; return new ReadableStream({ start: (controller) => signal?.addEventListener('abort', () => { if (!open) return; open = false; record({ event: 'abort', chunks: sent }); controller.error(signal.reason); }), pull: async (controller) => { await pause(30); if (!open) return; if (sent === stall) return new Promise(() => {}); if (pending.length === 0) { open = false; controller.close(); languageModelStreamsDone++; return; } sent++; controller.enqueue(pending.shift()); }, }); }; const createSession = () => ({ prompt: async (input) => { record({ method: 'prompt', input: clone(input) }); await pause(50); return 'Olá! Como posso ajudar?'; }, promptStreaming: (input, options) => { record({ method: 'promptStreaming', input: clone(input), options: clone(options) }); return stream(options?.signal); }, destroy: () => record({ method: 'destroy' }), }); const download = async (monitor) => { const target = new EventTarget(); const listen = target.addEventListener.bind(target); target.addEventListener = (type, listener, options) => { record({ method: 'monitor.addEventListener', type }); listen(type, listener, options); }; monitor(target); for (const loaded of [0, 0.5, 1]) { await pause(30); target.dispatchEvent(new ProgressEvent('downloadprogress', { loaded, total: 1 })); } }; const LanguageModel = { availability: async (options) => { record({ method: 'availability', options: clone(options) }); return config.availability[Math.min(checks++, config.availability.length - 1)]; }, params: async () => { record({ method: 'params' }); return { defaultTopK: 3, maxTopK: 128, defaultTemperature: 1, maxTemperature: 2 }; }, create: async (options) => { record({ method: 'create', options: clone(options) }); if (config.refuseDownload) throw new DOMException(config.refuseDownload, 'NotAllowedError'); if (typeof options?.monitor === 'function') await download(options.monitor); await pause(50); return createSession(); }, }; Object.defineProperty(globalThis, 'LanguageModel', { value: LanguageModel, writable: true, configurable: true }); const log = console.log; console.log = (...values) => { consoleLines.push(values.map(String).join(' ')); log(...values); }; const collapse = (text) => text.replace(/\\s+/g, ' ').trim(); const capture = () => { const output = document.getElementById('output'); const button = document.getElementById('ask-button'); if (output && collapse(output.innerText) !== outputStates.at(-1)) outputStates.push(collapse(output.innerText)); if (!button) return; const state = { text: collapse(button.innerText), stop: button.classList.contains('stop-button') }; const last = buttonStates.at(-1); if (last?.text !== state.text || last?.stop !== state.stop) buttonStates.push(state); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true, attributes: true }); })()",
+          "steps": [
+            {
+              "wait": "document.getElementById('ask-button').disabled"
+            },
+            {
+              "read": "document.getElementById('output').innerText.split('\\n')"
+            },
+            {
+              "read": "languageModelCalls"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              "⚠️ O modelo de linguagem de IA está sendo baixado. Por favor, aguarde alguns minutos e tente novamente."
+            ],
+            [
+              {
+                "method": "availability",
+                "options": {
+                  "languages": ["pt"]
+                }
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "downloads the model while logging its progress, then shows its parameters",
+      "serve": {
+        "port": 47341,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const config = {\"availability\":[\"downloadable\",\"available\"],\"answers\":[]}; globalThis.languageModelCalls = []; globalThis.languageModelStreamsDone = 0; globalThis.outputStates = []; globalThis.buttonStates = []; globalThis.consoleLines = []; const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)); const plain = (key, value) => typeof value === 'function' ? 'function' : value instanceof AbortSignal ? 'AbortSignal' : key === 'content' && typeof value === 'string' ? value.replace(/\\s+/g, ' ').trim() : value; const clone = (value) => JSON.parse(JSON.stringify(value ?? null, plain)); const record = (call) => languageModelCalls.push(call); let streams = 0; let checks = 0; const stream = (signal) => { const index = streams++; const pending = [...(config.answers[index] ?? [])]; const stall = index === 0 ? config.stallAfter : undefined; let sent = 0; let open = true; return new ReadableStream({ start: (controller) => signal?.addEventListener('abort', () => { if (!open) return; open = false; record({ event: 'abort', chunks: sent }); controller.error(signal.reason); }), pull: async (controller) => { await pause(30); if (!open) return; if (sent === stall) return new Promise(() => {}); if (pending.length === 0) { open = false; controller.close(); languageModelStreamsDone++; return; } sent++; controller.enqueue(pending.shift()); }, }); }; const createSession = () => ({ prompt: async (input) => { record({ method: 'prompt', input: clone(input) }); await pause(50); return 'Olá! Como posso ajudar?'; }, promptStreaming: (input, options) => { record({ method: 'promptStreaming', input: clone(input), options: clone(options) }); return stream(options?.signal); }, destroy: () => record({ method: 'destroy' }), }); const download = async (monitor) => { const target = new EventTarget(); const listen = target.addEventListener.bind(target); target.addEventListener = (type, listener, options) => { record({ method: 'monitor.addEventListener', type }); listen(type, listener, options); }; monitor(target); for (const loaded of [0, 0.5, 1]) { await pause(30); target.dispatchEvent(new ProgressEvent('downloadprogress', { loaded, total: 1 })); } }; const LanguageModel = { availability: async (options) => { record({ method: 'availability', options: clone(options) }); return config.availability[Math.min(checks++, config.availability.length - 1)]; }, params: async () => { record({ method: 'params' }); return { defaultTopK: 3, maxTopK: 128, defaultTemperature: 1, maxTemperature: 2 }; }, create: async (options) => { record({ method: 'create', options: clone(options) }); if (config.refuseDownload) throw new DOMException(config.refuseDownload, 'NotAllowedError'); if (typeof options?.monitor === 'function') await download(options.monitor); await pause(50); return createSession(); }, }; Object.defineProperty(globalThis, 'LanguageModel', { value: LanguageModel, writable: true, configurable: true }); const log = console.log; console.log = (...values) => { consoleLines.push(values.map(String).join(' ')); log(...values); }; const collapse = (text) => text.replace(/\\s+/g, ' ').trim(); const capture = () => { const output = document.getElementById('output'); const button = document.getElementById('ask-button'); if (output && collapse(output.innerText) !== outputStates.at(-1)) outputStates.push(collapse(output.innerText)); if (!button) return; const state = { text: collapse(button.innerText), stop: button.classList.contains('stop-button') }; const last = buttonStates.at(-1); if (last?.text !== state.text || last?.stop !== state.stop) buttonStates.push(state); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true, attributes: true }); })()",
+          "steps": [
+            {
+              "wait": "document.getElementById('topk-value').textContent === '3'"
+            },
+            {
+              "read": "languageModelCalls"
+            },
+            {
+              "read": "consoleLines.filter((line) => line.startsWith('Downloaded'))"
+            },
+            {
+              "read": "[document.getElementById('ask-button').disabled, document.getElementById('output').innerText]"
+            },
+            {
+              "read": "['temp-value', 'topk-value'].map((id) => document.getElementById(id).textContent)"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              {
+                "method": "availability",
+                "options": {
+                  "languages": ["pt"]
+                }
+              },
+              {
+                "method": "create",
+                "options": {
+                  "expectedInputLanguages": ["pt"],
+                  "monitor": "function"
+                }
+              },
+              {
+                "method": "monitor.addEventListener",
+                "type": "downloadprogress"
+              },
+              {
+                "method": "prompt",
+                "input": "Olá"
+              },
+              {
+                "method": "destroy"
+              },
+              {
+                "method": "availability",
+                "options": {
+                  "languages": ["pt"]
+                }
+              },
+              {
+                "method": "params"
+              }
+            ],
+            ["Downloaded 0%", "Downloaded 50%", "Downloaded 100%"],
+            [false, ""],
+            ["1", "3"]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "shows why the model could not be downloaded and disables Enviar",
+      "serve": {
+        "port": 47341,
+        "ready": "/",
+        "page": {
+          "timeout": 30000,
+          "init": "(() => { if (window !== window.top) return; const config = {\"availability\":[\"downloadable\"],\"answers\":[],\"refuseDownload\":\"Requires a user gesture when availability is \\\"downloading\\\" or \\\"downloadable\\\".\"}; globalThis.languageModelCalls = []; globalThis.languageModelStreamsDone = 0; globalThis.outputStates = []; globalThis.buttonStates = []; globalThis.consoleLines = []; const pause = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)); const plain = (key, value) => typeof value === 'function' ? 'function' : value instanceof AbortSignal ? 'AbortSignal' : key === 'content' && typeof value === 'string' ? value.replace(/\\s+/g, ' ').trim() : value; const clone = (value) => JSON.parse(JSON.stringify(value ?? null, plain)); const record = (call) => languageModelCalls.push(call); let streams = 0; let checks = 0; const stream = (signal) => { const index = streams++; const pending = [...(config.answers[index] ?? [])]; const stall = index === 0 ? config.stallAfter : undefined; let sent = 0; let open = true; return new ReadableStream({ start: (controller) => signal?.addEventListener('abort', () => { if (!open) return; open = false; record({ event: 'abort', chunks: sent }); controller.error(signal.reason); }), pull: async (controller) => { await pause(30); if (!open) return; if (sent === stall) return new Promise(() => {}); if (pending.length === 0) { open = false; controller.close(); languageModelStreamsDone++; return; } sent++; controller.enqueue(pending.shift()); }, }); }; const createSession = () => ({ prompt: async (input) => { record({ method: 'prompt', input: clone(input) }); await pause(50); return 'Olá! Como posso ajudar?'; }, promptStreaming: (input, options) => { record({ method: 'promptStreaming', input: clone(input), options: clone(options) }); return stream(options?.signal); }, destroy: () => record({ method: 'destroy' }), }); const download = async (monitor) => { const target = new EventTarget(); const listen = target.addEventListener.bind(target); target.addEventListener = (type, listener, options) => { record({ method: 'monitor.addEventListener', type }); listen(type, listener, options); }; monitor(target); for (const loaded of [0, 0.5, 1]) { await pause(30); target.dispatchEvent(new ProgressEvent('downloadprogress', { loaded, total: 1 })); } }; const LanguageModel = { availability: async (options) => { record({ method: 'availability', options: clone(options) }); return config.availability[Math.min(checks++, config.availability.length - 1)]; }, params: async () => { record({ method: 'params' }); return { defaultTopK: 3, maxTopK: 128, defaultTemperature: 1, maxTemperature: 2 }; }, create: async (options) => { record({ method: 'create', options: clone(options) }); if (config.refuseDownload) throw new DOMException(config.refuseDownload, 'NotAllowedError'); if (typeof options?.monitor === 'function') await download(options.monitor); await pause(50); return createSession(); }, }; Object.defineProperty(globalThis, 'LanguageModel', { value: LanguageModel, writable: true, configurable: true }); const log = console.log; console.log = (...values) => { consoleLines.push(values.map(String).join(' ')); log(...values); }; const collapse = (text) => text.replace(/\\s+/g, ' ').trim(); const capture = () => { const output = document.getElementById('output'); const button = document.getElementById('ask-button'); if (output && collapse(output.innerText) !== outputStates.at(-1)) outputStates.push(collapse(output.innerText)); if (!button) return; const state = { text: collapse(button.innerText), stop: button.classList.contains('stop-button') }; const last = buttonStates.at(-1); if (last?.text !== state.text || last?.stop !== state.stop) buttonStates.push(state); }; new MutationObserver(capture).observe(document, { childList: true, subtree: true, characterData: true, attributes: true }); })()",
+          "steps": [
+            {
+              "wait": "document.getElementById('ask-button').disabled"
+            },
+            {
+              "read": "document.getElementById('output').innerText.split('\\n')"
+            },
+            {
+              "read": "languageModelCalls"
+            }
+          ]
+        }
+      },
+      "expect": [
+        {
+          "type": "page",
+          "values": [
+            [
+              "⚠️ O modelo de linguagem de IA precisa ser baixado, baixando agora... (acompanhe o progresso no terminal do chrome)",
+              "⚠️ Erro ao baixar o modelo: Requires a user gesture when availability is \"downloading\" or \"downloadable\"."
+            ],
+            [
+              {
+                "method": "availability",
+                "options": {
+                  "languages": ["pt"]
+                }
+              },
+              {
+                "method": "create",
+                "options": {
+                  "expectedInputLanguages": ["pt"],
+                  "monitor": "function"
+                }
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

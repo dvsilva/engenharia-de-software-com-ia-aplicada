@@ -1,0 +1,710 @@
+{
+  "module": "modulo12-carreira-engenheiros-ia/parte-2-entrevistas-tecnicas/02-live-coding-set-game",
+  "concepts": ["live-coding-exercise"],
+  "recorded": "Every case passed against the original, run unchanged from a copy with Node.js 26.12.1 and nothing to install, where the programs are each level's suite, test/level1.test to test/level4.test, run as node --test test/level1.test.js, the files npm run test:1 to test:4 run, and scripts/verify-solution, run as node scripts/verify-solution.js, the script npm run test:solution runs. Each suite is checked only by whether it fails, against the starting point, whose methods have empty bodies, or succeeds, against the reference solution, never by its report, because every test runner prints its own and some fail with their own exit code. The starting point's cases leave SOLUTION out, so support/helper takes src/, and the solution's set it to 1, as verify-solution does. solution/card, solution/deck, and solution/board only export their classes, so their cases run a driver written for them: its first argument names an operation, every later argument is JSON, and it prints the result as one line of JSON. solution/card new takes the four values, builds the card with the constructor, and prints its text, exiting with a failure when the constructor throws, and formsSetWith takes three card texts, builds them with Card.parse, and prints whether the first forms a set with the other two. solution/deck full prints the texts of Deck.full(), shuffle takes a deck, given as a list of card texts or as null for new Deck(), and a list of numbers the random function returns in turn, and prints the deck's cards afterwards, and draw takes a deck and a count and prints {drawn, size}, the drawn cards and the deck's size afterwards. solution/board new, findSets, and dealUntilSet take a deck the same way and deal a Board from it: new prints {cards, deckSize}, the board's cards and the deck's size, findSets prints each set as a list of three texts, and dealUntilSet prints {cards, deckSize} after dealing. The command chose by {program}, as in case {program} in test/*) node --test {program}.js ;; solution/*) node driver.js {program} {args} ;; *) node {program}.js ;; esac. The starting point has no driver case, because what an empty body returns differs per language. Every card is compared by its text, exactly and in order.",
+  "prepare": { "files": ["driver.js"] },
+  "originals": [
+    "case {program} in test/*) node --test {program}.js ;; solution/*) node driver.js {program} {args} ;; *) node {program}.js ;; esac"
+  ],
+  "cases": [
+    {
+      "name": "level 1: the suite fails against the starting point, whose Card constructor and toString have empty bodies",
+      "program": "test/level1.test",
+      "env": { "SOLUTION": null },
+      "expect": [{ "type": "exit", "failure": true }]
+    },
+    {
+      "name": "level 1: the suite passes against the reference solution",
+      "program": "test/level1.test",
+      "env": { "SOLUTION": "1" },
+      "expect": [{ "type": "exit", "code": 0 }]
+    },
+    {
+      "name": "level 1: a card built from its four values prints them as its text",
+      "program": "solution/card",
+      "args": ["new", "[2,\"green\",\"diamond\",\"striped\"]"],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "lines",
+          "pattern": "^\"2 green diamond striped\"$",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "name": "level 1: the constructor rejects the number 4",
+      "program": "solution/card",
+      "args": ["new", "[4,\"red\",\"oval\",\"solid\"]"],
+      "expect": [{ "type": "exit", "failure": true }]
+    },
+    {
+      "name": "level 1: the constructor rejects the number 0",
+      "program": "solution/card",
+      "args": ["new", "[0,\"red\",\"oval\",\"solid\"]"],
+      "expect": [{ "type": "exit", "failure": true }]
+    },
+    {
+      "name": "level 1: the constructor rejects a color outside the list",
+      "program": "solution/card",
+      "args": ["new", "[1,\"blue\",\"oval\",\"solid\"]"],
+      "expect": [{ "type": "exit", "failure": true }]
+    },
+    {
+      "name": "level 1: values are case-sensitive, so the constructor rejects Red",
+      "program": "solution/card",
+      "args": ["new", "[1,\"Red\",\"oval\",\"solid\"]"],
+      "expect": [{ "type": "exit", "failure": true }]
+    },
+    {
+      "name": "level 1: the constructor rejects a shape outside the list",
+      "program": "solution/card",
+      "args": ["new", "[1,\"red\",\"square\",\"solid\"]"],
+      "expect": [{ "type": "exit", "failure": true }]
+    },
+    {
+      "name": "level 1: the constructor rejects a shading outside the list",
+      "program": "solution/card",
+      "args": ["new", "[1,\"red\",\"oval\",\"dotted\"]"],
+      "expect": [{ "type": "exit", "failure": true }]
+    },
+    {
+      "name": "level 2: the suite fails against the starting point, whose formsSetWith has an empty body",
+      "program": "test/level2.test",
+      "env": { "SOLUTION": null },
+      "expect": [{ "type": "exit", "failure": true }]
+    },
+    {
+      "name": "level 2: the suite passes against the reference solution",
+      "program": "test/level2.test",
+      "env": { "SOLUTION": "1" },
+      "expect": [{ "type": "exit", "code": 0 }]
+    },
+    {
+      "name": "level 2: three cards that differ in every attribute form a set",
+      "program": "solution/card",
+      "args": [
+        "formsSetWith",
+        "[\"1 red oval solid\",\"2 green diamond striped\",\"3 purple squiggle open\"]"
+      ],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        { "type": "lines", "pattern": "^true$", "count": 1 }
+      ]
+    },
+    {
+      "name": "level 2: three cards that differ only in shading form a set",
+      "program": "solution/card",
+      "args": [
+        "formsSetWith",
+        "[\"1 red oval solid\",\"1 red oval striped\",\"1 red oval open\"]"
+      ],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        { "type": "lines", "pattern": "^true$", "count": 1 }
+      ]
+    },
+    {
+      "name": "level 2: two equal colors and one different keep the cards from forming a set",
+      "program": "solution/card",
+      "args": [
+        "formsSetWith",
+        "[\"1 red oval solid\",\"1 red oval striped\",\"1 green oval open\"]"
+      ],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        { "type": "lines", "pattern": "^false$", "count": 1 }
+      ]
+    },
+    {
+      "name": "level 2: two equal shapes and one different keep the cards from forming a set, even with every other attribute all different",
+      "program": "solution/card",
+      "args": [
+        "formsSetWith",
+        "[\"1 red oval solid\",\"2 green oval striped\",\"3 purple diamond open\"]"
+      ],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        { "type": "lines", "pattern": "^false$", "count": 1 }
+      ]
+    },
+    {
+      "name": "level 2: the order of the cards does not matter",
+      "program": "solution/card",
+      "args": [
+        "formsSetWith",
+        "[\"3 purple squiggle open\",\"1 red oval solid\",\"2 green diamond striped\"]"
+      ],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        { "type": "lines", "pattern": "^true$", "count": 1 }
+      ]
+    },
+    {
+      "name": "level 2: three copies of one card form a set, because every attribute is all the same",
+      "program": "solution/card",
+      "args": [
+        "formsSetWith",
+        "[\"2 green diamond striped\",\"2 green diamond striped\",\"2 green diamond striped\"]"
+      ],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        { "type": "lines", "pattern": "^true$", "count": 1 }
+      ]
+    },
+    {
+      "name": "level 3: the suite fails against the starting point, whose Deck methods have empty bodies",
+      "program": "test/level3.test",
+      "env": { "SOLUTION": null },
+      "expect": [{ "type": "exit", "failure": true }]
+    },
+    {
+      "name": "level 3: the suite passes against the reference solution",
+      "program": "test/level3.test",
+      "env": { "SOLUTION": "1" },
+      "expect": [{ "type": "exit", "code": 0 }]
+    },
+    {
+      "name": "level 3: the full deck holds the 81 cards, varying number, then color, then shape, then shading",
+      "program": "solution/deck",
+      "args": ["full"],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "json",
+          "values": [
+            [
+              "1 red oval solid",
+              "1 red oval striped",
+              "1 red oval open",
+              "1 red diamond solid",
+              "1 red diamond striped",
+              "1 red diamond open",
+              "1 red squiggle solid",
+              "1 red squiggle striped",
+              "1 red squiggle open",
+              "1 green oval solid",
+              "1 green oval striped",
+              "1 green oval open",
+              "1 green diamond solid",
+              "1 green diamond striped",
+              "1 green diamond open",
+              "1 green squiggle solid",
+              "1 green squiggle striped",
+              "1 green squiggle open",
+              "1 purple oval solid",
+              "1 purple oval striped",
+              "1 purple oval open",
+              "1 purple diamond solid",
+              "1 purple diamond striped",
+              "1 purple diamond open",
+              "1 purple squiggle solid",
+              "1 purple squiggle striped",
+              "1 purple squiggle open",
+              "2 red oval solid",
+              "2 red oval striped",
+              "2 red oval open",
+              "2 red diamond solid",
+              "2 red diamond striped",
+              "2 red diamond open",
+              "2 red squiggle solid",
+              "2 red squiggle striped",
+              "2 red squiggle open",
+              "2 green oval solid",
+              "2 green oval striped",
+              "2 green oval open",
+              "2 green diamond solid",
+              "2 green diamond striped",
+              "2 green diamond open",
+              "2 green squiggle solid",
+              "2 green squiggle striped",
+              "2 green squiggle open",
+              "2 purple oval solid",
+              "2 purple oval striped",
+              "2 purple oval open",
+              "2 purple diamond solid",
+              "2 purple diamond striped",
+              "2 purple diamond open",
+              "2 purple squiggle solid",
+              "2 purple squiggle striped",
+              "2 purple squiggle open",
+              "3 red oval solid",
+              "3 red oval striped",
+              "3 red oval open",
+              "3 red diamond solid",
+              "3 red diamond striped",
+              "3 red diamond open",
+              "3 red squiggle solid",
+              "3 red squiggle striped",
+              "3 red squiggle open",
+              "3 green oval solid",
+              "3 green oval striped",
+              "3 green oval open",
+              "3 green diamond solid",
+              "3 green diamond striped",
+              "3 green diamond open",
+              "3 green squiggle solid",
+              "3 green squiggle striped",
+              "3 green squiggle open",
+              "3 purple oval solid",
+              "3 purple oval striped",
+              "3 purple oval open",
+              "3 purple diamond solid",
+              "3 purple diamond striped",
+              "3 purple diamond open",
+              "3 purple squiggle solid",
+              "3 purple squiggle striped",
+              "3 purple squiggle open"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "level 3: drawing 12 from the full deck takes the first 12 and leaves 69",
+      "program": "solution/deck",
+      "args": ["draw", "null", "12"],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "json",
+          "values": [
+            {
+              "drawn": [
+                "1 red oval solid",
+                "1 red oval striped",
+                "1 red oval open",
+                "1 red diamond solid",
+                "1 red diamond striped",
+                "1 red diamond open",
+                "1 red squiggle solid",
+                "1 red squiggle striped",
+                "1 red squiggle open",
+                "1 green oval solid",
+                "1 green oval striped",
+                "1 green oval open"
+              ],
+              "size": 69
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "level 3: drawing more cards than are left returns the ones that are left",
+      "program": "solution/deck",
+      "args": ["draw", "[\"1 green oval solid\",\"2 green oval solid\"]", "3"],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "json",
+          "values": [
+            { "drawn": ["1 green oval solid", "2 green oval solid"], "size": 0 }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "level 3: drawing 0 cards returns none and keeps the deck whole",
+      "program": "solution/deck",
+      "args": ["draw", "null", "0"],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        { "type": "json", "values": [{ "drawn": [], "size": 81 }] }
+      ]
+    },
+    {
+      "name": "level 3: a random function that always returns 0 moves the top card to the bottom",
+      "program": "solution/deck",
+      "args": [
+        "shuffle",
+        "[\"1 red oval solid\",\"2 green diamond striped\",\"3 purple squiggle open\",\"1 green squiggle striped\",\"2 purple oval open\"]",
+        "[0,0,0,0]"
+      ],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "json",
+          "values": [
+            [
+              "2 green diamond striped",
+              "3 purple squiggle open",
+              "1 green squiggle striped",
+              "2 purple oval open",
+              "1 red oval solid"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "level 3: the shuffle swaps each position, from the last down to the second, with the one at floor(random() * (position + 1))",
+      "program": "solution/deck",
+      "args": [
+        "shuffle",
+        "[\"1 red oval solid\",\"2 green diamond striped\",\"3 purple squiggle open\",\"1 green squiggle striped\",\"2 purple oval open\"]",
+        "[0.5,0.5,0.5,0.5]"
+      ],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "json",
+          "values": [
+            [
+              "1 red oval solid",
+              "1 green squiggle striped",
+              "2 green diamond striped",
+              "2 purple oval open",
+              "3 purple squiggle open"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "level 3: the shuffle asks for one random number per position, starting at the last",
+      "program": "solution/deck",
+      "args": [
+        "shuffle",
+        "[\"1 red oval solid\",\"2 green diamond striped\",\"3 purple squiggle open\",\"1 green squiggle striped\",\"2 purple oval open\"]",
+        "[0.9,0.1,0.6,0.3]"
+      ],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "json",
+          "values": [
+            [
+              "3 purple squiggle open",
+              "1 green squiggle striped",
+              "2 green diamond striped",
+              "1 red oval solid",
+              "2 purple oval open"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "level 4: the suite fails against the starting point, whose Board methods have empty bodies",
+      "program": "test/level4.test",
+      "env": { "SOLUTION": null },
+      "expect": [{ "type": "exit", "failure": true }]
+    },
+    {
+      "name": "level 4: the suite passes against the reference solution",
+      "program": "test/level4.test",
+      "env": { "SOLUTION": "1" },
+      "expect": [{ "type": "exit", "code": 0 }]
+    },
+    {
+      "name": "level 4: the board takes the top 12 cards of the deck it receives, which keeps the rest",
+      "program": "solution/board",
+      "args": ["new", "null"],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "json",
+          "values": [
+            {
+              "cards": [
+                "1 red oval solid",
+                "1 red oval striped",
+                "1 red oval open",
+                "1 red diamond solid",
+                "1 red diamond striped",
+                "1 red diamond open",
+                "1 red squiggle solid",
+                "1 red squiggle striped",
+                "1 red squiggle open",
+                "1 green oval solid",
+                "1 green oval striped",
+                "1 green oval open"
+              ],
+              "deckSize": 69
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "level 4: a deck with fewer than 12 cards deals all of them",
+      "program": "solution/board",
+      "args": ["new", "[\"1 red oval solid\",\"2 red oval solid\"]"],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "json",
+          "values": [
+            { "cards": ["1 red oval solid", "2 red oval solid"], "deckSize": 0 }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "level 4: findSets returns every set on the board, each in board order, by the positions of its first, second, and third cards",
+      "program": "solution/board",
+      "args": ["findSets", "null"],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "json",
+          "values": [
+            [
+              ["1 red oval solid", "1 red oval striped", "1 red oval open"],
+              [
+                "1 red oval solid",
+                "1 red diamond solid",
+                "1 red squiggle solid"
+              ],
+              [
+                "1 red oval solid",
+                "1 red diamond striped",
+                "1 red squiggle open"
+              ],
+              [
+                "1 red oval solid",
+                "1 red diamond open",
+                "1 red squiggle striped"
+              ],
+              [
+                "1 red oval striped",
+                "1 red diamond solid",
+                "1 red squiggle open"
+              ],
+              [
+                "1 red oval striped",
+                "1 red diamond striped",
+                "1 red squiggle striped"
+              ],
+              [
+                "1 red oval striped",
+                "1 red diamond open",
+                "1 red squiggle solid"
+              ],
+              [
+                "1 red oval open",
+                "1 red diamond solid",
+                "1 red squiggle striped"
+              ],
+              [
+                "1 red oval open",
+                "1 red diamond striped",
+                "1 red squiggle solid"
+              ],
+              ["1 red oval open", "1 red diamond open", "1 red squiggle open"],
+              [
+                "1 red diamond solid",
+                "1 red diamond striped",
+                "1 red diamond open"
+              ],
+              [
+                "1 red squiggle solid",
+                "1 red squiggle striped",
+                "1 red squiggle open"
+              ],
+              [
+                "1 green oval solid",
+                "1 green oval striped",
+                "1 green oval open"
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "level 4: findSets returns an empty list for a board without a set",
+      "program": "solution/board",
+      "args": [
+        "findSets",
+        "[\"3 purple squiggle solid\",\"1 green diamond open\",\"1 purple diamond solid\",\"2 red diamond solid\",\"1 green diamond solid\",\"2 green diamond striped\",\"2 red squiggle open\",\"1 purple oval open\",\"2 green oval solid\",\"1 red oval striped\",\"2 green oval striped\",\"3 red diamond striped\"]"
+      ],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        { "type": "json", "values": [[]] }
+      ]
+    },
+    {
+      "name": "level 4: dealUntilSet adds nothing when the board already has a set",
+      "program": "solution/board",
+      "args": ["dealUntilSet", "null"],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "json",
+          "values": [
+            {
+              "cards": [
+                "1 red oval solid",
+                "1 red oval striped",
+                "1 red oval open",
+                "1 red diamond solid",
+                "1 red diamond striped",
+                "1 red diamond open",
+                "1 red squiggle solid",
+                "1 red squiggle striped",
+                "1 red squiggle open",
+                "1 green oval solid",
+                "1 green oval striped",
+                "1 green oval open"
+              ],
+              "deckSize": 69
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "level 4: dealUntilSet adds 3 cards from the top and stops when a set appears",
+      "program": "solution/board",
+      "args": [
+        "dealUntilSet",
+        "[\"3 purple squiggle solid\",\"1 green diamond open\",\"1 purple diamond solid\",\"2 red diamond solid\",\"1 green diamond solid\",\"2 green diamond striped\",\"2 red squiggle open\",\"1 purple oval open\",\"2 green oval solid\",\"1 red oval striped\",\"2 green oval striped\",\"3 red diamond striped\",\"1 red oval solid\",\"1 red oval open\",\"1 red diamond solid\",\"1 red diamond striped\"]"
+      ],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "json",
+          "values": [
+            {
+              "cards": [
+                "3 purple squiggle solid",
+                "1 green diamond open",
+                "1 purple diamond solid",
+                "2 red diamond solid",
+                "1 green diamond solid",
+                "2 green diamond striped",
+                "2 red squiggle open",
+                "1 purple oval open",
+                "2 green oval solid",
+                "1 red oval striped",
+                "2 green oval striped",
+                "3 red diamond striped",
+                "1 red oval solid",
+                "1 red oval open",
+                "1 red diamond solid"
+              ],
+              "deckSize": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "level 4: dealUntilSet keeps adding 3 cards at a time while the board has no set",
+      "program": "solution/board",
+      "args": [
+        "dealUntilSet",
+        "[\"3 purple squiggle solid\",\"1 green diamond open\",\"1 purple diamond solid\",\"2 red diamond solid\",\"1 green diamond solid\",\"2 green diamond striped\",\"2 red squiggle open\",\"1 purple oval open\",\"2 green oval solid\",\"1 red oval striped\",\"2 green oval striped\",\"3 red diamond striped\",\"1 red squiggle solid\",\"1 green oval striped\",\"1 green oval open\",\"2 red squiggle solid\",\"2 green diamond solid\",\"3 red oval open\",\"1 red oval solid\",\"1 red oval open\",\"1 red diamond solid\",\"1 red diamond striped\",\"1 red diamond open\"]"
+      ],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "json",
+          "values": [
+            {
+              "cards": [
+                "3 purple squiggle solid",
+                "1 green diamond open",
+                "1 purple diamond solid",
+                "2 red diamond solid",
+                "1 green diamond solid",
+                "2 green diamond striped",
+                "2 red squiggle open",
+                "1 purple oval open",
+                "2 green oval solid",
+                "1 red oval striped",
+                "2 green oval striped",
+                "3 red diamond striped",
+                "1 red squiggle solid",
+                "1 green oval striped",
+                "1 green oval open",
+                "2 red squiggle solid",
+                "2 green diamond solid",
+                "3 red oval open",
+                "1 red oval solid",
+                "1 red oval open",
+                "1 red diamond solid"
+              ],
+              "deckSize": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "level 4: dealUntilSet takes the last 2 cards when fewer than 3 are left",
+      "program": "solution/board",
+      "args": [
+        "dealUntilSet",
+        "[\"3 purple squiggle solid\",\"1 green diamond open\",\"1 purple diamond solid\",\"2 red diamond solid\",\"1 green diamond solid\",\"2 green diamond striped\",\"2 red squiggle open\",\"1 purple oval open\",\"2 green oval solid\",\"1 red oval striped\",\"2 green oval striped\",\"3 red diamond striped\",\"1 red squiggle solid\",\"1 green oval striped\"]"
+      ],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "json",
+          "values": [
+            {
+              "cards": [
+                "3 purple squiggle solid",
+                "1 green diamond open",
+                "1 purple diamond solid",
+                "2 red diamond solid",
+                "1 green diamond solid",
+                "2 green diamond striped",
+                "2 red squiggle open",
+                "1 purple oval open",
+                "2 green oval solid",
+                "1 red oval striped",
+                "2 green oval striped",
+                "3 red diamond striped",
+                "1 red squiggle solid",
+                "1 green oval striped"
+              ],
+              "deckSize": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "level 4: dealUntilSet stops when the deck runs out, even without a set",
+      "program": "solution/board",
+      "args": [
+        "dealUntilSet",
+        "[\"3 purple squiggle solid\",\"1 green diamond open\",\"1 purple diamond solid\",\"2 red diamond solid\",\"1 green diamond solid\",\"2 green diamond striped\",\"2 red squiggle open\",\"1 purple oval open\",\"2 green oval solid\",\"1 red oval striped\",\"2 green oval striped\",\"3 red diamond striped\"]"
+      ],
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "json",
+          "values": [
+            {
+              "cards": [
+                "3 purple squiggle solid",
+                "1 green diamond open",
+                "1 purple diamond solid",
+                "2 red diamond solid",
+                "1 green diamond solid",
+                "2 green diamond striped",
+                "2 red squiggle open",
+                "1 purple oval open",
+                "2 green oval solid",
+                "1 red oval striped",
+                "2 green oval striped",
+                "3 red diamond striped"
+              ],
+              "deckSize": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "the verify script runs every level against the reference solution, and every test passes",
+      "program": "scripts/verify-solution",
+      "expect": [{ "type": "exit", "code": 0 }]
+    }
+  ]
+}

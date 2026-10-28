@@ -1,0 +1,23 @@
+{
+  "module": "modulo03-mcp-na-pratica/05-mcps-do-zero-template",
+  "concepts": [
+    "symmetric-encryption",
+    "model-context-protocol",
+    "schema-validation"
+  ],
+  "recorded": "The case passed 50 runs against the unchanged original with Node.js 26.12.1, run as node src/index.ts, the same file npm start runs with type stripping, without installing anything, since the template imports only node:crypto. The template takes no input and calls no model. Its IV is random, so the encrypted message is compared by shape: a 16-byte IV that is not all zeros and the single block that Hello, World! pads to, both in lowercase hex. The decrypted line is compared exactly.",
+  "originals": ["node src/index.ts"],
+  "cases": [
+    {
+      "name": "encrypts Hello, World! with the passphrase under a fresh IV, prints iv:ciphertext in hex, and decrypts it back",
+      "timeout": 30000,
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "output",
+          "pattern": "^Encrypted message: (?!0{32}:)[0-9a-f]{32}:[0-9a-f]{32}\nDecrypted message: Hello, World!\n$"
+        }
+      ]
+    }
+  ]
+}

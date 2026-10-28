@@ -1,0 +1,49 @@
+{
+  "module": "modulo08-arquitetura-de-sistemas-com-ia/modulo-03-multi-agent",
+  "concepts": ["multi-agent-orchestration"],
+  "recorded": "Both originals ran unchanged, the JavaScript version with Node.js 26.12.1 as node trialforge-message-queue-prototype.js and the Python version with Python 3.15.2 as python3 trialforge_message_queue_prototype.py. The prototype takes no input, calls no LLM, and needs nothing beyond the standard library. Its agents sleep for fixed times, so each run takes about 20 seconds and prints the same text every time, since at least 50 ms separate the events that decide each outcome. Everything is compared exactly in either original's wording, with three kinds of freedom. Where the text names the language's own mechanism (Promise.all, Promise.allSettled, and Promise.race against gather() without and with return_exceptions and wait_for, and EventEmitter against Barramento sobre asyncio in the title), any name is accepted. Records are accepted in Node.js's util.inspect layout, Python's repr, or JSON, with camelCase or snake_case keys in the original order, and booleans in either case. The timeout is accepted as 675ms or 0.675s. Both originals write nothing to standard error.",
+  "originals": [
+    "node trialforge-message-queue-prototype.js",
+    "python3 trialforge_message_queue_prototype.py"
+  ],
+  "cases": [
+    {
+      "name": "checks itself, then runs the happy path, loses the CSR result when the parallel join fails fast, keeps it and retries the ICF once into the same document when the join waits for both, regenerates only the CSR that finished after the ethics amendment, recovers an ICF that hung past its timeout on the first retry, and gives up after three retries of a persistent hang",
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^== Testes: [\\w.-]+ ==\\n  \\[OK\\] evento 'protocolo:pronto' carrega versao\\+criterios estruturados \\(evento rico\\)\\n  \\[OK\\] caminho feliz: ICF\\+CSR ok, sem retry, consistência confirmada\\n  \\[OK\\] [^\\n]+: falha do ICF perde o resultado do CSR \\(bug do parágrafo 68-71\\)\\n  \\[OK\\] [^\\n]+: CSR preservado, retry do ICF executado de verdade e com sucesso\\n  \\[OK\\] Idempotência: 1 documento só \\(não 2\\) após falha \\+ retry, com 2 tentativas registradas\\n  \\[OK\\] Sequential respeitado \\(prova causal\\): ordem real = \\[\\s*['\"]?protocolo['\"]?,\\s*['\"]?icf:inicio['\"]?,\\s*['\"]?csr:inicio['\"]?\\s*\\]\\n  \\[OK\\] Divergência detectada: ICF consistente, CSR defasado \\(só ele, exatamente como o Módulo 3\\.2 descreve\\)\\n  \\[OK\\] Compensação Saga: CSR regenerado com (?:idadeMinima|idade_minima)=12 \\(versão 2\\), histórico do protocolo preservado\\n  \\[OK\\] Timeout real detectado \\([^\\n]+, não exceção simulada\\) e recuperado no retry\\n  \\[OK\\] Retry com limite: esgota 3 tentativas numa falha persistente, Supervisor segue sem o ICF\\nTotal: 10 teste\\(s\\), 10 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n\\n===== TRIALFORGE: FILA DE MENSAGENS \\([^\\n]+\\) =====\\n\\n\\[Cenário 1\\]"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n\\n\\[Cenário 1\\] Caminho feliz — Protocolo primeiro, depois ICF\\+CSR em paralelo:\\n  Evento protocolo:pronto: \\{\\s*['\"]?versao['\"]?: ?1,\\s*['\"]?criterios['\"]?: ?\\{\\s*['\"]?(?:idadeMinima|idade_minima)['\"]?: ?13\\s*\\},\\s*['\"]?estudo['\"]?: ?['\"]Estudo fase II, 12-17 anos['\"]\\s*\\}\\n  Resultado ICF: \\{\\s*['\"]?agente['\"]?: ?['\"]ICF['\"],\\s*['\"]?secao['\"]?: ?['\"]Assentimento gerado com idade mínima de 13 anos \\(a partir da versão 1 do protocolo\\)\\.['\"],\\s*['\"]?(?:criterioUsado|criterio_usado)['\"]?: ?\\{\\s*['\"]?(?:idadeMinima|idade_minima)['\"]?: ?13\\s*\\},\\s*['\"]?(?:versaoUsada|versao_usada)['\"]?: ?1,\\s*['\"]?(?:versaoAoConcluir|versao_ao_concluir)['\"]?: ?1,\\s*['\"]?tentativas['\"]?: ?1\\s*\\}\\n  Resultado CSR: \\{\\s*['\"]?agente['\"]?: ?['\"]CSR['\"],\\s*['\"]?sintese['\"]?: ?['\"]Conformidade ICH E3 verificada com idade mínima de 13 anos \\(a partir da versão 1 do protocolo\\)\\.['\"],\\s*['\"]?(?:criterioUsado|criterio_usado)['\"]?: ?\\{\\s*['\"]?(?:idadeMinima|idade_minima)['\"]?: ?13\\s*\\},\\s*['\"]?(?:versaoUsada|versao_usada)['\"]?: ?1,\\s*['\"]?(?:versaoAoConcluir|versao_ao_concluir)['\"]?: ?1\\s*\\}\\n  Decisão do Supervisor: nenhum_retry_necessario\\n  Ordem real de execução: protocolo -> icf:inicio -> csr:inicio\\n\\n\\[Cenário 2\\]"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n\\n\\[Cenário 2\\] ICF falha, usando [^\\n]+ \\(o bug do parágrafo 68-71\\):\\n  ok: (?:false|False) \\| resultado do CSR preservado\\? (?:false|False)\\n  -> O CSR terminou bem, mas [^\\n]+ rejeitou o lote inteiro: o resultado dele se perdeu\\.\\n\\n\\[Cenário 3\\]"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n\\n\\[Cenário 3\\] Mesmo cenário, corrigido com [^\\n]+ — CAP \\+ idempotência \\(parágrafo 72-73\\):\\n  Resultado do CSR preservado\\? (?:true|True)\\n  Decisão do Supervisor: retry_icf_executado_com_sucesso\\n  Documentos de ICF gravados: 1 \\(2 tentativas registradas nesse único documento\\)\\n  -> O Supervisor não só decidiu o que refazer: refez de verdade, e o registro idempotente\\n     garantiu que a segunda tentativa não gerou um segundo documento de ICF\\.\\n\\n\\[Cenário 4\\]"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n\\n\\[Cenário 4\\] Emenda do comitê de ética chega no meio do caminho — Saga de verdade:\\n  Verificação de consistência: \\{\\s*['\"]?consistente['\"]?: ?(?:false|False),\\s*['\"]?(?:icfConsistente|icf_consistente)['\"]?: ?(?:true|True),\\s*['\"]?(?:csrConsistente|csr_consistente)['\"]?: ?(?:false|False),\\s*['\"]?(?:agentesDivergentes|agentes_divergentes)['\"]?: ?\\[\\s*['\"]CSR['\"]\\s*\\]\\s*\\}\\n  Decisão do Supervisor: saga_compensacao_csr\\n  Resultado final do ICF \\(nunca tocado\\): Assentimento gerado com idade mínima de 13 anos \\(a partir da versão 1 do protocolo\\)\\.\\n  Resultado final do CSR \\(regenerado\\): Conformidade ICH E3 verificada com idade mínima de 12 anos \\(a partir da versão 2 do protocolo\\)\\.\\n  Histórico de revisões do protocolo: \\[\\s*\\{\\s*['\"]?(?:versaoAnterior|versao_anterior)['\"]?: ?1,\\s*['\"]?(?:criteriosAnteriores|criterios_anteriores)['\"]?: ?\\{\\s*['\"]?(?:idadeMinima|idade_minima)['\"]?: ?13\\s*\\},\\s*['\"]?motivo['\"]?: ?['\"]Comitê de ética corrigiu a idade mínima de 13 para 12 anos\\.['\"]\\s*\\}\\s*\\]\\n  -> O ICF terminou ANTES da emenda chegar — seu resultado já nasceu correto, nunca precisou\\n     ser refeito\\. O CSR terminou DEPOIS da emenda, mas com o critério antigo — o Supervisor\\n     detectou e regenerou só a parte dele, exatamente como o Módulo 3\\.2 promete e o Módulo 3\\.4\\n     formaliza como compensação Saga: desfazer só o que precisa, preservando o que já estava certo\\.\\n\\n\\[Cenário 5\\]"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n\\n\\[Cenário 5\\] CAP completo — timeout real, retry com limite, e o limite esgotando:\\n  Erro do despacho original: Agente ICF: timeout de (?:675 ?ms|0\\.675 ?s) excedido — agente não respondeu a tempo\\.\\n  Decisão do Supervisor: retry_icf_executado_com_sucesso \\(1 tentativa\\(s\\) de retry\\)\\n  -> O ICF travou de verdade \\([^\\n]+ contra um timeout real\\), não lançou uma exceção —\\n     e o retry resolveu na primeira tentativa, porque a causa raiz era transitória\\.\\n\\n  Agora com falha PERSISTENTE \\(não transitória\\):\\n  Decisão do Supervisor: retry_esgotado_seguindo_sem_icf \\(3 tentativa\\(s\\) de retry\\)\\n  Reação final ok\\? (?:false|False)\\n  -> 3 tentativas esgotadas, o Supervisor desiste do ICF e segue em frente sem esse\\n     resultado — Disponibilidade sobre Consistência, a mesma escolha do Teorema CAP \\(Módulo 3\\.4\\),\\n     nunca esperar pra sempre por um agente que não vai responder\\.\\n\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^$"
+        }
+      ]
+    }
+  ]
+}

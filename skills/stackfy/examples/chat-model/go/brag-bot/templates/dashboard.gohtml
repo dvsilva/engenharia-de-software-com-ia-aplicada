@@ -1,0 +1,37 @@
+{{define "dashboard"}}
+<div class="page">
+  <header>
+    <h1>Brag-Bot | Pós IA UNIPDS</h1>
+    <p class="subtitle">Crie seus "Brag Documents" com o poder da Inteligência Artificial.</p>
+  </header>
+
+  <section class="composer">
+    <form>
+      <label for="achievement">Descreva sua conquista de forma informal</label>
+      <textarea
+        id="achievement"
+        name="achievement"
+        rows="5"
+        placeholder="Ex: Eu otimizei a API ontem e ficou 10x mais rápida porque coloquei redis, a diretoria gostou..."
+      ></textarea>
+      <button type="submit" disabled>
+        <span class="spinner" hidden></span>
+        <span class="label" data-idle="Destilar Conquista" data-busy="Destilando...">Destilar Conquista</span>
+      </button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Últimas Conquistas</h2>
+    <div class="brags">
+      <div class="empty">
+        <p>Nenhum Brag Document gerado ainda.<br />Descreva seu primeiro sucesso acima!</p>
+      </div>
+    </div>
+  </section>
+</div>
+{{end}}
+
+{{define "card"}}<a class="card"><h3></h3><p></p><div class="technologies"></div></a>{{end}}
+
+{{define "technology"}}<span class="technology"></span>{{end}}

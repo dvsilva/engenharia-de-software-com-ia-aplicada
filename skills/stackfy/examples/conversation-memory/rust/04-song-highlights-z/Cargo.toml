@@ -1,0 +1,15 @@
+[package]
+name = "song-highlights"
+version = "0.0.1"
+edition = "2024"
+
+[[bin]]
+name = "index"
+path = "src/main.rs"
+
+[dependencies]
+postgres = "0.19"
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
+rusqlite = { version = "0.41", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }

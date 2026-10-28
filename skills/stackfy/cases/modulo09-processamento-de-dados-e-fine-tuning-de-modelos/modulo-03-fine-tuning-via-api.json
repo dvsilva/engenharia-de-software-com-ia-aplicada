@@ -1,0 +1,1220 @@
+{
+  "module": "modulo09-processamento-de-dados-e-fine-tuning-de-modelos/modulo-03-fine-tuning-via-api",
+  "concepts": [
+    "model-fine-tuning",
+    "dataset-preparation",
+    "decision-framework"
+  ],
+  "recorded": "Every case passed against both originals: the JavaScript versions with Node.js 26.12.1, run as node {program}.js, and the Python versions with Python 3.15.2, run as python3 with the program's hyphens turned into underscores, as in python3 $(echo {program}.py | tr - _), each beside the decision framework and dataset preparation lessons it imports from, as in the course. Every program uses only the standard library. The reassessment, scaling, and Dolly pipeline tools never touch the network and are deterministic, so their demos are compared exactly and their self-check reports only by their totals, with the titles of the checks free, and the Dolly pipeline tool runs only its self-checks, which write and remove /tmp/teste-dolly-pipeline.jsonl. The Dolly starter reads databricks-dolly-15k.jsonl, which the lesson asks the student to download from Hugging Face, so its first case downloads that public file once, checked by its SHA-256, and prints the numbers the lesson's dataset-real-alternativo-companion.md and model-card-dolly-extra-200.md report (778 LSH candidates, 748 confirmed pairs, 396 removed, 4,071 left, and 71, 66, and 63 per category). The tracking, monitoring, automation, and versioning tools read a tuning job from Vertex AI at a hardcoded regional address, so the copies that produced these cases read GOOGLE_VERTEX_BASE_URL instead, a one-line change at each address in each version, and the cases set TUNING_JOB_NAME, plus GCP_PROJECT_ID for the automation tool, and answer gcloud auth print-access-token with a stand-in that prints a placeholder token, which the replay requires as the bearer token. No Google Cloud project was available, so every job is synthesized from Vertex AI's documented TuningJob format, with int64 fields such as epochCount and the token counts as strings. The production job carries the name, tuned model, endpoint, base model, dataset URI, hyperparameters, create and end times, example count, and 27,353 billable tokens that the lesson's model card reports, the start time behind the tracking tool's own check of 45min41.95s, a display name of its own, and token distributions per example derived from dataset-treinado.jsonl, each text's tokens proportional to its characters and scaled to the billable total, and the versioning tool writes from it the model card the lesson ships, apart from the note its first lines add by hand. The cancelled job of the epochCount 0 incident has no tuned model, no statistics, and no epochCount among its hyperparameters, since proto3 leaves out a zero. The errors follow Google's documented error body: a 404 NOT_FOUND for a job name one digit off, a 503 UNAVAILABLE that the automation tool retries after 3 seconds before waiting 5 seconds for the running job, and a 403 PERMISSION_DENIED it gives up on after three queries in a row. The JavaScript versions report an error status as Falha ao consultar job: with the status and its reason, and Python's urllib as HTTP Error. The Python versions name hyperparameters in snake case, write the model turn's JSON with spaces, print the versioning record's epochs and tokens as numbers, None where JavaScript prints undefined, and the Dolly counts as a dict with single quotes, drop accents and the closing example from the Dolly prose, and write the model card as model-card-amplitude-auto-saude-m3-200-py.md, and the patterns accept either.",
+  "prepare": {
+    "copy": "modulo09-processamento-de-dados-e-fine-tuning-de-modelos",
+    "patches": [
+      {
+        "file": "dataset-upload-and-tracking-tool.js",
+        "find": "`https://${REGIAO}-aiplatform.googleapis.com/v1/",
+        "replace": "`${process.env.GOOGLE_VERTEX_BASE_URL ?? `https://${REGIAO}-aiplatform.googleapis.com`}/v1/"
+      },
+      {
+        "file": "dataset_upload_and_tracking_tool.py",
+        "find": "f\"https://{REGIAO}-aiplatform.googleapis.com/v1/",
+        "replace": "f\"{os.environ.get('GOOGLE_VERTEX_BASE_URL', f'https://{REGIAO}-aiplatform.googleapis.com')}/v1/"
+      },
+      {
+        "file": "hyperparameter-and-monitoring-tool.js",
+        "find": "`https://${REGIAO}-aiplatform.googleapis.com/v1/",
+        "replace": "`${process.env.GOOGLE_VERTEX_BASE_URL ?? `https://${REGIAO}-aiplatform.googleapis.com`}/v1/"
+      },
+      {
+        "file": "hyperparameter_and_monitoring_tool.py",
+        "find": "f\"https://{REGIAO}-aiplatform.googleapis.com/v1/",
+        "replace": "f\"{os.environ.get('GOOGLE_VERTEX_BASE_URL', f'https://{REGIAO}-aiplatform.googleapis.com')}/v1/"
+      },
+      {
+        "file": "finetuning-automation-tool.js",
+        "find": "`https://${REGIAO}-aiplatform.googleapis.com/v1/",
+        "replace": "`${process.env.GOOGLE_VERTEX_BASE_URL ?? `https://${REGIAO}-aiplatform.googleapis.com`}/v1/"
+      },
+      {
+        "file": "finetuning_automation_tool.py",
+        "find": "f\"https://{REGIAO}-aiplatform.googleapis.com/v1/",
+        "replace": "f\"{os.environ.get('GOOGLE_VERTEX_BASE_URL', f'https://{REGIAO}-aiplatform.googleapis.com')}/v1/"
+      },
+      {
+        "file": "model-versioning-tool.js",
+        "find": "`https://${REGIAO}-aiplatform.googleapis.com/v1/",
+        "replace": "`${process.env.GOOGLE_VERTEX_BASE_URL ?? `https://${REGIAO}-aiplatform.googleapis.com`}/v1/"
+      },
+      {
+        "file": "model_versioning_tool.py",
+        "find": "f\"https://{REGIAO}-aiplatform.googleapis.com/v1/",
+        "replace": "f\"{os.environ.get('GOOGLE_VERTEX_BASE_URL', f'https://{REGIAO}-aiplatform.googleapis.com')}/v1/"
+      },
+      {
+        "file": "dolly-vertex-pipeline.js",
+        "find": "`https://${REGIAO}-aiplatform.googleapis.com/v1/",
+        "replace": "`${process.env.GOOGLE_VERTEX_BASE_URL ?? `https://${REGIAO}-aiplatform.googleapis.com`}/v1/"
+      },
+      {
+        "file": "dolly_vertex_pipeline.py",
+        "find": "f\"https://{REGIAO}-aiplatform.googleapis.com/v1/",
+        "replace": "f\"{os.environ.get('GOOGLE_VERTEX_BASE_URL', f'https://{REGIAO}-aiplatform.googleapis.com')}/v1/"
+      }
+    ]
+  },
+  "originals": ["node {program}.js", "python3 $(echo {program}.py | tr - _)"],
+  "cases": [
+    {
+      "name": "reopens the decision framework for Amplitude Saúde Empresarial nine months later, when the data question crosses the green threshold and the gate approves fine-tuning",
+      "program": "reavaliacao-saude-empresarial",
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes: [^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n)+Total: 5 teste\\(s\\), 5 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n===== Reavaliação: Amplitude Saúde Empresarial, 9 meses depois do Módulo 1\\.3 =====\n\n  Limiar verde: 0\\.6\n\n  --- Módulo 1\\.3 \\(o que vimos\\) ---\n  Pergunta 1 \\[VERDE, score 0\\.85\\]: A tarefa é estreita e repetida, ou aberta e variável\\?\n  Pergunta 2 \\[VERDE, score 0\\.80\\]: Já esgotou prompt engineering \\+ RAG \\+ roteamento, sem chegar na qualidade/custo/latência necessários\\?\n  Pergunta 3 \\[VERMELHO, score 0\\.35\\]: Tem dado de exemplo suficiente, diverso e de qualidade pra treinar\\?\n  Pergunta 4 \\[VERDE, score 0\\.80\\]: A tarefa é estável o bastante pra não virar esteira de retreino constante\\?\n  Volume mensal: 1200\n  Recomendação: Continue com prompt \\+ RAG\\. Fine-tuning ainda não\\.\n\n  --- Módulo 3\\.2 \\(9 meses depois\\) ---\n  Pergunta 1 \\[VERDE, score 0\\.85\\]: A tarefa é estreita e repetida, ou aberta e variável\\?\n  Pergunta 2 \\[VERDE, score 0\\.80\\]: Já esgotou prompt engineering \\+ RAG \\+ roteamento, sem chegar na qualidade/custo/latência necessários\\?\n  Pergunta 3 \\[VERDE, score 0\\.62\\]: Tem dado de exemplo suficiente, diverso e de qualidade pra treinar\\?\n  Pergunta 4 \\[VERDE, score 0\\.80\\]: A tarefa é estável o bastante pra não virar esteira de retreino constante\\?\n  Volume mensal: 1862\n  Recomendação: Fine-tuning vale a pena\n\n-----------------------------------------------------------------------------\nMesmo tool, mesmo caso, mesmo limiar\\. O que mudou foi o dado: 9 meses de volume\nreal acumulado\\. A pergunta 3 cruzou o limiarVerde, e nenhuma outra pergunta\nregrediu\\. O gate aprova agora pelo mesmo critério que reprovava antes -- essa é\na diferença entre \"esperar\" \\(Módulo 1\\.3\\) e \"decidir de novo com dado novo\" \\(aqui\\)\\.\n-----------------------------------------------------------------------------\n$"
+        }
+      ]
+    },
+    {
+      "name": "scales the simulated Amplitude dataset with the cleaning pipeline of the dataset preparation lesson, from 305 raw to 300 deduplicated to 200 balanced examples",
+      "program": "m3-dataset-scaling-tool",
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes: [^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n)+Total: 6 teste\\(s\\), 6 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n== Pipeline: escalando o dataset simulado do Módulo 2\\.2 pro volume real de treino ==\nBruto: 305 exemplos -> Dedup: 300 -> Balanceado: 200\nTotal de pares força-bruta comparados: 24034, candidatos via LSH: 454\n\n--- amplitude-auto ---\nAntes: Oficina Estrela=60, Auto Center Silva=40, Funilaria Rio Bonito=30, Oficina Nova Aliança=25, Mecânica Horizonte=15, Auto Reparos União=10\nEntropia antes: 1\\.6409 \\| N efetivo: 5\\.160 \\(de 6 fontes\\)\nDepois: Oficina Estrela=28, Auto Center Silva=24, Funilaria Rio Bonito=22, Oficina Nova Aliança=21, Mecânica Horizonte=15, Auto Reparos União=10\nEntropia depois: 1\\.7445 \\| N efetivo: 5\\.723\n\n--- amplitude-saude-empresarial ---\nAntes: Clínica Vitalis=50, Hospital Santa Clara=30, Centro Médico Bem Estar=20, Clínica São Rafael=12, Instituto Saúde Plena=8\nEntropia antes: 1\\.4208 \\| N efetivo: 4\\.140 \\(de 5 fontes\\)\nDepois: Clínica Vitalis=23, Hospital Santa Clara=20, Centro Médico Bem Estar=17, Clínica São Rafael=12, Instituto Saúde Plena=8\nEntropia depois: 1\\.5489 \\| N efetivo: 4\\.706\n\nDataset final: 200 exemplos, prontos pra conversão e upload \\(Módulo 3\\.2\\)\\.\n$"
+        }
+      ]
+    },
+    {
+      "name": "converts two canonical examples into Vertex AI user and model turns, gates OCR confidence at 0.85, then reads the production tuning job with a gcloud token and prints its state, model, times, duration, tuned model, and endpoint",
+      "program": "dataset-upload-and-tracking-tool",
+      "env": {
+        "TUNING_JOB_NAME": "projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+        "GOOGLE_VERTEX_BASE_URL": "{replay}"
+      },
+      "commands": {
+        "gcloud": [
+          {
+            "args": ["auth", "print-access-token"],
+            "stdout": "ya29.stackfy-replay\n"
+          }
+        ]
+      },
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "name": "projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+            "tunedModelDisplayName": "amplitude-auto-saude-m3-200",
+            "baseModel": "gemini-2.5-flash",
+            "supervisedTuningSpec": {
+              "trainingDatasetUri": "gs://amplitude-seguros-demo-tuning/m3-amplitude-auto-saude-200.jsonl",
+              "hyperParameters": {
+                "epochCount": "3",
+                "learningRateMultiplier": 5,
+                "adapterSize": "ADAPTER_SIZE_FOUR"
+              }
+            },
+            "state": "JOB_STATE_SUCCEEDED",
+            "createTime": "2026-08-08T02:38:12.307201Z",
+            "startTime": "2026-08-08T02:38:12.364747Z",
+            "endTime": "2026-08-08T03:23:54.310390Z",
+            "updateTime": "2026-08-08T03:23:54.310390Z",
+            "experiment": "projects/113512199474/locations/us-central1/metadataStores/default/contexts/tuning-experiment-20260807193812307201",
+            "tunedModel": {
+              "model": "projects/113512199474/locations/us-central1/models/391725756406824960@1",
+              "endpoint": "projects/113512199474/locations/us-central1/endpoints/9091681879928602624"
+            },
+            "tuningDataStats": {
+              "supervisedTuningDataStats": {
+                "tuningDatasetExampleCount": "200",
+                "totalTuningCharacterCount": "76464",
+                "totalBillableTokenCount": "27353",
+                "userInputTokenDistribution": {
+                  "sum": "21642",
+                  "billableSum": "21642",
+                  "min": 90,
+                  "max": 138,
+                  "mean": 108.21,
+                  "median": 106,
+                  "p5": 93,
+                  "p95": 136
+                },
+                "userOutputTokenDistribution": {
+                  "sum": "5711",
+                  "billableSum": "5711",
+                  "min": 23,
+                  "max": 39,
+                  "mean": 28.555,
+                  "median": 26,
+                  "p5": 24,
+                  "p95": 35
+                }
+              }
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744"
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes: [^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n)+Total: 13 teste\\(s\\), 13 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n== Conversão de exemplos reais do dataset \\(Amplitude Auto \\+ Saúde Empresarial\\) ==\\n\\namplitude-auto-Oficina Estrela-5:\\n\\{\\n  \"contents\": \\[\\n    \\{\\n      \"role\": \"user\",\\n      \"parts\": \\[\\n        \\{\\n          \"text\": \"Extraia segurado, placa e valor do orçamento de oficina abaixo\\.\\\\n\\\\nATIVA ORCAMENTOS AUTOMOTIVOS OFICINA ESTRELA LTDA CNPJ 12\\.345\\.678/0001-90 Rua das Turbinas 450 Distrito Industrial Segurado: Camila Costa Ribeiro Placa do veiculo: AZS-6617 Data do sinistro: 21/05/2026 Descricao do servico: reparo de lataria e pintura no para-choque dianteiro Valor total do reparo: R\\$ 1\\.780,50\"\\n        \\}\\n      \\]\\n    \\},\\n    \\{\\n      \"role\": \"model\",\\n      \"parts\": \\[\\n        \\{\\n          \"text\": \"\\{\\\\\"segurado\\\\\": ?\\\\\"Camila Costa Ribeiro\\\\\", ?\\\\\"placa\\\\\": ?\\\\\"AZS-6617\\\\\", ?\\\\\"valor\\\\\": ?1780\\.5\\}\"\\n        \\}\\n      \\]\\n    \\}\\n  \\]\\n\\}\\n\\namplitude-saude-empresarial-Clínica Vitalis-8:\\n\\{\\n  \"contents\": \\[\\n    \\{\\n      \"role\": \"user\",\\n      \"parts\": \\[\\n        \\{\\n          \"text\": \"Extraia beneficiário, procedimento e valor do recibo médico abaixo\\.\\\\n\\\\nCLINICA VITALIS SAUDE OCUPACIONAL CNPJ 33\\.222\\.111/0001-44 Av\\. Paulista 900 Paciente/Beneficiario: Thiago Augusto Barbosa Procedimento: consulta ginecologica Data do atendimento: 02/05/2026 Valor cobrado: R\\$ 4\\.430,00\"\\n        \\}\\n      \\]\\n    \\},\\n    \\{\\n      \"role\": \"model\",\\n      \"parts\": \\[\\n        \\{\\n          \"text\": \"\\{\\\\\"beneficiario\\\\\": ?\\\\\"Thiago Augusto Barbosa\\\\\", ?\\\\\"procedimento\\\\\": ?\\\\\"consulta ginecologica\\\\\", ?\\\\\"valor\\\\\": ?4430\\}\"\\n        \\}\\n      \\]\\n    \\}\\n  \\]\\n\\}\\n\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\n== Gate de confiança de OCR \\(promessa do Módulo 2\\.1, cumprida aqui\\) ==\nLimiar: 0\\.85 \\(85% de confiança\\)\nAprovados por OCR real: 4 \\(os 4 documentos reais do Módulo 2\\.1, 94%-96%\\)\nSinalizados para revisão humana: 1 \\(doc-danificado-por-agua\\.png confiança 62%, abaixo do limiar\\)\nSem OCR, seguem sem gate: 1 \\(amplitude-auto-Oficina Estrela-5, texto sintético, nunca foi escaneado\\)\nNenhum dos 200 exemplos do job de hoje passou por este gate, porque nenhum deles veio de OCR de verdade\\.\n\n== Acompanhamento real do job de fine-tuning ==\nJob: projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744\nEstado: JOB_STATE_SUCCEEDED\nModelo base: gemini-2\\.5-flash\nNome de exibição: amplitude-auto-saude-m3-200\nInício: 2026-08-08T02:38:12\\.364747Z\nFim: 2026-08-08T03:23:54\\.310390Z\nDuração real: 45min41\\.95s\nModelo ajustado: projects/113512199474/locations/us-central1/models/391725756406824960@1\nEndpoint publicado: projects/113512199474/locations/us-central1/endpoints/9091681879928602624\n$"
+        }
+      ]
+    },
+    {
+      "name": "reports a tuning job that Vertex AI does not find, after the local conversion and gate, and still exits normally",
+      "program": "dataset-upload-and-tracking-tool",
+      "env": {
+        "TUNING_JOB_NAME": "projects/113512199474/locations/us-central1/tuningJobs/4180970763655839745",
+        "GOOGLE_VERTEX_BASE_URL": "{replay}"
+      },
+      "commands": {
+        "gcloud": [
+          {
+            "args": ["auth", "print-access-token"],
+            "stdout": "ya29.stackfy-replay\n"
+          }
+        ]
+      },
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839745",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "status": 404,
+          "json": {
+            "error": {
+              "code": 404,
+              "message": "TuningJob projects/113512199474/locations/us-central1/tuningJobs/4180970763655839745 not found.",
+              "status": "NOT_FOUND"
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839745"
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes: [^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n)+Total: 13 teste\\(s\\), 13 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "== Acompanhamento real do job de fine-tuning ==\nJob: projects/113512199474/locations/us-central1/tuningJobs/4180970763655839745\nNão foi possível consultar o job agora: (?:Falha ao consultar job: 404 Not Found|HTTP Error 404: Not Found)\\n$"
+        }
+      ]
+    },
+    {
+      "name": "refuses to start without TUNING_JOB_NAME, before any check or call",
+      "program": "dataset-upload-and-tracking-tool",
+      "env": {
+        "TUNING_JOB_NAME": "",
+        "GOOGLE_VERTEX_BASE_URL": "{replay}"
+      },
+      "commands": {
+        "gcloud": [
+          {
+            "args": ["auth", "print-access-token"],
+            "stdout": "ya29.stackfy-replay\n"
+          }
+        ]
+      },
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "name": "projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+            "tunedModelDisplayName": "amplitude-auto-saude-m3-200",
+            "baseModel": "gemini-2.5-flash",
+            "supervisedTuningSpec": {
+              "trainingDatasetUri": "gs://amplitude-seguros-demo-tuning/m3-amplitude-auto-saude-200.jsonl",
+              "hyperParameters": {
+                "epochCount": "3",
+                "learningRateMultiplier": 5,
+                "adapterSize": "ADAPTER_SIZE_FOUR"
+              }
+            },
+            "state": "JOB_STATE_SUCCEEDED",
+            "createTime": "2026-08-08T02:38:12.307201Z",
+            "startTime": "2026-08-08T02:38:12.364747Z",
+            "endTime": "2026-08-08T03:23:54.310390Z",
+            "updateTime": "2026-08-08T03:23:54.310390Z",
+            "experiment": "projects/113512199474/locations/us-central1/metadataStores/default/contexts/tuning-experiment-20260807193812307201",
+            "tunedModel": {
+              "model": "projects/113512199474/locations/us-central1/models/391725756406824960@1",
+              "endpoint": "projects/113512199474/locations/us-central1/endpoints/9091681879928602624"
+            },
+            "tuningDataStats": {
+              "supervisedTuningDataStats": {
+                "tuningDatasetExampleCount": "200",
+                "totalTuningCharacterCount": "76464",
+                "totalBillableTokenCount": "27353",
+                "userInputTokenDistribution": {
+                  "sum": "21642",
+                  "billableSum": "21642",
+                  "min": 90,
+                  "max": 138,
+                  "mean": 108.21,
+                  "median": 106,
+                  "p5": 93,
+                  "p95": 136
+                },
+                "userOutputTokenDistribution": {
+                  "sum": "5711",
+                  "billableSum": "5711",
+                  "min": 23,
+                  "max": 39,
+                  "mean": 28.555,
+                  "median": 26,
+                  "p5": 24,
+                  "p95": 35
+                }
+              }
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "requests",
+          "requests": []
+        },
+        {
+          "type": "output",
+          "pattern": "^$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Defina a vari[áa]vel de ambiente TUNING_JOB_NAME "
+        }
+      ]
+    },
+    {
+      "name": "blocks epochCount 0 before any call, then reads the production job and confirms the applied hyperparameters match the requested 3 epochs and multiplier 5, with its token statistics",
+      "program": "hyperparameter-and-monitoring-tool",
+      "env": {
+        "TUNING_JOB_NAME": "projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+        "GOOGLE_VERTEX_BASE_URL": "{replay}"
+      },
+      "commands": {
+        "gcloud": [
+          {
+            "args": ["auth", "print-access-token"],
+            "stdout": "ya29.stackfy-replay\n"
+          }
+        ]
+      },
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "name": "projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+            "tunedModelDisplayName": "amplitude-auto-saude-m3-200",
+            "baseModel": "gemini-2.5-flash",
+            "supervisedTuningSpec": {
+              "trainingDatasetUri": "gs://amplitude-seguros-demo-tuning/m3-amplitude-auto-saude-200.jsonl",
+              "hyperParameters": {
+                "epochCount": "3",
+                "learningRateMultiplier": 5,
+                "adapterSize": "ADAPTER_SIZE_FOUR"
+              }
+            },
+            "state": "JOB_STATE_SUCCEEDED",
+            "createTime": "2026-08-08T02:38:12.307201Z",
+            "startTime": "2026-08-08T02:38:12.364747Z",
+            "endTime": "2026-08-08T03:23:54.310390Z",
+            "updateTime": "2026-08-08T03:23:54.310390Z",
+            "experiment": "projects/113512199474/locations/us-central1/metadataStores/default/contexts/tuning-experiment-20260807193812307201",
+            "tunedModel": {
+              "model": "projects/113512199474/locations/us-central1/models/391725756406824960@1",
+              "endpoint": "projects/113512199474/locations/us-central1/endpoints/9091681879928602624"
+            },
+            "tuningDataStats": {
+              "supervisedTuningDataStats": {
+                "tuningDatasetExampleCount": "200",
+                "totalTuningCharacterCount": "76464",
+                "totalBillableTokenCount": "27353",
+                "userInputTokenDistribution": {
+                  "sum": "21642",
+                  "billableSum": "21642",
+                  "min": 90,
+                  "max": 138,
+                  "mean": 108.21,
+                  "median": 106,
+                  "p5": 93,
+                  "p95": 136
+                },
+                "userOutputTokenDistribution": {
+                  "sum": "5711",
+                  "billableSum": "5711",
+                  "min": 23,
+                  "max": 39,
+                  "mean": 28.555,
+                  "median": 26,
+                  "p5": 24,
+                  "p95": 35
+                }
+              }
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744"
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes: [^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n)+Total: 9 teste\\(s\\), 9 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n\\n== Reprodução do problema real: epochCount inv[áa]lido aceito sem erro ==\\nPedido: (?:epochCount|epoch_count)=0, (?:learningRateMultiplier|learning_rate_multiplier)=5\\.0\\nBloqueado ANTES de qualquer chamada de rede: Hiperparâmetro inválido, job não enviado:\\n  (?:epochCount|epoch_count) deve ser inteiro entre 1 e 20, recebido: 0\\nSem esta validação, a chamada real a client\\.tunings\\.tune\\(\\) com (?:epochCount|epoch_count)=0 foi aceita\\npela Vertex AI, criou o job tuningJobs/2893240337390632960, foi pra RUNNING de verdade,\\ncom (?:epochCount|epoch_count) internamente ausente \\(default silencioso\\), e precisou ser cancelado na mão\\.\\n\\n== Monitoramento real: estatística do job de produção ==\\nJob: projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744\\n\\nHiperparâmetro aplicado de verdade: (?:epochCount|epoch_count)=3, (?:learningRateMultiplier|learning_rate_multiplier)=5, (?:adapterSize|adapter_size)=ADAPTER_SIZE_FOUR\\nConfirmado: pedido e aplicado batem exatamente\\.\\n\\nEstatística real do dataset de treino:\\n  Exemplos: 200\\n  Tokens cobráveis no total: 27353\\n  Token de entrada por exemplo: média 108\\.21, mediana 106, min 90, max 138\\n  Token de saída por exemplo: média 28\\.555, mediana 26, min 23, max 39\\n$"
+        }
+      ]
+    },
+    {
+      "name": "flags the cancelled epochCount 0 job, whose applied hyperparameters lack epochCount, as a silent provider default",
+      "program": "hyperparameter-and-monitoring-tool",
+      "env": {
+        "TUNING_JOB_NAME": "projects/113512199474/locations/us-central1/tuningJobs/2893240337390632960",
+        "GOOGLE_VERTEX_BASE_URL": "{replay}"
+      },
+      "commands": {
+        "gcloud": [
+          {
+            "args": ["auth", "print-access-token"],
+            "stdout": "ya29.stackfy-replay\n"
+          }
+        ]
+      },
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/2893240337390632960",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "name": "projects/113512199474/locations/us-central1/tuningJobs/2893240337390632960",
+            "tunedModelDisplayName": "amplitude-auto-saude-epoch-zero",
+            "baseModel": "gemini-2.5-flash",
+            "supervisedTuningSpec": {
+              "trainingDatasetUri": "gs://amplitude-seguros-demo-tuning/m3-amplitude-auto-saude-200.jsonl",
+              "hyperParameters": {
+                "learningRateMultiplier": 5,
+                "adapterSize": "ADAPTER_SIZE_FOUR"
+              }
+            },
+            "state": "JOB_STATE_CANCELLED",
+            "createTime": "2026-08-08T13:47:05.218934Z",
+            "startTime": "2026-08-08T13:47:05.270116Z",
+            "endTime": "2026-08-08T13:52:31.604872Z",
+            "updateTime": "2026-08-08T13:52:31.604872Z",
+            "error": {
+              "code": 1,
+              "message": "CANCELED"
+            },
+            "experiment": "projects/113512199474/locations/us-central1/metadataStores/default/contexts/tuning-experiment-20260808064705218934"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/2893240337390632960"
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "\\n== Monitoramento real: estatística do job de produção ==\\nJob: projects/113512199474/locations/us-central1/tuningJobs/2893240337390632960\\n\\nHiperparâmetro aplicado de verdade: (?:epochCount|epoch_count)=(?:undefined|None), (?:learningRateMultiplier|learning_rate_multiplier)=5, (?:adapterSize|adapter_size)=ADAPTER_SIZE_FOUR\\nDivergências: (?:epochCount|epoch_count): pedido 3, aplicado ausente \\(provavelmente default silencioso do provedor\\)\\n$"
+        }
+      ]
+    },
+    {
+      "name": "blocks job creation without an explicit confirmation, then follows the production job, already succeeded, in a single query",
+      "program": "finetuning-automation-tool",
+      "env": {
+        "GCP_PROJECT_ID": "stackfy-replay",
+        "TUNING_JOB_NAME": "projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+        "GOOGLE_VERTEX_BASE_URL": "{replay}"
+      },
+      "commands": {
+        "gcloud": [
+          {
+            "args": ["auth", "print-access-token"],
+            "stdout": "ya29.stackfy-replay\n"
+          }
+        ]
+      },
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "name": "projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+            "tunedModelDisplayName": "amplitude-auto-saude-m3-200",
+            "baseModel": "gemini-2.5-flash",
+            "supervisedTuningSpec": {
+              "trainingDatasetUri": "gs://amplitude-seguros-demo-tuning/m3-amplitude-auto-saude-200.jsonl",
+              "hyperParameters": {
+                "epochCount": "3",
+                "learningRateMultiplier": 5,
+                "adapterSize": "ADAPTER_SIZE_FOUR"
+              }
+            },
+            "state": "JOB_STATE_SUCCEEDED",
+            "createTime": "2026-08-08T02:38:12.307201Z",
+            "startTime": "2026-08-08T02:38:12.364747Z",
+            "endTime": "2026-08-08T03:23:54.310390Z",
+            "updateTime": "2026-08-08T03:23:54.310390Z",
+            "experiment": "projects/113512199474/locations/us-central1/metadataStores/default/contexts/tuning-experiment-20260807193812307201",
+            "tunedModel": {
+              "model": "projects/113512199474/locations/us-central1/models/391725756406824960@1",
+              "endpoint": "projects/113512199474/locations/us-central1/endpoints/9091681879928602624"
+            },
+            "tuningDataStats": {
+              "supervisedTuningDataStats": {
+                "tuningDatasetExampleCount": "200",
+                "totalTuningCharacterCount": "76464",
+                "totalBillableTokenCount": "27353",
+                "userInputTokenDistribution": {
+                  "sum": "21642",
+                  "billableSum": "21642",
+                  "min": 90,
+                  "max": 138,
+                  "mean": 108.21,
+                  "median": 106,
+                  "p5": 93,
+                  "p95": 136
+                },
+                "userOutputTokenDistribution": {
+                  "sum": "5711",
+                  "billableSum": "5711",
+                  "min": 23,
+                  "max": 39,
+                  "mean": 28.555,
+                  "median": 26,
+                  "p5": 24,
+                  "p95": 35
+                }
+              }
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744"
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes: [^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n)+Total: 18 teste\\(s\\), 18 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n== Reprodução da trava de confirmação ==\\nBloqueado como esperado: (?:criarJobFineTuning bloqueado: passe \\{ confirmar: true \\}|criar_job_fine_tuning bloqueado: passe confirmar=True) explicitamente pra criar job de verdade\\. Trava adicionada depois do incidente do Módulo 3\\.3, onde hiperparâmetro inválido criou job real sem aviso\\.\\n\\n== Acompanhamento sozinho, ao vivo, contra o job real do Módulo 3\\.2 ==\\nJob: projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744\\n  consulta: estado=JOB_STATE_SUCCEEDED\\nAcompanhamento terminou sozinho\\. Estado final: JOB_STATE_SUCCEEDED\\nEndpoint: projects/113512199474/locations/us-central1/endpoints/9091681879928602624\\n$"
+        }
+      ]
+    },
+    {
+      "name": "retries a query Vertex AI answers with 503, then keeps polling the running job until it succeeds",
+      "program": "finetuning-automation-tool",
+      "env": {
+        "GCP_PROJECT_ID": "stackfy-replay",
+        "TUNING_JOB_NAME": "projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+        "GOOGLE_VERTEX_BASE_URL": "{replay}"
+      },
+      "commands": {
+        "gcloud": [
+          {
+            "args": ["auth", "print-access-token"],
+            "stdout": "ya29.stackfy-replay\n"
+          }
+        ]
+      },
+      "timeout": 120000,
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "status": 503,
+          "json": {
+            "error": {
+              "code": 503,
+              "message": "The service is currently unavailable.",
+              "status": "UNAVAILABLE"
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "name": "projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+            "tunedModelDisplayName": "amplitude-auto-saude-m3-200",
+            "baseModel": "gemini-2.5-flash",
+            "supervisedTuningSpec": {
+              "trainingDatasetUri": "gs://amplitude-seguros-demo-tuning/m3-amplitude-auto-saude-200.jsonl",
+              "hyperParameters": {
+                "epochCount": "3",
+                "learningRateMultiplier": 5,
+                "adapterSize": "ADAPTER_SIZE_FOUR"
+              }
+            },
+            "state": "JOB_STATE_RUNNING",
+            "createTime": "2026-08-08T02:38:12.307201Z",
+            "startTime": "2026-08-08T02:38:12.364747Z",
+            "updateTime": "2026-08-08T03:01:40.912458Z",
+            "experiment": "projects/113512199474/locations/us-central1/metadataStores/default/contexts/tuning-experiment-20260807193812307201",
+            "tuningDataStats": {
+              "supervisedTuningDataStats": {
+                "tuningDatasetExampleCount": "200",
+                "totalTuningCharacterCount": "76464",
+                "totalBillableTokenCount": "27353",
+                "userInputTokenDistribution": {
+                  "sum": "21642",
+                  "billableSum": "21642",
+                  "min": 90,
+                  "max": 138,
+                  "mean": 108.21,
+                  "median": 106,
+                  "p5": 93,
+                  "p95": 136
+                },
+                "userOutputTokenDistribution": {
+                  "sum": "5711",
+                  "billableSum": "5711",
+                  "min": 23,
+                  "max": 39,
+                  "mean": 28.555,
+                  "median": 26,
+                  "p5": 24,
+                  "p95": 35
+                }
+              }
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "name": "projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+            "tunedModelDisplayName": "amplitude-auto-saude-m3-200",
+            "baseModel": "gemini-2.5-flash",
+            "supervisedTuningSpec": {
+              "trainingDatasetUri": "gs://amplitude-seguros-demo-tuning/m3-amplitude-auto-saude-200.jsonl",
+              "hyperParameters": {
+                "epochCount": "3",
+                "learningRateMultiplier": 5,
+                "adapterSize": "ADAPTER_SIZE_FOUR"
+              }
+            },
+            "state": "JOB_STATE_SUCCEEDED",
+            "createTime": "2026-08-08T02:38:12.307201Z",
+            "startTime": "2026-08-08T02:38:12.364747Z",
+            "endTime": "2026-08-08T03:23:54.310390Z",
+            "updateTime": "2026-08-08T03:23:54.310390Z",
+            "experiment": "projects/113512199474/locations/us-central1/metadataStores/default/contexts/tuning-experiment-20260807193812307201",
+            "tunedModel": {
+              "model": "projects/113512199474/locations/us-central1/models/391725756406824960@1",
+              "endpoint": "projects/113512199474/locations/us-central1/endpoints/9091681879928602624"
+            },
+            "tuningDataStats": {
+              "supervisedTuningDataStats": {
+                "tuningDatasetExampleCount": "200",
+                "totalTuningCharacterCount": "76464",
+                "totalBillableTokenCount": "27353",
+                "userInputTokenDistribution": {
+                  "sum": "21642",
+                  "billableSum": "21642",
+                  "min": 90,
+                  "max": 138,
+                  "mean": 108.21,
+                  "median": 106,
+                  "p5": 93,
+                  "p95": 136
+                },
+                "userOutputTokenDistribution": {
+                  "sum": "5711",
+                  "billableSum": "5711",
+                  "min": 23,
+                  "max": 39,
+                  "mean": 28.555,
+                  "median": 26,
+                  "p5": 24,
+                  "p95": 35
+                }
+              }
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744"
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "== Acompanhamento sozinho, ao vivo, contra o job real do Módulo 3\\.2 ==\\nJob: projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744\\n  consulta: estado=JOB_STATE_RUNNING\\n  consulta: estado=JOB_STATE_SUCCEEDED\\nAcompanhamento terminou sozinho\\. Estado final: JOB_STATE_SUCCEEDED\\nEndpoint: projects/113512199474/locations/us-central1/endpoints/9091681879928602624\\n$"
+        }
+      ]
+    },
+    {
+      "name": "gives up after three failed queries in a row and reports the last error",
+      "program": "finetuning-automation-tool",
+      "env": {
+        "GCP_PROJECT_ID": "stackfy-replay",
+        "TUNING_JOB_NAME": "projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+        "GOOGLE_VERTEX_BASE_URL": "{replay}"
+      },
+      "commands": {
+        "gcloud": [
+          {
+            "args": ["auth", "print-access-token"],
+            "stdout": "ya29.stackfy-replay\n"
+          }
+        ]
+      },
+      "timeout": 120000,
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "status": 403,
+          "json": {
+            "error": {
+              "code": 403,
+              "message": "Permission 'aiplatform.tuningJobs.get' denied on resource '//aiplatform.googleapis.com/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744' (or it may not exist).",
+              "status": "PERMISSION_DENIED"
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "status": 403,
+          "json": {
+            "error": {
+              "code": 403,
+              "message": "Permission 'aiplatform.tuningJobs.get' denied on resource '//aiplatform.googleapis.com/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744' (or it may not exist).",
+              "status": "PERMISSION_DENIED"
+            }
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "status": 403,
+          "json": {
+            "error": {
+              "code": 403,
+              "message": "Permission 'aiplatform.tuningJobs.get' denied on resource '//aiplatform.googleapis.com/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744' (or it may not exist).",
+              "status": "PERMISSION_DENIED"
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744"
+            },
+            {
+              "method": "GET",
+              "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744"
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "== Acompanhamento sozinho, ao vivo, contra o job real do Módulo 3\\.2 ==\nJob: projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744\nNão foi possível acompanhar agora: (?:Falha ao consultar job: 403 Forbidden|HTTP Error 403: Forbidden)\\n$"
+        }
+      ]
+    },
+    {
+      "name": "refuses to start without GCP_PROJECT_ID, before any check or call",
+      "program": "finetuning-automation-tool",
+      "env": {
+        "GCP_PROJECT_ID": "",
+        "TUNING_JOB_NAME": "projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+        "GOOGLE_VERTEX_BASE_URL": "{replay}"
+      },
+      "commands": {
+        "gcloud": [
+          {
+            "args": ["auth", "print-access-token"],
+            "stdout": "ya29.stackfy-replay\n"
+          }
+        ]
+      },
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "name": "projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+            "tunedModelDisplayName": "amplitude-auto-saude-m3-200",
+            "baseModel": "gemini-2.5-flash",
+            "supervisedTuningSpec": {
+              "trainingDatasetUri": "gs://amplitude-seguros-demo-tuning/m3-amplitude-auto-saude-200.jsonl",
+              "hyperParameters": {
+                "epochCount": "3",
+                "learningRateMultiplier": 5,
+                "adapterSize": "ADAPTER_SIZE_FOUR"
+              }
+            },
+            "state": "JOB_STATE_SUCCEEDED",
+            "createTime": "2026-08-08T02:38:12.307201Z",
+            "startTime": "2026-08-08T02:38:12.364747Z",
+            "endTime": "2026-08-08T03:23:54.310390Z",
+            "updateTime": "2026-08-08T03:23:54.310390Z",
+            "experiment": "projects/113512199474/locations/us-central1/metadataStores/default/contexts/tuning-experiment-20260807193812307201",
+            "tunedModel": {
+              "model": "projects/113512199474/locations/us-central1/models/391725756406824960@1",
+              "endpoint": "projects/113512199474/locations/us-central1/endpoints/9091681879928602624"
+            },
+            "tuningDataStats": {
+              "supervisedTuningDataStats": {
+                "tuningDatasetExampleCount": "200",
+                "totalTuningCharacterCount": "76464",
+                "totalBillableTokenCount": "27353",
+                "userInputTokenDistribution": {
+                  "sum": "21642",
+                  "billableSum": "21642",
+                  "min": 90,
+                  "max": 138,
+                  "mean": 108.21,
+                  "median": 106,
+                  "p5": 93,
+                  "p95": 136
+                },
+                "userOutputTokenDistribution": {
+                  "sum": "5711",
+                  "billableSum": "5711",
+                  "min": 23,
+                  "max": 39,
+                  "mean": 28.555,
+                  "median": 26,
+                  "p5": 24,
+                  "p95": 35
+                }
+              }
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "failure": true
+        },
+        {
+          "type": "requests",
+          "requests": []
+        },
+        {
+          "type": "output",
+          "pattern": "^$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Defina a vari[áa]vel de ambiente GCP_PROJECT_ID "
+        }
+      ]
+    },
+    {
+      "name": "hashes the 200-example training dataset, reads the production job, prints the validated versioning record with its real and estimated cost, and writes the model card beside the program",
+      "program": "model-versioning-tool",
+      "env": {
+        "TUNING_JOB_NAME": "projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+        "GOOGLE_VERTEX_BASE_URL": "{replay}"
+      },
+      "commands": {
+        "gcloud": [
+          {
+            "args": ["auth", "print-access-token"],
+            "stdout": "ya29.stackfy-replay\n"
+          }
+        ]
+      },
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "name": "projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744",
+            "tunedModelDisplayName": "amplitude-auto-saude-m3-200",
+            "baseModel": "gemini-2.5-flash",
+            "supervisedTuningSpec": {
+              "trainingDatasetUri": "gs://amplitude-seguros-demo-tuning/m3-amplitude-auto-saude-200.jsonl",
+              "hyperParameters": {
+                "epochCount": "3",
+                "learningRateMultiplier": 5,
+                "adapterSize": "ADAPTER_SIZE_FOUR"
+              }
+            },
+            "state": "JOB_STATE_SUCCEEDED",
+            "createTime": "2026-08-08T02:38:12.307201Z",
+            "startTime": "2026-08-08T02:38:12.364747Z",
+            "endTime": "2026-08-08T03:23:54.310390Z",
+            "updateTime": "2026-08-08T03:23:54.310390Z",
+            "experiment": "projects/113512199474/locations/us-central1/metadataStores/default/contexts/tuning-experiment-20260807193812307201",
+            "tunedModel": {
+              "model": "projects/113512199474/locations/us-central1/models/391725756406824960@1",
+              "endpoint": "projects/113512199474/locations/us-central1/endpoints/9091681879928602624"
+            },
+            "tuningDataStats": {
+              "supervisedTuningDataStats": {
+                "tuningDatasetExampleCount": "200",
+                "totalTuningCharacterCount": "76464",
+                "totalBillableTokenCount": "27353",
+                "userInputTokenDistribution": {
+                  "sum": "21642",
+                  "billableSum": "21642",
+                  "min": 90,
+                  "max": 138,
+                  "mean": 108.21,
+                  "median": 106,
+                  "p5": 93,
+                  "p95": 136
+                },
+                "userOutputTokenDistribution": {
+                  "sum": "5711",
+                  "billableSum": "5711",
+                  "min": 23,
+                  "max": 39,
+                  "mean": 28.555,
+                  "median": 26,
+                  "p5": 24,
+                  "p95": 35
+                }
+              }
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744"
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:== Testes: [^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+\\n)+Total: 14 teste\\(s\\), 14 passou\\(passaram\\), 0 falhou\\(falharam\\)\\.\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n== Ficha de versionamento real, gerada a partir do job de produção ==\\nHash SHA-256 do dataset de treino \\(200 exemplos\\): f6eb8f99c30e5ecc1c3ec5f293ba831bccfde59b7cc12070ad03169ab91b52ed\\n\\nFicha completa e validada:\\n\\{\n  \"jobId\": \"projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744\",\n  \"modeloBase\": \"gemini-2\\.5-flash\",\n  \"nomeExibicao\": \"amplitude-auto-saude-m3-200\",\n  \"datasetUri\": \"gs://amplitude-seguros-demo-tuning/m3-amplitude-auto-saude-200\\.jsonl\",\n  \"datasetHashSha256\": \"f6eb8f99c30e5ecc1c3ec5f293ba831bccfde59b7cc12070ad03169ab91b52ed\",\n  \"hiperparametros\": \\{\n    \"epochCount\": (?:\"3\"|3),\n    \"learningRateMultiplier\": 5,\n    \"adapterSize\": \"ADAPTER_SIZE_FOUR\"\n  \\},\n  \"estatisticaDataset\": \\{\n    \"exemplos\": \"200\",\n    \"tokensCobraveis\": (?:\"27353\"|27353)\n  \\},\n  \"modeloAjustado\": \"projects/113512199474/locations/us-central1/models/391725756406824960@1\",\n  \"endpoint\": \"projects/113512199474/locations/us-central1/endpoints/9091681879928602624\",\n  \"criadoEm\": \"2026-08-08T02:38:12\\.307201Z\",\n  \"concluidoEm\": \"2026-08-08T03:23:54\\.310390Z\",\n  \"estado\": \"JOB_STATE_SUCCEEDED\",\n  \"custoEstimado\": \\{\n    \"duracaoSegundos\": 2742\\.003,\n    \"duracaoFormatada\": \"45min 42s\",\n    \"consumerMinUsd\": 0\\.3,\n    \"consumerMaxUsd\": 0\\.61,\n    \"h100MinUsd\": 1\\.9,\n    \"h100MaxUsd\": 3\\.05\n  \\},\n  \"custoReal\": \\{\n    \"unidades\": 82059,\n    \"custoReais\": 2\\.39\n  \\}\n\\}\\n\\nModel card gerado em: [^\\n]*model-card-amplitude-auto-saude-m3-200(?:-py)?\\.md\\n$"
+        },
+        {
+          "type": "file",
+          "path": ".",
+          "name": "^model-card-amplitude-auto-saude-m3-200(?:-py)?\\.md$",
+          "pattern": "^# Model Card, modelo fine-tunado\n\n## Identificação\n- Job: projects/113512199474/locations/us-central1/tuningJobs/4180970763655839744\n- Modelo ajustado: projects/113512199474/locations/us-central1/models/391725756406824960@1\n- Endpoint: projects/113512199474/locations/us-central1/endpoints/9091681879928602624\n- Estado: JOB_STATE_SUCCEEDED\n\n## Linhagem\n- Modelo base: gemini-2\\.5-flash\n- Dataset de treino: gs://amplitude-seguros-demo-tuning/m3-amplitude-auto-saude-200\\.jsonl\n- Hash SHA-256 do dataset: f6eb8f99c30e5ecc1c3ec5f293ba831bccfde59b7cc12070ad03169ab91b52ed\n\n## Hiperparâmetros\n- Épocas: 3\n- Taxa de aprendizado \\(multiplicador\\): 5\n- Rank do adaptador \\(LoRA\\): ADAPTER_SIZE_FOUR\n\n## Estatística do dataset\n- Exemplos de treino: 200\n- Tokens cobráveis no total: 27353\n\n## Linha do tempo\n- Criado em: 2026-08-08T02:38:12\\.307201Z\n- Concluído em: 2026-08-08T03:23:54\\.310390Z\n\n## Custo real\n- Duração real do job: 45min 42s\n- \\*\\*Custo real, conferido no billing do Google Cloud \\(28/08/2026\\)\\*\\*: R\\$2,39 \\(27\\.353 tokens faturáveis × 3 épocas = 82\\.059 unidades cobradas, à taxa real de R\\$0,00002909/unidade apurada no relatório de billing por SKU de agosto/2026\\)\n- Faixa GPU cloud consumer \\(US\\$ 0,40-0,80/hora, cheatsheet do Módulo 1\\.3\\): US\\$ 0,30-0,61\n- Faixa GPU cloud H100 \\(US\\$ 2,50-4,00/hora, cheatsheet do Módulo 1\\.3\\): US\\$ 1,90-3,05\nNota: a Vertex AI cobra por token de treino, não por hora de GPU alugada; a faixa de GPU acima é referência de mercado pra comparar com o custo de rodar o mesmo tipo de treino \\(LoRA\\) em infraestrutura própria - o valor real deste job específico é o R\\$2,39 conferido no billing, acima\\.\n\n## Nota de validade \\(ago/2026\\)\nEste model card documenta um job real, rodado com gemini-2\\.5-flash\\. O processo -- upload, hiperparâmetro, versionamento -- é o mesmo independente da versão exata do modelo-base\\. A Google aposenta versões do Gemini com aviso prévio \\(a família 2\\.5 tem retirement anunciado pra 16/out/2026\\); antes de treinar você mesmo, confira em \\[Vertex AI release notes\\]\\(https://docs\\.cloud\\.google\\.com/vertex-ai/generative-ai/docs/release-notes\\) quais modelos têm suporte a fine-tuning supervisionado no momento\\.\n\n## Continuação: preference tuning \\(DPO\\)\n\nO Módulo 3\\.5 vai além do fine-tuning supervisionado acima e testa preference tuning \\(DPO\\) sobre o mesmo modelo base: 40 dos 200 exemplos deste job foram convertidos em pares de preferência \\(`chosen`/`rejected`\\) - a extração correta de sempre \\(`chosen`\\) contra uma resposta real gerada por um prompt deliberadamente mais fraco \\(`rejected`, sem exigir JSON estrito\\)\\. O dataset de preferência resultante está em `preference-dataset-amplitude\\.jsonl`, nesta mesma pasta\\.\n\n- Job: `tuningJobs/3733013646142341120`\n- Estado: JOB_STATE_SUCCEEDED\n- Duração real: 17min 32s \\(mais rápido que o SFT acima, dataset 5x menor: 40 exemplos contra 200\\)\n- Exemplos: 40 pares de preferência$"
+        }
+      ]
+    },
+    {
+      "name": "refuses to version the cancelled job, which has no tuned model or endpoint, and writes no model card",
+      "program": "model-versioning-tool",
+      "env": {
+        "TUNING_JOB_NAME": "projects/113512199474/locations/us-central1/tuningJobs/2893240337390632960",
+        "GOOGLE_VERTEX_BASE_URL": "{replay}"
+      },
+      "commands": {
+        "gcloud": [
+          {
+            "args": ["auth", "print-access-token"],
+            "stdout": "ya29.stackfy-replay\n"
+          }
+        ]
+      },
+      "replay": [
+        {
+          "method": "GET",
+          "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/2893240337390632960",
+          "synthesized": true,
+          "matchHeaders": {
+            "authorization": "^Bearer ya29\\.stackfy-replay$"
+          },
+          "json": {
+            "name": "projects/113512199474/locations/us-central1/tuningJobs/2893240337390632960",
+            "tunedModelDisplayName": "amplitude-auto-saude-epoch-zero",
+            "baseModel": "gemini-2.5-flash",
+            "supervisedTuningSpec": {
+              "trainingDatasetUri": "gs://amplitude-seguros-demo-tuning/m3-amplitude-auto-saude-200.jsonl",
+              "hyperParameters": {
+                "learningRateMultiplier": 5,
+                "adapterSize": "ADAPTER_SIZE_FOUR"
+              }
+            },
+            "state": "JOB_STATE_CANCELLED",
+            "createTime": "2026-08-08T13:47:05.218934Z",
+            "startTime": "2026-08-08T13:47:05.270116Z",
+            "endTime": "2026-08-08T13:52:31.604872Z",
+            "updateTime": "2026-08-08T13:52:31.604872Z",
+            "error": {
+              "code": 1,
+              "message": "CANCELED"
+            },
+            "experiment": "projects/113512199474/locations/us-central1/metadataStores/default/contexts/tuning-experiment-20260808064705218934"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "GET",
+              "path": "/v1/projects/113512199474/locations/us-central1/tuningJobs/2893240337390632960"
+            }
+          ]
+        },
+        {
+          "type": "output",
+          "pattern": "\\n== Ficha de versionamento real, gerada a partir do job de produção ==\\nHash SHA-256 do dataset de treino \\(200 exemplos\\): f6eb8f99c30e5ecc1c3ec5f293ba831bccfde59b7cc12070ad03169ab91b52ed\\nNão foi possível gerar a ficha agora: Ficha de versionamento incompleta, faltam: modeloAjustado, endpoint\\n$"
+        }
+      ]
+    },
+    {
+      "name": "maps the three Dolly-15k categories with a context to the canonical schema, deduplicates instruction and input together across all 4,467 examples, and balances 200 by temperature",
+      "program": "dolly-dataset-real-starter",
+      "timeout": 300000,
+      "files": {
+        "databricks-dolly-15k.jsonl": {
+          "$download": "https://huggingface.co/datasets/databricks/databricks-dolly-15k/resolve/main/databricks-dolly-15k.jsonl",
+          "sha256": "2df9083338b4abd6bceb5635764dab5d833b393b55759dffb0959b6fcbf794ec"
+        }
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^===== Extra: dataset real alternativo \\(Dolly-15k\\) rodando contra o pipeline do M[óo]dulo 2\\.2 =====\n\n(?:\\n?== Testes: [^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+)+\\n14/14 testes passaram\\.\\n"
+        },
+        {
+          "type": "output",
+          "pattern": "\\n--- Resumo ---\\nDataset bruto: 15011 exemplos reais \\(databricks-dolly-15k, CC-BY-SA-3\\.0\\)\\nCompat[íi]veis com o schema can[ôo]nico \\(t[êe]m contexto real\\): 4467\\nDistribui[çc][ãa]o por fonte antes do dedup: (?:\\{\"closed_qa\":1773,\"information_extraction\":1506,\"summarization\":1188\\}|\\{'closed_qa': 1773, 'information_extraction': 1506, 'summarization': 1188\\})\\nDedup no dataset INTEIRO \\(comparando instru[çc][ãa]o\\+entrada\\): 778 candidatos LSH de 9974811 pares for[çc]a-bruta, 748 pares confirmados, 396 itens [úu]nicos removidos -> 4071 restantes\\nBalanceado pro alvo: (?:\\{\"closed_qa\":71,\"information_extraction\":66,\"summarization\":63\\}|\\{'closed_qa': 71, 'information_extraction': 66, 'summarization': 63\\}), total 200\\nEntropia antes/depois do balanceamento: 1\\.0877 -> 1\\.0974 nats\\n\\nComparar s[óo] `entrada` no dedup confundiria pares de PERGUNTA DIFERENTE sobre o MESMO trecho de contexto \\(Jaccard=1,0 na entrada\\) com duplicata real[^\\n]*\\n$"
+        }
+      ]
+    },
+    {
+      "name": "stops with the download command when the dataset path it receives does not exist",
+      "program": "dolly-dataset-real-starter",
+      "args": ["ausente.jsonl"],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "pattern": "^$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Arquivo n[ãa]o encontrado: ausente\\.jsonl\\nBaixe primeiro: curl -L \"https://huggingface\\.co/datasets/databricks/databricks-dolly-15k/resolve/main/databricks-dolly-15k\\.jsonl\" -o databricks-dolly-15k\\.jsonl\\n$"
+        }
+      ]
+    },
+    {
+      "name": "checks the text-output conversion, the confirmation lock, hyperparameter validation, the polling backoff, and the chained pipeline with injected functions and no network",
+      "program": "dolly-vertex-pipeline",
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:\\n?== Testes: [^\\n]*\\n(?:  \\[OK\\] [^\\n]*\\n)+)+\\n10/10 testes passaram\\.\\n$"
+        }
+      ]
+    }
+  ]
+}

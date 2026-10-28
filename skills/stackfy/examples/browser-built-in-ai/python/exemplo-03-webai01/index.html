@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <script
+      type="module"
+      src="https://pyscript.net/releases/2026.7.3/core.js"
+    ></script>
+  </head>
+  <body>
+    <output id="output"></output>
+
+    <script type="py" config='{"packages": ["markdown"]}'>
+      import markdown
+      from pyscript import document, ffi, window
+
+      output = document.getElementById("output")
+
+      params = await window.LanguageModel.params()
+      window.console.log("Language Model Params:", params)
+
+      initial_prompts = [
+          {
+              "role": "system",
+              "content": "Você é um assistente de IA que responde de forma clara e objetiva.",
+          }
+      ]
+
+      question = "Quem inventou o JavaScript?"
+      output.innerHTML = "Gerando resposta..."
+
+      session = await window.LanguageModel.create(
+          ffi.to_js(
+              {
+                  "expectedInputLanguages": ["pt"],
+                  "temperature": params.defaultTemperature,
+                  "topK": params.defaultTopK,
+                  "initialPrompts": initial_prompts,
+              }
+          )
+      )
+
+      response_stream = session.promptStreaming(
+          ffi.to_js([{"role": "user", "content": question}])
+      )
+      output.innerHTML = ""
+      full_text = ""
+      async for token in response_stream:
+          full_text += token
+          output.innerHTML = markdown.markdown(full_text)
+    </script>
+  </body>
+</html>

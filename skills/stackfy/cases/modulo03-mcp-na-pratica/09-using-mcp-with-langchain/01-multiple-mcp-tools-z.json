@@ -1,0 +1,2755 @@
+{
+  "module": "modulo03-mcp-na-pratica/09-using-mcp-with-langchain/01-multiple-mcp-tools-z",
+  "concepts": [
+    "model-context-protocol",
+    "tool-calling",
+    "chat-model",
+    "state-graph",
+    "api-access-control",
+    "package-publishing",
+    "schema-validation",
+    "rest-api"
+  ],
+  "recorded": "Every case passed 7 runs against the original with Node.js 26.12.1, @langchain/core 1.1.19, @langchain/langgraph 1.2.0, @langchain/mcp-adapters 1.1.3, @langchain/openai 1.2.5, langchain 1.2.18, fastify 5.7.4, @erickwendel/ew-customers-mcp 0.0.13, @modelcontextprotocol/server-filesystem 2.0.1, curl 8.7.1, and jq 1.7.1. Each case names its program, and one shell command run from the module chose by it: start ran node src/index.ts without a .env file, the file npm start runs with one, and token ran sh getServiceToken.sh. The original always calls OpenRouter's address, so the copy that produced these cases reads OPENAI_BASE_URL first and falls back to it, a one-line change in the OpenRouter service. No OpenRouter key was available, so the model answers were recorded from Ollama 0.40.11 through its OpenAI-compatible API, with gpt-oss:20b standing in for arcee-ai/trinity-large-preview:free at low reasoning effort, set by a proxy in front of Ollama, and without the stand-in's reasoning field, while the requests keep the model the program asked for. The stand-in created the customers one call at a time. OpenRouter's refusal of an empty key is synthesized from its documented error format, and the client sends Bearer alone, while a key left unset fails in the client before any request, which the cases cannot express. The published customers server and getServiceToken.sh always call http://localhost:9999/v1, so the cases put the replay on port 9999, beside the model's answers, and the entry point always listens on port 3000, so both must be free. The API's answers were recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, on an empty MongoDB, through the same proxy, and the customers' answers require the service token it issued, which SERVICE_TOKEN holds, as a bearer. Both MCP servers start through npx at @latest, so npx needs registry.npmjs.org, and the cases compare none of their results directly: the API's answers must show in the output after each customers call, and the filesystem server writes ./data/users.json inside its allowed data folder, as data/data/users.json, which the cases read. The first write fails while data/data is missing and succeeds once a run has created it, so the tool messages are checked by their call ids alone. Both .env cases leave the folder as it was.",
+  "prepare": {
+    "setup": ["npm ci"],
+    "patches": [
+      {
+        "file": "src/services/openRouterService.ts",
+        "find": "baseURL: 'https://openrouter.ai/api/v1'",
+        "replace": "baseURL: process.env.OPENAI_BASE_URL ?? 'https://openrouter.ai/api/v1'"
+      }
+    ]
+  },
+  "originals": [
+    "case {program} in start) node src/index.ts ;; token) sh getServiceToken.sh ;; esac"
+  ],
+  "env": {
+    "OPENROUTER_API_KEY": "replay",
+    "SERVICE_TOKEN": "0dee50e5-7ba8-45bb-a8d6-68299bd39833"
+  },
+  "cases": [
+    {
+      "name": "the sample question runs the agent once, which creates three customers one at a time through the published customers server with its service token as a bearer, lists them, and writes them through the filesystem server to ./data/users.json, which the server resolves inside its allowed data folder as data/data/users.json, then answers 200 with the model's text",
+      "program": "start",
+      "timeout": 240000,
+      "replayPort": 9999,
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for arcee-ai/trinity-large-preview:free at low reasoning effort",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-922",
+            "object": "chat.completion",
+            "created": 1793108583,
+            "model": "gpt-oss:20b",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "",
+                  "tool_calls": [
+                    {
+                      "id": "call_vac0btt6",
+                      "index": 0,
+                      "type": "function",
+                      "function": {
+                        "name": "create_customer",
+                        "arguments": "{\"name\":\"Alice Silva\",\"phone\":\"+5511999990001\"}"
+                      }
+                    }
+                  ]
+                },
+                "finish_reason": "tool_calls"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1678,
+              "prompt_tokens_details": {
+                "cached_tokens": 1676
+              },
+              "completion_tokens": 65,
+              "total_tokens": 1743
+            }
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, on an empty MongoDB, called by @erickwendel/ew-customers-mcp 0.0.13 with the service token the API issued",
+          "method": "POST",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^Bearer 0dee50e5-7ba8-45bb-a8d6-68299bd39833$"
+          },
+          "status": 201,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "user Alice Silva created!",
+            "id": "6ae0aa67e30af783c0a1f0bb"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for arcee-ai/trinity-large-preview:free at low reasoning effort",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-412",
+            "object": "chat.completion",
+            "created": 1793108593,
+            "model": "gpt-oss:20b",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "",
+                  "tool_calls": [
+                    {
+                      "id": "call_yhtbzv7l",
+                      "index": 0,
+                      "type": "function",
+                      "function": {
+                        "name": "create_customer",
+                        "arguments": "{\"name\":\"Bruno Santos\",\"phone\":\"+5511999990002\"}"
+                      }
+                    }
+                  ]
+                },
+                "finish_reason": "tool_calls"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1759,
+              "prompt_tokens_details": {
+                "cached_tokens": 1675
+              },
+              "completion_tokens": 46,
+              "total_tokens": 1805
+            }
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, on an empty MongoDB, called by @erickwendel/ew-customers-mcp 0.0.13 with the service token the API issued",
+          "method": "POST",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^Bearer 0dee50e5-7ba8-45bb-a8d6-68299bd39833$"
+          },
+          "status": 201,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "user Bruno Santos created!",
+            "id": "6ae0aa71e30af783c0a1f0bc"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for arcee-ai/trinity-large-preview:free at low reasoning effort",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-54",
+            "object": "chat.completion",
+            "created": 1793108602,
+            "model": "gpt-oss:20b",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "",
+                  "tool_calls": [
+                    {
+                      "id": "call_f6crn5d0",
+                      "index": 0,
+                      "type": "function",
+                      "function": {
+                        "name": "create_customer",
+                        "arguments": "{\"name\":\"Carla Oliveira\",\"phone\":\"+5511999990003\"}"
+                      }
+                    }
+                  ]
+                },
+                "finish_reason": "tool_calls"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1841,
+              "prompt_tokens_details": {
+                "cached_tokens": 1754
+              },
+              "completion_tokens": 28,
+              "total_tokens": 1869
+            }
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, on an empty MongoDB, called by @erickwendel/ew-customers-mcp 0.0.13 with the service token the API issued",
+          "method": "POST",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^Bearer 0dee50e5-7ba8-45bb-a8d6-68299bd39833$"
+          },
+          "status": 201,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "message": "user Carla Oliveira created!",
+            "id": "6ae0aa7ae30af783c0a1f0bd"
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for arcee-ai/trinity-large-preview:free at low reasoning effort",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-166",
+            "object": "chat.completion",
+            "created": 1793108603,
+            "model": "gpt-oss:20b",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "",
+                  "tool_calls": [
+                    {
+                      "id": "call_ufzhgiqz",
+                      "index": 0,
+                      "type": "function",
+                      "function": {
+                        "name": "list_customers",
+                        "arguments": "{}"
+                      }
+                    }
+                  ]
+                },
+                "finish_reason": "tool_calls"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1923,
+              "prompt_tokens_details": {
+                "cached_tokens": 1868
+              },
+              "completion_tokens": 16,
+              "total_tokens": 1939
+            }
+          }
+        },
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, on an empty MongoDB, called by @erickwendel/ew-customers-mcp 0.0.13 with the service token the API issued",
+          "method": "GET",
+          "path": "/v1/customers",
+          "matchHeaders": {
+            "authorization": "^Bearer 0dee50e5-7ba8-45bb-a8d6-68299bd39833$"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": [
+            {
+              "_id": "6ae0aa67e30af783c0a1f0bb",
+              "name": "Alice Silva",
+              "phone": "+5511999990001"
+            },
+            {
+              "_id": "6ae0aa71e30af783c0a1f0bc",
+              "name": "Bruno Santos",
+              "phone": "+5511999990002"
+            },
+            {
+              "_id": "6ae0aa7ae30af783c0a1f0bd",
+              "name": "Carla Oliveira",
+              "phone": "+5511999990003"
+            }
+          ]
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for arcee-ai/trinity-large-preview:free at low reasoning effort",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-605",
+            "object": "chat.completion",
+            "created": 1793108607,
+            "model": "gpt-oss:20b",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "",
+                  "tool_calls": [
+                    {
+                      "id": "call_41bp8i4c",
+                      "index": 0,
+                      "type": "function",
+                      "function": {
+                        "name": "write_file",
+                        "arguments": "{\"path\":\"./data/users.json\",\"content\":\"[{\\\"_id\\\":\\\"6ae0aa67e30af783c0a1f0bb\\\",\\\"name\\\":\\\"Alice Silva\\\",\\\"phone\\\":\\\"+5511999990001\\\"},{\\\"_id\\\":\\\"6ae0aa71e30af783c0a1f0bc\\\",\\\"name\\\":\\\"Bruno Santos\\\",\\\"phone\\\":\\\"+5511999990002\\\"},{\\\"_id\\\":\\\"6ae0aa7ae30af783c0a1f0bd\\\",\\\"name\\\":\\\"Carla Oliveira\\\",\\\"phone\\\":\\\"+5511999990003\\\"}]\"}"
+                      }
+                    }
+                  ]
+                },
+                "finish_reason": "tool_calls"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 2230,
+              "prompt_tokens_details": {
+                "cached_tokens": 1918
+              },
+              "completion_tokens": 135,
+              "total_tokens": 2365
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for arcee-ai/trinity-large-preview:free at low reasoning effort",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-347",
+            "object": "chat.completion",
+            "created": 1793108610,
+            "model": "gpt-oss:20b",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "",
+                  "tool_calls": [
+                    {
+                      "id": "call_i4pa6xaf",
+                      "index": 0,
+                      "type": "function",
+                      "function": {
+                        "name": "create_directory",
+                        "arguments": "{\"path\":\"./data\"}"
+                      }
+                    }
+                  ]
+                },
+                "finish_reason": "tool_calls"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 2536,
+              "prompt_tokens_details": {
+                "cached_tokens": 2225
+              },
+              "completion_tokens": 36,
+              "total_tokens": 2572
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for arcee-ai/trinity-large-preview:free at low reasoning effort",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-369",
+            "object": "chat.completion",
+            "created": 1793108613,
+            "model": "gpt-oss:20b",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "",
+                  "tool_calls": [
+                    {
+                      "id": "call_apsndre9",
+                      "index": 0,
+                      "type": "function",
+                      "function": {
+                        "name": "write_file",
+                        "arguments": "{\"content\":\"[{\\\"_id\\\":\\\"6ae0aa67e30af783c0a1f0bb\\\",\\\"name\\\":\\\"Alice Silva\\\",\\\"phone\\\":\\\"+5511999990001\\\"},{\\\"_id\\\":\\\"6ae0aa71e30af783c0a1f0bc\\\",\\\"name\\\":\\\"Bruno Santos\\\",\\\"phone\\\":\\\"+5511999990002\\\"},{\\\"_id\\\":\\\"6ae0aa7ae30af783c0a1f0bd\\\",\\\"name\\\":\\\"Carla Oliveira\\\",\\\"phone\\\":\\\"+5511999990003\\\"}]\",\"path\":\"./data/users.json\"}"
+                      }
+                    }
+                  ]
+                },
+                "finish_reason": "tool_calls"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 2590,
+              "prompt_tokens_details": {
+                "cached_tokens": 2531
+              },
+              "completion_tokens": 135,
+              "total_tokens": 2725
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for arcee-ai/trinity-large-preview:free at low reasoning effort",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-717",
+            "object": "chat.completion",
+            "created": 1793108617,
+            "model": "gpt-oss:20b",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "Os três clientes foram criados, gravados em `./data/users.json` e listados abaixo:\n\n```json\n[\n  {\n    \"_id\": \"6ae0aa67e30af783c0a1f0bb\",\n    \"name\": \"Alice Silva\",\n    \"phone\": \"+5511999990001\"\n  },\n  {\n    \"_id\": \"6ae0aa71e30af783c0a1f0bc\",\n    \"name\": \"Bruno Santos\",\n    \"phone\": \"+5511999990002\"\n  },\n  {\n    \"_id\": \"6ae0aa7ae30af783c0a1f0bd\",\n    \"name\": \"Carla Oliveira\",\n    \"phone\": \"+5511999990003\"\n  }\n]\n```\n\nO arquivo `./data/users.json` contém exatamente esses dados no formato JSON."
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 2764,
+              "prompt_tokens_details": {
+                "cached_tokens": 2724
+              },
+              "completion_tokens": 185,
+              "total_tokens": 2949
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?![\\s\\S]*Agent node processing[\\s\\S]*Agent node processing)Server is running on http://0\\.0\\.0\\.0:3000\\n🤖 Agent node processing\\.\\.\\.\\n\\n🧠 LLM thinking\\.\\.\\.\\n \\(last message: \"\\nCrie 3 clientes de teste usando as tools de customer, depois guarde estes clientes em \\./data/users\\.json, em seguida, liste os clientes cadastrados também pela tool de customers\\.\"\\)\\n🎯 Decided to call: create_customer\\n🔧 Tool called: create_customer →[\\s\\S]*?user Alice Silva created![\\s\\S]*?6ae0aa67e30af783c0a1f0bb[\\s\\S]*\\n🎯 Decided to call: create_customer\\n🔧 Tool called: create_customer →[\\s\\S]*?user Bruno Santos created![\\s\\S]*?6ae0aa71e30af783c0a1f0bc[\\s\\S]*\\n🎯 Decided to call: create_customer\\n🔧 Tool called: create_customer →[\\s\\S]*?user Carla Oliveira created![\\s\\S]*?6ae0aa7ae30af783c0a1f0bd[\\s\\S]*\\n🎯 Decided to call: list_customers\\n🔧 Tool called: list_customers →[\\s\\S]*?6ae0aa67e30af783c0a1f0bb[\\s\\S]*\\n🎯 Decided to call: write_file\\n🔧 Tool called: write_file →[\\s\\S]*\\n🎯 Decided to call: create_directory\\n🔧 Tool called: create_directory →[\\s\\S]*\\n🎯 Decided to call: write_file\\n🔧 Tool called: write_file →[\\s\\S]*\\n✅ LLM Response: [\\s\\S]*\\nResponse from /chat: 200\\nOs três clientes foram criados, gravados em `\\./data/users\\.json` e listados abaixo:\\n\\n```json\\n\\[\\n  \\{\\n    \"_id\": \"6ae0aa67e30af783c0a1f0bb\",\\n    \"name\": \"Alice Silva\",\\n    \"phone\": \"\\+5511999990001\"\\n  \\},\\n  \\{\\n    \"_id\": \"6ae0aa71e30af783c0a1f0bc\",\\n    \"name\": \"Bruno Santos\",\\n    \"phone\": \"\\+5511999990002\"\\n  \\},\\n  \\{\\n    \"_id\": \"6ae0aa7ae30af783c0a1f0bd\",\\n    \"name\": \"Carla Oliveira\",\\n    \"phone\": \"\\+5511999990003\"\\n  \\}\\n\\]\\n```\\n\\nO arquivo `\\./data/users\\.json` contém exatamente esses dados no formato JSON\\.\\n$"
+        },
+        {
+          "type": "output",
+          "pattern": "^(?:(?:(?!🧠 LLM thinking)[\\s\\S])*🧠 LLM thinking[^\\n]*\\n){8}(?:(?!🧠 LLM thinking)[\\s\\S])*$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Customers MCP Server running on stdio"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_customers"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "get_customer"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "create_customer"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "update_customer"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "delete_customer"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_media_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_multiple_files"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "edit_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "create_directory"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_directory"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_directory_with_sizes"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "directory_tree"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "move_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "search_files"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "get_file_info"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful AI assistant capable of answering general questions and managing customers through your available tools.\n\n## Behavior by intent:\n\n### When intent is \"customer_operations\":\n- You may use available tools to discover how to create, list, update, delete, or fetch customers, as well as generate fake/test customer data.\n\n### When intent is \"general_question\":\n- Answer the user's question directly and helpfully.\n- Only use tools if the user explicitly requests an action (e.g. \"save this to a file\").\n\n## Important rules:\n- Always respond in the same language as the user's message.\n- When saving files, always use valid JSON format with an array of objects.\n- Do not ask for confirmation before creating customers — execute the full task autonomously.\n- If a tool call fails, report the error clearly and try once more."
+                    },
+                    {
+                      "role": "user",
+                      "content": "\nCrie 3 clientes de teste usando as tools de customer, depois guarde estes clientes em ./data/users.json, em seguida, liste os clientes cadastrados também pela tool de customers."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/customers",
+              "body": {
+                "name": "Alice Silva",
+                "phone": "+5511999990001"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful AI assistant capable of answering general questions and managing customers through your available tools.\n\n## Behavior by intent:\n\n### When intent is \"customer_operations\":\n- You may use available tools to discover how to create, list, update, delete, or fetch customers, as well as generate fake/test customer data.\n\n### When intent is \"general_question\":\n- Answer the user's question directly and helpfully.\n- Only use tools if the user explicitly requests an action (e.g. \"save this to a file\").\n\n## Important rules:\n- Always respond in the same language as the user's message.\n- When saving files, always use valid JSON format with an array of objects.\n- Do not ask for confirmation before creating customers — execute the full task autonomously.\n- If a tool call fails, report the error clearly and try once more."
+                    },
+                    {
+                      "role": "user",
+                      "content": "\nCrie 3 clientes de teste usando as tools de customer, depois guarde estes clientes em ./data/users.json, em seguida, liste os clientes cadastrados também pela tool de customers."
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_vac0btt6",
+                          "function": {
+                            "name": "create_customer"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_vac0btt6"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/customers",
+              "body": {
+                "name": "Bruno Santos",
+                "phone": "+5511999990002"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful AI assistant capable of answering general questions and managing customers through your available tools.\n\n## Behavior by intent:\n\n### When intent is \"customer_operations\":\n- You may use available tools to discover how to create, list, update, delete, or fetch customers, as well as generate fake/test customer data.\n\n### When intent is \"general_question\":\n- Answer the user's question directly and helpfully.\n- Only use tools if the user explicitly requests an action (e.g. \"save this to a file\").\n\n## Important rules:\n- Always respond in the same language as the user's message.\n- When saving files, always use valid JSON format with an array of objects.\n- Do not ask for confirmation before creating customers — execute the full task autonomously.\n- If a tool call fails, report the error clearly and try once more."
+                    },
+                    {
+                      "role": "user",
+                      "content": "\nCrie 3 clientes de teste usando as tools de customer, depois guarde estes clientes em ./data/users.json, em seguida, liste os clientes cadastrados também pela tool de customers."
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_vac0btt6",
+                          "function": {
+                            "name": "create_customer"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_vac0btt6"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_yhtbzv7l",
+                          "function": {
+                            "name": "create_customer"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_yhtbzv7l"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/customers",
+              "body": {
+                "name": "Carla Oliveira",
+                "phone": "+5511999990003"
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful AI assistant capable of answering general questions and managing customers through your available tools.\n\n## Behavior by intent:\n\n### When intent is \"customer_operations\":\n- You may use available tools to discover how to create, list, update, delete, or fetch customers, as well as generate fake/test customer data.\n\n### When intent is \"general_question\":\n- Answer the user's question directly and helpfully.\n- Only use tools if the user explicitly requests an action (e.g. \"save this to a file\").\n\n## Important rules:\n- Always respond in the same language as the user's message.\n- When saving files, always use valid JSON format with an array of objects.\n- Do not ask for confirmation before creating customers — execute the full task autonomously.\n- If a tool call fails, report the error clearly and try once more."
+                    },
+                    {
+                      "role": "user",
+                      "content": "\nCrie 3 clientes de teste usando as tools de customer, depois guarde estes clientes em ./data/users.json, em seguida, liste os clientes cadastrados também pela tool de customers."
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_vac0btt6",
+                          "function": {
+                            "name": "create_customer"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_vac0btt6"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_yhtbzv7l",
+                          "function": {
+                            "name": "create_customer"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_yhtbzv7l"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_f6crn5d0",
+                          "function": {
+                            "name": "create_customer"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_f6crn5d0"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "GET",
+              "path": "/v1/customers"
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful AI assistant capable of answering general questions and managing customers through your available tools.\n\n## Behavior by intent:\n\n### When intent is \"customer_operations\":\n- You may use available tools to discover how to create, list, update, delete, or fetch customers, as well as generate fake/test customer data.\n\n### When intent is \"general_question\":\n- Answer the user's question directly and helpfully.\n- Only use tools if the user explicitly requests an action (e.g. \"save this to a file\").\n\n## Important rules:\n- Always respond in the same language as the user's message.\n- When saving files, always use valid JSON format with an array of objects.\n- Do not ask for confirmation before creating customers — execute the full task autonomously.\n- If a tool call fails, report the error clearly and try once more."
+                    },
+                    {
+                      "role": "user",
+                      "content": "\nCrie 3 clientes de teste usando as tools de customer, depois guarde estes clientes em ./data/users.json, em seguida, liste os clientes cadastrados também pela tool de customers."
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_vac0btt6",
+                          "function": {
+                            "name": "create_customer"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_vac0btt6"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_yhtbzv7l",
+                          "function": {
+                            "name": "create_customer"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_yhtbzv7l"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_f6crn5d0",
+                          "function": {
+                            "name": "create_customer"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_f6crn5d0"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_ufzhgiqz",
+                          "function": {
+                            "name": "list_customers"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_ufzhgiqz"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful AI assistant capable of answering general questions and managing customers through your available tools.\n\n## Behavior by intent:\n\n### When intent is \"customer_operations\":\n- You may use available tools to discover how to create, list, update, delete, or fetch customers, as well as generate fake/test customer data.\n\n### When intent is \"general_question\":\n- Answer the user's question directly and helpfully.\n- Only use tools if the user explicitly requests an action (e.g. \"save this to a file\").\n\n## Important rules:\n- Always respond in the same language as the user's message.\n- When saving files, always use valid JSON format with an array of objects.\n- Do not ask for confirmation before creating customers — execute the full task autonomously.\n- If a tool call fails, report the error clearly and try once more."
+                    },
+                    {
+                      "role": "user",
+                      "content": "\nCrie 3 clientes de teste usando as tools de customer, depois guarde estes clientes em ./data/users.json, em seguida, liste os clientes cadastrados também pela tool de customers."
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_vac0btt6",
+                          "function": {
+                            "name": "create_customer"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_vac0btt6"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_yhtbzv7l",
+                          "function": {
+                            "name": "create_customer"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_yhtbzv7l"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_f6crn5d0",
+                          "function": {
+                            "name": "create_customer"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_f6crn5d0"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_ufzhgiqz",
+                          "function": {
+                            "name": "list_customers"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_ufzhgiqz"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_41bp8i4c",
+                          "function": {
+                            "name": "write_file"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_41bp8i4c"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful AI assistant capable of answering general questions and managing customers through your available tools.\n\n## Behavior by intent:\n\n### When intent is \"customer_operations\":\n- You may use available tools to discover how to create, list, update, delete, or fetch customers, as well as generate fake/test customer data.\n\n### When intent is \"general_question\":\n- Answer the user's question directly and helpfully.\n- Only use tools if the user explicitly requests an action (e.g. \"save this to a file\").\n\n## Important rules:\n- Always respond in the same language as the user's message.\n- When saving files, always use valid JSON format with an array of objects.\n- Do not ask for confirmation before creating customers — execute the full task autonomously.\n- If a tool call fails, report the error clearly and try once more."
+                    },
+                    {
+                      "role": "user",
+                      "content": "\nCrie 3 clientes de teste usando as tools de customer, depois guarde estes clientes em ./data/users.json, em seguida, liste os clientes cadastrados também pela tool de customers."
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_vac0btt6",
+                          "function": {
+                            "name": "create_customer"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_vac0btt6"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_yhtbzv7l",
+                          "function": {
+                            "name": "create_customer"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_yhtbzv7l"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_f6crn5d0",
+                          "function": {
+                            "name": "create_customer"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_f6crn5d0"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_ufzhgiqz",
+                          "function": {
+                            "name": "list_customers"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_ufzhgiqz"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_41bp8i4c",
+                          "function": {
+                            "name": "write_file"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_41bp8i4c"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_i4pa6xaf",
+                          "function": {
+                            "name": "create_directory"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_i4pa6xaf"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful AI assistant capable of answering general questions and managing customers through your available tools.\n\n## Behavior by intent:\n\n### When intent is \"customer_operations\":\n- You may use available tools to discover how to create, list, update, delete, or fetch customers, as well as generate fake/test customer data.\n\n### When intent is \"general_question\":\n- Answer the user's question directly and helpfully.\n- Only use tools if the user explicitly requests an action (e.g. \"save this to a file\").\n\n## Important rules:\n- Always respond in the same language as the user's message.\n- When saving files, always use valid JSON format with an array of objects.\n- Do not ask for confirmation before creating customers — execute the full task autonomously.\n- If a tool call fails, report the error clearly and try once more."
+                    },
+                    {
+                      "role": "user",
+                      "content": "\nCrie 3 clientes de teste usando as tools de customer, depois guarde estes clientes em ./data/users.json, em seguida, liste os clientes cadastrados também pela tool de customers."
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_vac0btt6",
+                          "function": {
+                            "name": "create_customer"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_vac0btt6"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_yhtbzv7l",
+                          "function": {
+                            "name": "create_customer"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_yhtbzv7l"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_f6crn5d0",
+                          "function": {
+                            "name": "create_customer"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_f6crn5d0"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_ufzhgiqz",
+                          "function": {
+                            "name": "list_customers"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_ufzhgiqz"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_41bp8i4c",
+                          "function": {
+                            "name": "write_file"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_41bp8i4c"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_i4pa6xaf",
+                          "function": {
+                            "name": "create_directory"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_i4pa6xaf"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_apsndre9",
+                          "function": {
+                            "name": "write_file"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_apsndre9"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "file",
+          "path": "data/data/users.json",
+          "values": [
+            [
+              {
+                "_id": "6ae0aa67e30af783c0a1f0bb",
+                "name": "Alice Silva",
+                "phone": "+5511999990001"
+              },
+              {
+                "_id": "6ae0aa71e30af783c0a1f0bc",
+                "name": "Bruno Santos",
+                "phone": "+5511999990002"
+              },
+              {
+                "_id": "6ae0aa7ae30af783c0a1f0bd",
+                "name": "Carla Oliveira",
+                "phone": "+5511999990003"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "without SERVICE_TOKEN, the agent node fails before starting any server, and the graph sends it back to itself until the recursion limit of 25, so the route answers 500",
+      "program": "start",
+      "timeout": 120000,
+      "env": {
+        "SERVICE_TOKEN": ""
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^Server is running on http://0\\.0\\.0\\.0:3000\\n(?:🤖 Agent node processing\\.\\.\\.\\n){25}Response from /chat: 500\\n\\{\"error\":\"An error occurred while processing your request\\.\"\\}\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^(?:(?:(?!Agent node error: )[\\s\\S])*Agent node error: [^\\n]*\\n){25}(?:(?!Agent node error: )[\\s\\S])*$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "(?:Agent node error: [^\\n]*SERVICE_TOKEN environment variable is required for customers-mcp tool[\\s\\S]*){25}❌ Error processing request: [^\\n]*Recursion limit of 25 reached"
+        }
+      ]
+    },
+    {
+      "name": "with an empty OpenRouter key, the assertion only prints, OpenRouter refuses every call with 401, and the graph sends the agent node back to itself until the recursion limit of 25, every retry asking the model the apology the last failure left as the last message, so the route answers 500",
+      "program": "start",
+      "timeout": 180000,
+      "env": {
+        "OPENROUTER_API_KEY": ""
+      },
+      "replay": [
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        },
+        {
+          "source": "synthesized from OpenRouter's documented error format, as it answers a request without a key",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "matchHeaders": {
+            "authorization": "^Bearer\\s*$"
+          },
+          "status": 401,
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "error": {
+              "message": "No auth credentials found",
+              "code": 401
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^Server is running on http://0\\.0\\.0\\.0:3000\\n🤖 Agent node processing\\.\\.\\.\\n\\n🧠 LLM thinking\\.\\.\\.\\n \\(last message: \"\\nCrie 3 clientes de teste usando as tools de customer, depois guarde estes clientes em \\./data/users\\.json, em seguida, liste os clientes cadastrados também pela tool de customers\\.\"\\)\\n(?:🤖 Agent node processing\\.\\.\\.\\n\\n🧠 LLM thinking\\.\\.\\.\\n \\(last message: \"Sorry, I encountered an error while processing your request\\. Please try again\\.\"\\)\\n){24}Response from /chat: 500\\n\\{\"error\":\"An error occurred while processing your request\\.\"\\}\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Assertion failed: OPENROUTER_API_KEY is not set in environment variables\\n"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^(?:(?:(?!Agent node error: )[\\s\\S])*Agent node error: [^\\n]*\\n){25}(?:(?!Agent node error: )[\\s\\S])*$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "❌ Error processing request: [^\\n]*Recursion limit of 25 reached"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_customers"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "get_customer"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "create_customer"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "update_customer"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "delete_customer"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_media_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_multiple_files"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "edit_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "create_directory"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_directory"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_directory_with_sizes"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "directory_tree"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "move_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "search_files"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "get_file_info"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a helpful AI assistant capable of answering general questions and managing customers through your available tools.\n\n## Behavior by intent:\n\n### When intent is \"customer_operations\":\n- You may use available tools to discover how to create, list, update, delete, or fetch customers, as well as generate fake/test customer data.\n\n### When intent is \"general_question\":\n- Answer the user's question directly and helpfully.\n- Only use tools if the user explicitly requests an action (e.g. \"save this to a file\").\n\n## Important rules:\n- Always respond in the same language as the user's message.\n- When saving files, always use valid JSON format with an array of objects.\n- Do not ask for confirmation before creating customers — execute the full task autonomously.\n- If a tool call fails, report the error clearly and try once more."
+                    },
+                    {
+                      "role": "user",
+                      "content": "\nCrie 3 clientes de teste usando as tools de customer, depois guarde estes clientes em ./data/users.json, em seguida, liste os clientes cadastrados também pela tool de customers."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "max_tokens": 2048,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system"
+                    },
+                    {
+                      "role": "user",
+                      "content": "Sorry, I encountered an error while processing your request. Please try again."
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "getServiceToken.sh asks the API at localhost:9999 for the admin's service token, prints nothing, and writes it to a new .env",
+      "program": "token",
+      "timeout": 30000,
+      "replayPort": 9999,
+      "files": {
+        ".env": null
+      },
+      "replay": [
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, through getServiceToken.sh",
+          "method": "POST",
+          "path": "/v1/auth/service-token",
+          "matchHeaders": {
+            "content-type": "^application/json"
+          },
+          "match": {
+            "username": "erickwendel",
+            "password": "123123",
+            "adminSuperSecret": "AM I THE BOSS?"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "role": "admin",
+            "serviceToken": "0dee50e5-7ba8-45bb-a8d6-68299bd39833"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/auth/service-token",
+              "body": {
+                "username": "erickwendel",
+                "password": "123123",
+                "adminSuperSecret": "AM I THE BOSS?"
+              }
+            }
+          ]
+        },
+        {
+          "type": "file",
+          "path": ".env",
+          "pattern": "^SERVICE_TOKEN=0dee50e5-7ba8-45bb-a8d6-68299bd39833\\n$"
+        }
+      ]
+    },
+    {
+      "name": "getServiceToken.sh replaces the SERVICE_TOKEN line of a .env copied from .env.example and keeps every other line as it was",
+      "program": "token",
+      "timeout": 30000,
+      "replayPort": 9999,
+      "files": {
+        ".env": "LANGSMITH_API_KEY=your-langsmith-api-key-here\nLANGCHAIN_TRACING_V2=true\nLANGCHAIN_PROJECT=transforming-services-into-tools\n\n\nOPENROUTER_API_KEY=your-openrouter-api-key-here\nSERVICE_TOKEN=your-service-token-here"
+      },
+      "replay": [
+        {
+          "source": "recorded from this lesson's API, nodejs-fastify-mongodb-crud-z, through getServiceToken.sh",
+          "method": "POST",
+          "path": "/v1/auth/service-token",
+          "matchHeaders": {
+            "content-type": "^application/json"
+          },
+          "match": {
+            "username": "erickwendel",
+            "password": "123123",
+            "adminSuperSecret": "AM I THE BOSS?"
+          },
+          "status": 200,
+          "headers": {
+            "content-type": "application/json; charset=utf-8"
+          },
+          "json": {
+            "role": "admin",
+            "serviceToken": "0dee50e5-7ba8-45bb-a8d6-68299bd39833"
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^$"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/auth/service-token",
+              "body": {
+                "username": "erickwendel",
+                "password": "123123",
+                "adminSuperSecret": "AM I THE BOSS?"
+              }
+            }
+          ]
+        },
+        {
+          "type": "file",
+          "path": ".env",
+          "pattern": "^LANGSMITH_API_KEY=your-langsmith-api-key-here\\nLANGCHAIN_TRACING_V2=true\\nLANGCHAIN_PROJECT=transforming-services-into-tools\\n\\n\\nOPENROUTER_API_KEY=your-openrouter-api-key-here\\nSERVICE_TOKEN=0dee50e5-7ba8-45bb-a8d6-68299bd39833\\n?$"
+        }
+      ]
+    }
+  ]
+}

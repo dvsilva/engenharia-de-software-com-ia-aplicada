@@ -1,0 +1,1102 @@
+{
+  "module": "modulo03-mcp-na-pratica/05-mcps-do-zero-z",
+  "concepts": [
+    "model-context-protocol",
+    "symmetric-encryption",
+    "schema-validation"
+  ],
+  "recorded": "Every case passed 50 runs against the original with Node.js 26.12.1, @modelcontextprotocol/sdk 1.27.1, and zod 3.25.76, run unchanged as node src/index.ts, the file npm start runs with type stripping. The server calls no model and needs no service. The ciphertexts decrypt_message receives were recorded from the original's encrypt_message on 2026-10-27, so a transcription that derives another key fails. The IV is random, so every encryption is checked by shape: 32 lowercase hex digits of IV that are not all zeros, a colon, and 32 hex digits for each block its UTF-8 bytes pad to, with the structured content equal to the text and a second encryption of the same message different from the first. A failed decryption is checked by the lesson's text up to Error details: followed by any message, since each library words it differently. Invalid arguments and unknown tools may come back as a tool result with isError or as a JSON-RPC error with code -32602. Tools and the prompt's arguments are compared in any order, capabilities by presence, and the protocol version not at all.",
+  "prepare": { "setup": ["npm ci"] },
+  "originals": ["node src/index.ts"],
+  "cases": [
+    {
+      "name": "introduces itself as @erickwendel/ciphersuite-mcp and lists encrypt_message and decrypt_message with their input and output schemas",
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/list"
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ciphersuite-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "result": {
+                  "$like": {
+                    "tools": {
+                      "$unordered": [
+                        {
+                          "name": "encrypt_message",
+                          "description": "Encrypt a message",
+                          "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "message": {
+                                "type": "string",
+                                "description": "The message to encrypt"
+                              },
+                              "encryptionKey": {
+                                "type": "string",
+                                "description": "Any passphrase to use for encryption — the server derives a strong key from it automatically"
+                              }
+                            },
+                            "required": ["message", "encryptionKey"]
+                          },
+                          "outputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "encryptedMessage": {
+                                "type": "string",
+                                "description": "The encrypted message (format: iv:ciphertext)"
+                              }
+                            },
+                            "required": ["encryptedMessage"]
+                          }
+                        },
+                        {
+                          "name": "decrypt_message",
+                          "description": "Decrypt a message that was encrypted with the encrypt_message tool",
+                          "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "encryptedMessage": {
+                                "type": "string",
+                                "description": "The encrypted message (format: iv:ciphertext)"
+                              },
+                              "encryptionKey": {
+                                "type": "string",
+                                "description": "The same passphrase used during encryption"
+                              }
+                            },
+                            "required": ["encryptedMessage", "encryptionKey"]
+                          },
+                          "outputSchema": {
+                            "type": "object",
+                            "properties": {
+                              "decryptedMessage": {
+                                "type": "string",
+                                "description": "The decrypted plain-text message"
+                              }
+                            },
+                            "required": ["decryptedMessage"]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Encrypt MCP Server running on stdio\\n"
+        }
+      ],
+      "timeout": 60000
+    },
+    {
+      "name": "offers the encryption://info resource and encrypt_message_prompt, its only prompt",
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "resources/list"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "resources/read",
+            "params": {
+              "uri": "encryption://info"
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "prompts/list"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "prompts/get",
+            "params": {
+              "name": "encrypt_message_prompt",
+              "arguments": {
+                "message": "Secret text",
+                "encryptionKey": "my-super-passphrase"
+              }
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ciphersuite-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "result": {
+                  "$like": {
+                    "resources": [
+                      {
+                        "uri": "encryption://info",
+                        "name": "encryption://info",
+                        "description": "Describes the encryption algorithm, key requirements, and output format used by this server"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "result": {
+                  "$like": {
+                    "contents": [
+                      {
+                        "uri": "encryption://info",
+                        "mimeType": "text/plain",
+                        "text": "Algorithm : AES-256-CBC\nKey derivation: scrypt (passphrase + fixed server salt → 32-byte key)\nOutput format: <16-byte IV in hex>:<ciphertext in hex>  (separated by \":\")\nNotes:\n  - Users pass any passphrase — the server derives a strong 32-byte key automatically using scrypt.\n  - A random IV is generated for every encryption — the same message encrypted twice will produce different output.\n  - Use the exact same passphrase to decrypt.\n  - Keep the full \"iv:ciphertext\" string to decrypt later."
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 4,
+                "result": {
+                  "$like": {
+                    "prompts": [
+                      {
+                        "name": "encrypt_message_prompt",
+                        "description": "Prompt to encrypt a plain-text message using the encrypt_message tool",
+                        "arguments": {
+                          "$unordered": [
+                            {
+                              "name": "message",
+                              "description": "The message to encrypt",
+                              "required": true
+                            },
+                            {
+                              "name": "encryptionKey",
+                              "description": "Any passphrase to use for encryption — the server derives a strong key from it automatically",
+                              "required": true
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 5,
+                "result": {
+                  "$like": {
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": {
+                          "type": "text",
+                          "text": "Please encrypt the following message using the encrypt_message tool.\nMessage: Secret text\nEncryption key: my-super-passphrase"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Encrypt MCP Server running on stdio\\n"
+        }
+      ],
+      "timeout": 60000
+    },
+    {
+      "name": "decrypts ciphertexts recorded from the original, written in either case of hex",
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/call",
+            "params": {
+              "name": "decrypt_message",
+              "arguments": {
+                "encryptedMessage": "bdbd77d3e2113b9b5d6f1fe7ac9f2895:8745a169bed4286770ce12877f52a82a",
+                "encryptionKey": "my-secret-passphrase"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "tools/call",
+            "params": {
+              "name": "decrypt_message",
+              "arguments": {
+                "encryptedMessage": "c7116151a6e4abde68b76ccf6630890a:d45f5c47b02bbb06f3e39bbb6d61b20c4f55b85da7661116814cd7a98882b0d0f7ad3877e211f45a56cf508f6bfba3cdcf849aa7453f3798f90d3fc7ebff59f1",
+                "encryptionKey": "my-super-key"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "tools/call",
+            "params": {
+              "name": "decrypt_message",
+              "arguments": {
+                "encryptedMessage": "C7116151A6E4ABDE68B76CCF6630890A:D45F5C47B02BBB06F3E39BBB6D61B20C4F55B85DA7661116814CD7A98882B0D0F7AD3877E211F45A56CF508F6BFBA3CDCF849AA7453F3798F90D3FC7EBFF59F1",
+                "encryptionKey": "my-super-key"
+              }
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ciphersuite-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Hello, World!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "decryptedMessage": "Hello, World!"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Olá, mundo! Criptografia simétrica com AES-256-CBC 🔐"
+                      }
+                    ],
+                    "structuredContent": {
+                      "decryptedMessage": "Olá, mundo! Criptografia simétrica com AES-256-CBC 🔐"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 4,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Olá, mundo! Criptografia simétrica com AES-256-CBC 🔐"
+                      }
+                    ],
+                    "structuredContent": {
+                      "decryptedMessage": "Olá, mundo! Criptografia simétrica com AES-256-CBC 🔐"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Encrypt MCP Server running on stdio\\n"
+        }
+      ],
+      "timeout": 60000
+    },
+    {
+      "name": "encrypts under a fresh IV on every call, pads with PKCS#7 into lowercase iv:ciphertext hex, and decrypts its own output back",
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/call",
+            "params": {
+              "name": "encrypt_message",
+              "arguments": {
+                "message": "Hello, World!",
+                "encryptionKey": "my-secret-passphrase"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "tools/call",
+            "params": {
+              "name": "encrypt_message",
+              "arguments": {
+                "message": "Hello, World!",
+                "encryptionKey": "my-secret-passphrase"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "tools/call",
+            "params": {
+              "name": "encrypt_message",
+              "arguments": {
+                "message": "sixteen byte msg",
+                "encryptionKey": "my-super-key"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "tools/call",
+            "params": {
+              "name": "encrypt_message",
+              "arguments": {
+                "message": "Olá, mundo! Criptografia simétrica com AES-256-CBC 🔐",
+                "encryptionKey": "my-super-key"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "tools/call",
+            "params": {
+              "name": "decrypt_message",
+              "arguments": {
+                "encryptedMessage": "{responses.1.result.structuredContent.encryptedMessage}",
+                "encryptionKey": "my-secret-passphrase"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "tools/call",
+            "params": {
+              "name": "decrypt_message",
+              "arguments": {
+                "encryptedMessage": "{responses.3.result.structuredContent.encryptedMessage}",
+                "encryptionKey": "my-super-key"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 8,
+            "method": "tools/call",
+            "params": {
+              "name": "decrypt_message",
+              "arguments": {
+                "encryptedMessage": "{responses.4.result.structuredContent.encryptedMessage}",
+                "encryptionKey": "my-super-key"
+              }
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ciphersuite-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$pattern": "^(?!0{32}:)[0-9a-f]{32}:[0-9a-f]{32}$"
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "encryptedMessage": "{responses.1.result.content.0.text}"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$pattern": "^(?!{responses.1.result.content.0.text}$)(?!0{32}:)[0-9a-f]{32}:[0-9a-f]{32}$"
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "encryptedMessage": "{responses.2.result.content.0.text}"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 4,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$pattern": "^(?!0{32}:)[0-9a-f]{32}:[0-9a-f]{64}$"
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "encryptedMessage": "{responses.3.result.content.0.text}"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 5,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$pattern": "^(?!0{32}:)[0-9a-f]{32}:[0-9a-f]{128}$"
+                        }
+                      }
+                    ],
+                    "structuredContent": {
+                      "encryptedMessage": "{responses.4.result.content.0.text}"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 6,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Hello, World!"
+                      }
+                    ],
+                    "structuredContent": {
+                      "decryptedMessage": "Hello, World!"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 7,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "sixteen byte msg"
+                      }
+                    ],
+                    "structuredContent": {
+                      "decryptedMessage": "sixteen byte msg"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 8,
+                "result": {
+                  "$like": {
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Olá, mundo! Criptografia simétrica com AES-256-CBC 🔐"
+                      }
+                    ],
+                    "structuredContent": {
+                      "decryptedMessage": "Olá, mundo! Criptografia simétrica com AES-256-CBC 🔐"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Encrypt MCP Server running on stdio\\n"
+        }
+      ],
+      "timeout": 60000
+    },
+    {
+      "name": "answers a wrong passphrase, a malformed IV, and a truncated ciphertext with the tool's own error",
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/call",
+            "params": {
+              "name": "decrypt_message",
+              "arguments": {
+                "encryptedMessage": "bdbd77d3e2113b9b5d6f1fe7ac9f2895:8745a169bed4286770ce12877f52a82a",
+                "encryptionKey": "wrong-passphrase"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "tools/call",
+            "params": {
+              "name": "decrypt_message",
+              "arguments": {
+                "encryptedMessage": "not-a-ciphertext",
+                "encryptionKey": "my-secret-passphrase"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "tools/call",
+            "params": {
+              "name": "decrypt_message",
+              "arguments": {
+                "encryptedMessage": "bdbd77d3e2113b9b5d6f1fe7ac9f2895:8745a169",
+                "encryptionKey": "my-secret-passphrase"
+              }
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ciphersuite-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 2,
+                "result": {
+                  "$like": {
+                    "isError": true,
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$pattern": "^Failed to decrypt message! Check if the encrypted message is correct and if the encryption key matches the one used for encryption\\. Error details: .+$"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 3,
+                "result": {
+                  "$like": {
+                    "isError": true,
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$pattern": "^Failed to decrypt message! Check if the encrypted message is correct and if the encryption key matches the one used for encryption\\. Error details: .+$"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 4,
+                "result": {
+                  "$like": {
+                    "isError": true,
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": {
+                          "$pattern": "^Failed to decrypt message! Check if the encrypted message is correct and if the encryption key matches the one used for encryption\\. Error details: .+$"
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Encrypt MCP Server running on stdio\\n"
+        }
+      ],
+      "timeout": 60000
+    },
+    {
+      "name": "rejects a missing or mistyped argument and an unknown tool",
+      "mcp": {
+        "messages": [
+          {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+              "protocolVersion": "2025-06-18",
+              "capabilities": {},
+              "clientInfo": {
+                "name": "stackfy",
+                "version": "1.0.0"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "method": "notifications/initialized"
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 2,
+            "method": "tools/call",
+            "params": {
+              "name": "encrypt_message",
+              "arguments": {
+                "message": "Hello, World!"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "tools/call",
+            "params": {
+              "name": "decrypt_message",
+              "arguments": {
+                "encryptedMessage": 42,
+                "encryptionKey": "my-secret-passphrase"
+              }
+            }
+          },
+          {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "tools/call",
+            "params": {
+              "name": "sign_message",
+              "arguments": {
+                "message": "Hello, World!"
+              }
+            }
+          }
+        ]
+      },
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "responses",
+          "responses": [
+            {
+              "match": {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "result": {
+                  "$like": {
+                    "serverInfo": {
+                      "name": "@erickwendel/ciphersuite-mcp",
+                      "version": "0.0.1"
+                    },
+                    "capabilities": {
+                      "tools": {},
+                      "resources": {},
+                      "prompts": {}
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "result": {
+                      "$like": {
+                        "isError": true
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 2,
+                    "error": {
+                      "$like": {
+                        "code": -32602
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "result": {
+                      "$like": {
+                        "isError": true
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 3,
+                    "error": {
+                      "$like": {
+                        "code": -32602
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "match": {
+                "anyOf": [
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "result": {
+                      "$like": {
+                        "isError": true
+                      }
+                    }
+                  },
+                  {
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "error": {
+                      "$like": {
+                        "code": -32602
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "lines",
+          "pattern": "^\\{.*\\}$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Encrypt MCP Server running on stdio\\n"
+        }
+      ],
+      "timeout": 60000
+    }
+  ]
+}

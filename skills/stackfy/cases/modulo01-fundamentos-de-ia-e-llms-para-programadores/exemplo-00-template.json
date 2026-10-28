@@ -1,0 +1,24 @@
+{
+  "module": "modulo01-fundamentos-de-ia-e-llms-para-programadores/exemplo-00-template",
+  "concepts": ["neural-network-training"],
+  "recorded": "Original run with Node.js 22 and @tensorflow/tfjs-node 4.22 in a linux/amd64 container. The output is deterministic.",
+  "originals": [
+    "docker run --rm --platform linux/amd64 -v \"$PWD\":/src:ro node:22 sh -c 'cp -R /src /app && cd /app && npm ci --silent --no-audit --no-fund >&2 && node index.js'"
+  ],
+  "cases": [
+    {
+      "name": "prints the input tensor and the label tensor",
+      "expect": [
+        { "type": "exit", "code": 0 },
+        {
+          "type": "numbers",
+          "groups": [
+            [0.33, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1],
+            [1, 0, 0, 0, 1, 0, 0, 0, 1]
+          ],
+          "tolerance": 0.000001
+        }
+      ]
+    }
+  ]
+}

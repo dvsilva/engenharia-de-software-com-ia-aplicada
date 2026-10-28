@@ -1,0 +1,15 @@
+{
+  "name": "nexus-aiops-labs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "openai": "7.45.0"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.5",
+    "typescript": "7.0.2"
+  }
+}

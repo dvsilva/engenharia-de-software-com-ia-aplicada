@@ -1,0 +1,1227 @@
+{
+  "module": "modulo03-mcp-na-pratica/01-multiple-mcp-tools-z",
+  "concepts": [
+    "model-context-protocol",
+    "tool-calling",
+    "chat-model",
+    "state-graph",
+    "schema-validation",
+    "rest-api"
+  ],
+  "recorded": "Every case passed against the original with Node.js 26.12.1, @langchain/core 1.1.19, @langchain/langgraph 1.2.0, @langchain/mcp-adapters 1.1.3, @langchain/openai 1.2.5, langchain 1.2.18, csvtojson 2.0.14, fastify 5.7.4, mongodb-mcp-server 3.1.0, and @modelcontextprotocol/server-filesystem 2.0.1, run as \"node src/index.ts\" without a .env file, with MongoDB 8 from the lesson's compose file under a container name of its own. The original always calls OpenRouter's address, so the copy that produced these cases reads OPENAI_BASE_URL first and falls back to it, a one-line change in the OpenRouter service. No OpenRouter key was available, so the model answers were recorded from Ollama 0.40.11 through its OpenAI-compatible API, with gpt-oss:20b standing in for arcee-ai/trinity-large-preview:free at low reasoning effort, set by a proxy in front of Ollama, and without the stand-in's reasoning field, while the requests keep the model the program asked for. gemma4:12b-mlx, the stand-in of other lessons, needs more than the program's 2048 tokens to copy the 100-row CSV into the intent. After inserting two records, the stand-in tried to insert all 100 in one call, which Ollama rejected twice as an unparseable tool call and the client retried. Those two attempts are left out, so the replay continues with the answer that followed them. The intent answer of the second and third cases is synthesized. Both MCP servers start through npx, the MongoDB one at @latest, so the cases check the tools they offer by name and compare none of their results, apart from the empty listing and the two inserted records that MongoDB reports through the agent's tool log. The entry point always listens on port 3000 and the MongoDB server always connects to port 27017, so both must be free.",
+  "prepare": {
+    "setup": ["npm ci"],
+    "patches": [
+      {
+        "file": "src/services/openRouterService.ts",
+        "find": "baseURL: 'https://openrouter.ai/api/v1'",
+        "replace": "baseURL: process.env.OPENAI_BASE_URL ?? 'https://openrouter.ai/api/v1'"
+      }
+    ]
+  },
+  "originals": ["node src/index.ts"],
+  "env": {
+    "OPENROUTER_API_KEY": "replay"
+  },
+  "services": {
+    "up": "printf 'services:\\n  mongodb:\\n    container_name: stackfy-01-multiple-mcp-tools-z-mongodb\\n' | docker compose -f docker-compose.yaml -f - -p stackfy-01-multiple-mcp-tools-z up -d --wait mongodb",
+    "down": "docker compose -f docker-compose.yaml -p stackfy-01-multiple-mcp-tools-z down -v",
+    "ready": [
+      {
+        "port": 27017
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "the sample question goes through intent extraction and the agent, which lists, creates, and fills a MongoDB collection through its MCP server after converting the CSV",
+      "timeout": 180000,
+      "replay": [
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for arcee-ai/trinity-large-preview:free at low reasoning effort",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-209",
+            "object": "chat.completion",
+            "created": 1793094119,
+            "model": "gpt-oss:20b",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\n  \"intent\": \"Calculate the total revenue from the provided sales data.\",\n  \"fileContent\": \"id,product,price,date\\n1,shampoo,10.99,2024-01-01\\n2,soap,5.49,2024-01-01\\n3,toothpaste,3.99,2024-01-01\\n4,rice,22.9,2024-01-01\\n5,milk,6.99,2024-01-01\\n6,bread,7.49,2024-01-02\\n7,eggs,14.99,2024-01-02\\n8,coffee,18.9,2024-01-02\\n9,soap,5.49,2024-01-02\\n10,sugar,7.99,2024-01-02\\n11,detergent,8.79,2024-01-03\\n12,pasta,6.49,2024-01-03\\n13,tomato_sauce,4.29,2024-01-03\\n14,milk,6.99,2024-01-03\\n15,bananas,6.49,2024-01-03\\n16,apples,7.99,2024-01-04\\n17,oranges,8.99,2024-01-04\\n18,bread,7.49,2024-01-04\\n19,yogurt,4.99,2024-01-04\\n20,soap,5.49,2024-01-04\\n21,chicken_breast,24.9,2024-01-05\\n22,rice,22.9,2024-01-05\\n23,beans,9.99,2024-01-05\\n24,olive_oil,28.9,2024-01-05\\n25,milk,6.99,2024-01-05\\n26,cheese,19.9,2024-01-06\\n27,butter,8.99,2024-01-06\\n28,eggs,14.99,2024-01-06\\n29,coffee,18.9,2024-01-06\\n30,shampoo,10.99,2024-01-06\\n31,lettuce,4.49,2024-01-07\\n32,tomatoes,9.99,2024-01-07\\n33,onions,6.99,2024-01-07\\n34,potatoes,8.49,2024-01-07\\n35,carrots,5.99,2024-01-07\\n36,cereal,16.9,2024-01-08\\n37,oats,10.49,2024-01-08\\n38,milk,6.99,2024-01-08\\n39,cookies,6.99,2024-01-08\\n40,soda,7.99,2024-01-08\\n41,water,2.99,2024-01-09\\n42,orange_juice,9.99,2024-01-09\\n43,tea,9.49,2024-01-09\\n44,sugar,7.99,2024-01-09\\n45,salt,2.49,2024-01-09\\n46,ground_beef,29.9,2024-01-10\\n47,pasta,6.49,2024-01-10\\n48,tomato_sauce,4.29,2024-01-10\\n49,cheese,19.9,2024-01-10\\n50,soap,5.49,2024-01-10\\n51,fish_fillet,34.9,2024-01-11\\n52,rice,22.9,2024-01-11\\n53,olive_oil,28.9,2024-01-11\\n54,lettuce,4.49,2024-01-11\\n55,oranges,8.99,2024-01-11\\n56,shampoo,10.99,2024-01-12\\n57,toothpaste,3.99,2024-01-12\\n58,soap,5.49,2024-01-12\\n59,detergent,8.79,2024-01-12\\n60,milk,6.99,2024-01-12\\n61,bread,7.49,2024-01-13\\n62,eggs,14.99,2024-01-13\\n63,butter,8.99,2024-01-13\\n64,yogurt,4.99,2024-01-13\\n65,coffee,18.9,2024-01-13\\n66,apples,7.99,2024-01-14\\n67,bananas,6.49,2024-01-14\\n68,oranges,8.99,2024-01-14\\n69,water,2.99,2024-01-14\\n70,soda,7.99,2024-01-14\\n71,chicken_breast,24.9,2024-01-15\\n72,rice,22.9,2024-01-15\\n73,beans,9.99,2024-01-15\\n74,onions,6.99,2024-01-15\\n75,tomatoes,9.99,2024-01-15\\n76,pasta,6.49,2024-01-16\\n77,tomato_sauce,4.29,2024-01-16\\n78,cheese,19.9,2024-01-16\\n79,olive_oil,28.9,2024-01-16\\n80,bread,7.49,2024-01-16\\n81,cereal,16.9,2024-01-17\\n82,milk,6.99,2024-01-17\\n83,cookies,6.99,2024-01-17\\n84,chocolate,5.49,2024-01-17\\n85,soap,5.49,2024-01-17\\n86,orange_juice,9.99,2024-01-18\\n87,tea,9.49,2024-01-18\\n88,sugar,7.99,2024-01-18\\n89,flour,7.29,2024-01-18\\n90,baking_powder,3.49,2024-01-18\\n91,ground_beef,29.9,2024-01-19\\n92,fish_fillet,34.9,2024-01-19\\n93,lettuce,4.49,2024-01-19\\n94,potatoes,8.49,2024-01-19\\n95,carrots,5.99,2024-01-19\\n96,shampoo,10.99,2024-01-20\\n97,detergent,8.79,2024-01-20\\n98,milk,6.99,2024-01-20\\n99,bread,7.49,2024-01-20\\n100,eggs,14.99,2024-01-20\",\n  \"fileName\": \"sales.csv\",\n  \"fileType\": \"csv\"\n}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1756,
+              "prompt_tokens_details": {
+                "cached_tokens": 1751
+              },
+              "completion_tokens": 1654,
+              "total_tokens": 3410
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for arcee-ai/trinity-large-preview:free at low reasoning effort",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-45",
+            "object": "chat.completion",
+            "created": 1793094129,
+            "model": "gpt-oss:20b",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "",
+                  "tool_calls": [
+                    {
+                      "id": "call_17bsstae",
+                      "index": 0,
+                      "type": "function",
+                      "function": {
+                        "name": "list-collections",
+                        "arguments": "{\"database\":\"test\",\"connectionId\":\"preconfigured\"}"
+                      }
+                    }
+                  ]
+                },
+                "finish_reason": "tool_calls"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 7899,
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "completion_tokens": 93,
+              "total_tokens": 7992
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for arcee-ai/trinity-large-preview:free at low reasoning effort",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-275",
+            "object": "chat.completion",
+            "created": 1793094156,
+            "model": "gpt-oss:20b",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "",
+                  "tool_calls": [
+                    {
+                      "id": "call_agkjjtmz",
+                      "index": 0,
+                      "type": "function",
+                      "function": {
+                        "name": "csv_to_json",
+                        "arguments": "{\"csvText\":\"id,product,price,date\\n1,shampoo,10.99,2024-01-01\\n2,soap,5.49,2024-01-01\\n3,toothpaste,3.99,2024-01-01\\n4,rice,22.9,2024-01-01\\n5,milk,6.99,2024-01-01\\n6,bread,7.49,2024-01-02\\n7,eggs,14.99,2024-01-02\\n8,coffee,18.9,2024-01-02\\n9,soap,5.49,2024-01-02\\n10,sugar,7.99,2024-01-02\\n11,detergent,8.79,2024-01-03\\n12,pasta,6.49,2024-01-03\\n13,tomato_sauce,4.29,2024-01-03\\n14,milk,6.99,2024-01-03\\n15,bananas,6.49,2024-01-03\\n16,apples,7.99,2024-01-04\\n17,oranges,8.99,2024-01-04\\n18,bread,7.49,2024-01-04\\n19,yogurt,4.99,2024-01-04\\n20,soap,5.49,2024-01-04\\n21,chicken_breast,24.9,2024-01-05\\n22,rice,22.9,2024-01-05\\n23,beans,9.99,2024-01-05\\n24,olive_oil,28.9,2024-01-05\\n25,milk,6.99,2024-01-05\\n26,cheese,19.9,2024-01-06\\n27,butter,8.99,2024-01-06\\n28,eggs,14.99,2024-01-06\\n29,coffee,18.9,2024-01-06\\n30,shampoo,10.99,2024-01-06\\n31,lettuce,4.49,2024-01-07\\n32,tomatoes,9.99,2024-01-07\\n33,onions,6.99,2024-01-07\\n34,potatoes,8.49,2024-01-07\\n35,carrots,5.99,2024-01-07\\n36,cereal,16.9,2024-01-08\\n37,oats,10.49,2024-01-08\\n38,milk,6.99,2024-01-08\\n39,cookies,6.99,2024-01-08\\n40,soda,7.99,2024-01-08\\n41,water,2.99,2024-01-09\\n42,orange_juice,9.99,2024-01-09\\n43,tea,9.49,2024-01-09\\n44,sugar,7.99,2024-01-09\\n45,salt,2.49,2024-01-09\\n46,ground_beef,29.9,2024-01-10\\n47,pasta,6.49,2024-01-10\\n48,tomato_sauce,4.29,2024-01-10\\n49,cheese,19.9,2024-01-10\\n50,soap,5.49,2024-01-10\\n51,fish_fillet,34.9,2024-01-11\\n52,rice,22.9,2024-01-11\\n53,olive_oil,28.9,2024-01-11\\n54,lettuce,4.49,2024-01-11\\n55,oranges,8.99,2024-01-11\\n56,shampoo,10.99,2024-01-12\\n57,toothpaste,3.99,2024-01-12\\n58,soap,5.49,2024-01-12\\n59,detergent,8.79,2024-01-12\\n60,milk,6.99,2024-01-12\\n61,bread,7.49,2024-01-13\\n62,eggs,14.99,2024-01-13\\n63,butter,8.99,2024-01-13\\n64,yogurt,4.99,2024-01-13\\n65,coffee,18.9,2024-01-13\\n66,apples,7.99,2024-01-14\\n67,bananas,6.49,2024-01-14\\n68,oranges,8.99,2024-01-14\\n69,water,2.99,2024-01-14\\n70,soda,7.99,2024-01-14\\n71,chicken_breast,24.9,2024-01-15\\n72,rice,22.9,2024-01-15\\n73,beans,9.99,2024-01-15\\n74,onions,6.99,2024-01-15\\n75,tomatoes,9.99,2024-01-15\\n76,pasta,6.49,2024-01-16\\n77,tomato_sauce,4.29,2024-01-16\\n78,cheese,19.9,2024-01-16\\n79,olive_oil,28.9,2024-01-16\\n80,bread,7.49,2024-01-16\\n81,cereal,16.9,2024-01-17\\n82,milk,6.99,2024-01-17\\n83,cookies,6.99,2024-01-17\\n84,chocolate,5.49,2024-01-17\\n85,soap,5.49,2024-01-17\\n86,orange_juice,9.99,2024-01-18\\n87,tea,9.49,2024-01-18\\n88,sugar,7.99,2024-01-18\\n89,flour,7.29,2024-01-18\\n90,baking_powder,3.49,2024-01-18\\n91,ground_beef,29.9,2024-01-19\\n92,fish_fillet,34.9,2024-01-19\\n93,lettuce,4.49,2024-01-19\\n94,potatoes,8.49,2024-01-19\\n95,carrots,5.99,2024-01-19\\n96,shampoo,10.99,2024-01-20\\n97,detergent,8.79,2024-01-20\\n98,milk,6.99,2024-01-20\\n99,bread,7.49,2024-01-20\\n100,eggs,14.99,2024-01-20\"}"
+                      }
+                    }
+                  ]
+                },
+                "finish_reason": "tool_calls"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 7977,
+              "prompt_tokens_details": {
+                "cached_tokens": 7900
+              },
+              "completion_tokens": 1620,
+              "total_tokens": 9597
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for arcee-ai/trinity-large-preview:free at low reasoning effort",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-410",
+            "object": "chat.completion",
+            "created": 1793094161,
+            "model": "gpt-oss:20b",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "",
+                  "tool_calls": [
+                    {
+                      "id": "call_ubgday2a",
+                      "index": 0,
+                      "type": "function",
+                      "function": {
+                        "name": "create-collection",
+                        "arguments": "{\"collection\":\"sales\",\"database\":\"test\",\"connectionId\":\"preconfigured\"}"
+                      }
+                    }
+                  ]
+                },
+                "finish_reason": "tool_calls"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 11986,
+              "prompt_tokens_details": {
+                "cached_tokens": 7972
+              },
+              "completion_tokens": 40,
+              "total_tokens": 12026
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for arcee-ai/trinity-large-preview:free at low reasoning effort",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-695",
+            "object": "chat.completion",
+            "created": 1793094162,
+            "model": "gpt-oss:20b",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "",
+                  "tool_calls": [
+                    {
+                      "id": "call_v2gh4vso",
+                      "index": 0,
+                      "type": "function",
+                      "function": {
+                        "name": "insert-many",
+                        "arguments": "{\"collection\":\"sales\",\"connectionId\":\"preconfigured\",\"database\":\"test\",\"documents\":[{\"date\":\"2024-01-01\",\"id\":\"1\",\"price\":\"10.99\",\"product\":\"shampoo\"},{\"date\":\"2024-01-01\",\"id\":\"2\",\"price\":\"5.49\",\"product\":\"soap\"}]}"
+                      }
+                    }
+                  ]
+                },
+                "finish_reason": "tool_calls"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 12060,
+              "prompt_tokens_details": {
+                "cached_tokens": 11987
+              },
+              "completion_tokens": 79,
+              "total_tokens": 12139
+            }
+          }
+        },
+        {
+          "source": "recorded from Ollama 0.40.11 with gpt-oss:20b standing in for arcee-ai/trinity-large-preview:free at low reasoning effort",
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-389",
+            "object": "chat.completion",
+            "created": 1793094255,
+            "model": "gpt-oss:20b",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "**Total Revenue from Sales Data**\n\nThe total revenue generated by all 100 sales records is **$1,106.21**."
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 12497,
+              "prompt_tokens_details": {
+                "cached_tokens": 12492
+              },
+              "completion_tokens": 1105,
+              "total_tokens": 13602
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^Server is running on http://0\\.0\\.0\\.0:3000\\n🧠 Intent node processing\\.\\.\\.\\n[\\s\\S]*\\n📋 Extracted intent: Calculate the total revenue from the provided sales data\\.\\n📄 File Type: csv\\n📄 File name: sales\\.csv\\n🤖 Agent node processing\\.\\.\\.\\n[\\s\\S]*\\n🎯 Decided to call: list-collections\\n🔧 Tool called: list-collections →[\\s\\S]*\\n🎯 Decided to call: csv_to_json\\n🔧 Tool called: csv_to_json →[\\s\\S]*\\n\\[getCSVToJSONTool\\] conversion result finished 100 records\\n[\\s\\S]*\\n🎯 Decided to call: create-collection\\n🔧 Tool called: create-collection →[\\s\\S]*\\n🎯 Decided to call: insert-many\\n🔧 Tool called: insert-many →[\\s\\S]*\\nResponse from /chat: 200\\n\\*\\*Total Revenue from Sales Data\\*\\*\n\nThe total revenue generated by all 100 sales records is \\*\\*\\$1,106\\.21\\*\\*\\.\\n$"
+        },
+        {
+          "type": "output",
+          "pattern": "Found 0 collections[\\s\\S]*Inserted .2. document\\(s\\) into test\\.sales"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are an intent extraction assistant.\nAnalyze the user message and extract the requested fields as structured output.\nThe user message may contain a natural-language instruction mixed with raw file content (CSV or JSON).\nSeparate them cleanly: the intent is the goal, fileContent is the raw data block, fileName is the inferred file name.\nIf no file data is present, set fileContent and fileName to null."
+                    },
+                    {
+                      "role": "user",
+                      "content": "\nHere is a CSV file called sales.csv.\nWhat's the total revenue from this sales data?.\n\nid,product,price,date\r\n1,shampoo,10.99,2024-01-01\r\n2,soap,5.49,2024-01-01\r\n3,toothpaste,3.99,2024-01-01\r\n4,rice,22.9,2024-01-01\r\n5,milk,6.99,2024-01-01\r\n6,bread,7.49,2024-01-02\r\n7,eggs,14.99,2024-01-02\r\n8,coffee,18.9,2024-01-02\r\n9,soap,5.49,2024-01-02\r\n10,sugar,7.99,2024-01-02\r\n11,detergent,8.79,2024-01-03\r\n12,pasta,6.49,2024-01-03\r\n13,tomato_sauce,4.29,2024-01-03\r\n14,milk,6.99,2024-01-03\r\n15,bananas,6.49,2024-01-03\r\n16,apples,7.99,2024-01-04\r\n17,oranges,8.99,2024-01-04\r\n18,bread,7.49,2024-01-04\r\n19,yogurt,4.99,2024-01-04\r\n20,soap,5.49,2024-01-04\r\n21,chicken_breast,24.9,2024-01-05\r\n22,rice,22.9,2024-01-05\r\n23,beans,9.99,2024-01-05\r\n24,olive_oil,28.9,2024-01-05\r\n25,milk,6.99,2024-01-05\r\n26,cheese,19.9,2024-01-06\r\n27,butter,8.99,2024-01-06\r\n28,eggs,14.99,2024-01-06\r\n29,coffee,18.9,2024-01-06\r\n30,shampoo,10.99,2024-01-06\r\n31,lettuce,4.49,2024-01-07\r\n32,tomatoes,9.99,2024-01-07\r\n33,onions,6.99,2024-01-07\r\n34,potatoes,8.49,2024-01-07\r\n35,carrots,5.99,2024-01-07\r\n36,cereal,16.9,2024-01-08\r\n37,oats,10.49,2024-01-08\r\n38,milk,6.99,2024-01-08\r\n39,cookies,6.99,2024-01-08\r\n40,soda,7.99,2024-01-08\r\n41,water,2.99,2024-01-09\r\n42,orange_juice,9.99,2024-01-09\r\n43,tea,9.49,2024-01-09\r\n44,sugar,7.99,2024-01-09\r\n45,salt,2.49,2024-01-09\r\n46,ground_beef,29.9,2024-01-10\r\n47,pasta,6.49,2024-01-10\r\n48,tomato_sauce,4.29,2024-01-10\r\n49,cheese,19.9,2024-01-10\r\n50,soap,5.49,2024-01-10\r\n51,fish_fillet,34.9,2024-01-11\r\n52,rice,22.9,2024-01-11\r\n53,olive_oil,28.9,2024-01-11\r\n54,lettuce,4.49,2024-01-11\r\n55,oranges,8.99,2024-01-11\r\n56,shampoo,10.99,2024-01-12\r\n57,toothpaste,3.99,2024-01-12\r\n58,soap,5.49,2024-01-12\r\n59,detergent,8.79,2024-01-12\r\n60,milk,6.99,2024-01-12\r\n61,bread,7.49,2024-01-13\r\n62,eggs,14.99,2024-01-13\r\n63,butter,8.99,2024-01-13\r\n64,yogurt,4.99,2024-01-13\r\n65,coffee,18.9,2024-01-13\r\n66,apples,7.99,2024-01-14\r\n67,bananas,6.49,2024-01-14\r\n68,oranges,8.99,2024-01-14\r\n69,water,2.99,2024-01-14\r\n70,soda,7.99,2024-01-14\r\n71,chicken_breast,24.9,2024-01-15\r\n72,rice,22.9,2024-01-15\r\n73,beans,9.99,2024-01-15\r\n74,onions,6.99,2024-01-15\r\n75,tomatoes,9.99,2024-01-15\r\n76,pasta,6.49,2024-01-16\r\n77,tomato_sauce,4.29,2024-01-16\r\n78,cheese,19.9,2024-01-16\r\n79,olive_oil,28.9,2024-01-16\r\n80,bread,7.49,2024-01-16\r\n81,cereal,16.9,2024-01-17\r\n82,milk,6.99,2024-01-17\r\n83,cookies,6.99,2024-01-17\r\n84,chocolate,5.49,2024-01-17\r\n85,soap,5.49,2024-01-17\r\n86,orange_juice,9.99,2024-01-18\r\n87,tea,9.49,2024-01-18\r\n88,sugar,7.99,2024-01-18\r\n89,flour,7.29,2024-01-18\r\n90,baking_powder,3.49,2024-01-18\r\n91,ground_beef,29.9,2024-01-19\r\n92,fish_fillet,34.9,2024-01-19\r\n93,lettuce,4.49,2024-01-19\r\n94,potatoes,8.49,2024-01-19\r\n95,carrots,5.99,2024-01-19\r\n96,shampoo,10.99,2024-01-20\r\n97,detergent,8.79,2024-01-20\r\n98,milk,6.99,2024-01-20\r\n99,bread,7.49,2024-01-20\r\n100,eggs,14.99,2024-01-20\n"
+                    }
+                  ]
+                },
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "intent": {
+                            "type": "string",
+                            "description": "A clean, concise natural-language description of what the user wants to accomplish. Do NOT include any CSV or JSON data in this field."
+                          },
+                          "fileContent": {
+                            "description": "The raw CSV or JSON block embedded in the message, exactly as provided. If there is no file content, set this to null."
+                          },
+                          "fileName": {
+                            "description": "An inferred filename or type for the data (e.g. \"sales\", \"report\"). Derive it from the question."
+                          },
+                          "fileType": {
+                            "type": "string",
+                            "enum": ["csv", "json", "unknown"],
+                            "description": "The inferred file type based on the content or filename. If it looks like CSV, set to \"csv\". If it looks like JSON, set to \"json\". Otherwise, set to \"unknown\"."
+                          }
+                        },
+                        "required": [
+                          "intent",
+                          "fileContent",
+                          "fileName",
+                          "fileType"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "csv_to_json",
+                        "description": "Convert CSV to JSON formart",
+                        "parameters": {
+                          "type": "object",
+                          "properties": {
+                            "csvText": {
+                              "type": "string",
+                              "description": "CSV data to be converted to JSON formart"
+                            }
+                          },
+                          "required": ["csvText"]
+                        }
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list-collections"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "create-collection"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "drop-collection"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "insert-many"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "find"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "aggregate"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a data processing agent. You have access to these tools:\n- csv_to_json: converts a CSV string to JSON\n- filesystem tools (read_file, write_file, etc.): read and write files on disk\n- MongoDB tools: insert documents, run queries on a MongoDB database\n\nWhen given an intent, fileContent, and fileName, you MUST follow this exact sequence of steps.\nDo NOT stop after the first tool call. Complete ALL steps before giving a final answer.\n\nStep 0: Delete all user collections in MongoDB.\nStep 1: If the fileContent is CSV (or fileName ends in .csv), call csv_to_json to convert it to a JSON array.\nStep 2: If the intent mentions saving or exporting JSON to a path, use write_file to save the JSON to that path.\nStep 3: Insert the JSON records as documents into MongoDB. Choose a collection name based on the fileName or intent context.\nStep 4: Query MongoDB to answer the analytical question described in the intent.\nStep 5: Use write_file to save the final report (your answer) as a .txt file inside the ./reports/ directory.\n\nIf the fileContent is already JSON, skip Step 1 and proceed from Step 2.\nAlways complete every applicable step. Never stop early."
+                    },
+                    {
+                      "role": "user",
+                      "content": "\n    Intent: Calculate the total revenue from the provided sales data.\n    File name: sales.csv\n    File content:\n    id,product,price,date\n1,shampoo,10.99,2024-01-01\n2,soap,5.49,2024-01-01\n3,toothpaste,3.99,2024-01-01\n4,rice,22.9,2024-01-01\n5,milk,6.99,2024-01-01\n6,bread,7.49,2024-01-02\n7,eggs,14.99,2024-01-02\n8,coffee,18.9,2024-01-02\n9,soap,5.49,2024-01-02\n10,sugar,7.99,2024-01-02\n11,detergent,8.79,2024-01-03\n12,pasta,6.49,2024-01-03\n13,tomato_sauce,4.29,2024-01-03\n14,milk,6.99,2024-01-03\n15,bananas,6.49,2024-01-03\n16,apples,7.99,2024-01-04\n17,oranges,8.99,2024-01-04\n18,bread,7.49,2024-01-04\n19,yogurt,4.99,2024-01-04\n20,soap,5.49,2024-01-04\n21,chicken_breast,24.9,2024-01-05\n22,rice,22.9,2024-01-05\n23,beans,9.99,2024-01-05\n24,olive_oil,28.9,2024-01-05\n25,milk,6.99,2024-01-05\n26,cheese,19.9,2024-01-06\n27,butter,8.99,2024-01-06\n28,eggs,14.99,2024-01-06\n29,coffee,18.9,2024-01-06\n30,shampoo,10.99,2024-01-06\n31,lettuce,4.49,2024-01-07\n32,tomatoes,9.99,2024-01-07\n33,onions,6.99,2024-01-07\n34,potatoes,8.49,2024-01-07\n35,carrots,5.99,2024-01-07\n36,cereal,16.9,2024-01-08\n37,oats,10.49,2024-01-08\n38,milk,6.99,2024-01-08\n39,cookies,6.99,2024-01-08\n40,soda,7.99,2024-01-08\n41,water,2.99,2024-01-09\n42,orange_juice,9.99,2024-01-09\n43,tea,9.49,2024-01-09\n44,sugar,7.99,2024-01-09\n45,salt,2.49,2024-01-09\n46,ground_beef,29.9,2024-01-10\n47,pasta,6.49,2024-01-10\n48,tomato_sauce,4.29,2024-01-10\n49,cheese,19.9,2024-01-10\n50,soap,5.49,2024-01-10\n51,fish_fillet,34.9,2024-01-11\n52,rice,22.9,2024-01-11\n53,olive_oil,28.9,2024-01-11\n54,lettuce,4.49,2024-01-11\n55,oranges,8.99,2024-01-11\n56,shampoo,10.99,2024-01-12\n57,toothpaste,3.99,2024-01-12\n58,soap,5.49,2024-01-12\n59,detergent,8.79,2024-01-12\n60,milk,6.99,2024-01-12\n61,bread,7.49,2024-01-13\n62,eggs,14.99,2024-01-13\n63,butter,8.99,2024-01-13\n64,yogurt,4.99,2024-01-13\n65,coffee,18.9,2024-01-13\n66,apples,7.99,2024-01-14\n67,bananas,6.49,2024-01-14\n68,oranges,8.99,2024-01-14\n69,water,2.99,2024-01-14\n70,soda,7.99,2024-01-14\n71,chicken_breast,24.9,2024-01-15\n72,rice,22.9,2024-01-15\n73,beans,9.99,2024-01-15\n74,onions,6.99,2024-01-15\n75,tomatoes,9.99,2024-01-15\n76,pasta,6.49,2024-01-16\n77,tomato_sauce,4.29,2024-01-16\n78,cheese,19.9,2024-01-16\n79,olive_oil,28.9,2024-01-16\n80,bread,7.49,2024-01-16\n81,cereal,16.9,2024-01-17\n82,milk,6.99,2024-01-17\n83,cookies,6.99,2024-01-17\n84,chocolate,5.49,2024-01-17\n85,soap,5.49,2024-01-17\n86,orange_juice,9.99,2024-01-18\n87,tea,9.49,2024-01-18\n88,sugar,7.99,2024-01-18\n89,flour,7.29,2024-01-18\n90,baking_powder,3.49,2024-01-18\n91,ground_beef,29.9,2024-01-19\n92,fish_fillet,34.9,2024-01-19\n93,lettuce,4.49,2024-01-19\n94,potatoes,8.49,2024-01-19\n95,carrots,5.99,2024-01-19\n96,shampoo,10.99,2024-01-20\n97,detergent,8.79,2024-01-20\n98,milk,6.99,2024-01-20\n99,bread,7.49,2024-01-20\n100,eggs,14.99,2024-01-20\n"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "csv_to_json",
+                        "description": "Convert CSV to JSON formart",
+                        "parameters": {
+                          "type": "object",
+                          "properties": {
+                            "csvText": {
+                              "type": "string",
+                              "description": "CSV data to be converted to JSON formart"
+                            }
+                          },
+                          "required": ["csvText"]
+                        }
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list-collections"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "create-collection"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "drop-collection"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "insert-many"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "find"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "aggregate"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a data processing agent. You have access to these tools:\n- csv_to_json: converts a CSV string to JSON\n- filesystem tools (read_file, write_file, etc.): read and write files on disk\n- MongoDB tools: insert documents, run queries on a MongoDB database\n\nWhen given an intent, fileContent, and fileName, you MUST follow this exact sequence of steps.\nDo NOT stop after the first tool call. Complete ALL steps before giving a final answer.\n\nStep 0: Delete all user collections in MongoDB.\nStep 1: If the fileContent is CSV (or fileName ends in .csv), call csv_to_json to convert it to a JSON array.\nStep 2: If the intent mentions saving or exporting JSON to a path, use write_file to save the JSON to that path.\nStep 3: Insert the JSON records as documents into MongoDB. Choose a collection name based on the fileName or intent context.\nStep 4: Query MongoDB to answer the analytical question described in the intent.\nStep 5: Use write_file to save the final report (your answer) as a .txt file inside the ./reports/ directory.\n\nIf the fileContent is already JSON, skip Step 1 and proceed from Step 2.\nAlways complete every applicable step. Never stop early."
+                    },
+                    {
+                      "role": "user",
+                      "content": "\n    Intent: Calculate the total revenue from the provided sales data.\n    File name: sales.csv\n    File content:\n    id,product,price,date\n1,shampoo,10.99,2024-01-01\n2,soap,5.49,2024-01-01\n3,toothpaste,3.99,2024-01-01\n4,rice,22.9,2024-01-01\n5,milk,6.99,2024-01-01\n6,bread,7.49,2024-01-02\n7,eggs,14.99,2024-01-02\n8,coffee,18.9,2024-01-02\n9,soap,5.49,2024-01-02\n10,sugar,7.99,2024-01-02\n11,detergent,8.79,2024-01-03\n12,pasta,6.49,2024-01-03\n13,tomato_sauce,4.29,2024-01-03\n14,milk,6.99,2024-01-03\n15,bananas,6.49,2024-01-03\n16,apples,7.99,2024-01-04\n17,oranges,8.99,2024-01-04\n18,bread,7.49,2024-01-04\n19,yogurt,4.99,2024-01-04\n20,soap,5.49,2024-01-04\n21,chicken_breast,24.9,2024-01-05\n22,rice,22.9,2024-01-05\n23,beans,9.99,2024-01-05\n24,olive_oil,28.9,2024-01-05\n25,milk,6.99,2024-01-05\n26,cheese,19.9,2024-01-06\n27,butter,8.99,2024-01-06\n28,eggs,14.99,2024-01-06\n29,coffee,18.9,2024-01-06\n30,shampoo,10.99,2024-01-06\n31,lettuce,4.49,2024-01-07\n32,tomatoes,9.99,2024-01-07\n33,onions,6.99,2024-01-07\n34,potatoes,8.49,2024-01-07\n35,carrots,5.99,2024-01-07\n36,cereal,16.9,2024-01-08\n37,oats,10.49,2024-01-08\n38,milk,6.99,2024-01-08\n39,cookies,6.99,2024-01-08\n40,soda,7.99,2024-01-08\n41,water,2.99,2024-01-09\n42,orange_juice,9.99,2024-01-09\n43,tea,9.49,2024-01-09\n44,sugar,7.99,2024-01-09\n45,salt,2.49,2024-01-09\n46,ground_beef,29.9,2024-01-10\n47,pasta,6.49,2024-01-10\n48,tomato_sauce,4.29,2024-01-10\n49,cheese,19.9,2024-01-10\n50,soap,5.49,2024-01-10\n51,fish_fillet,34.9,2024-01-11\n52,rice,22.9,2024-01-11\n53,olive_oil,28.9,2024-01-11\n54,lettuce,4.49,2024-01-11\n55,oranges,8.99,2024-01-11\n56,shampoo,10.99,2024-01-12\n57,toothpaste,3.99,2024-01-12\n58,soap,5.49,2024-01-12\n59,detergent,8.79,2024-01-12\n60,milk,6.99,2024-01-12\n61,bread,7.49,2024-01-13\n62,eggs,14.99,2024-01-13\n63,butter,8.99,2024-01-13\n64,yogurt,4.99,2024-01-13\n65,coffee,18.9,2024-01-13\n66,apples,7.99,2024-01-14\n67,bananas,6.49,2024-01-14\n68,oranges,8.99,2024-01-14\n69,water,2.99,2024-01-14\n70,soda,7.99,2024-01-14\n71,chicken_breast,24.9,2024-01-15\n72,rice,22.9,2024-01-15\n73,beans,9.99,2024-01-15\n74,onions,6.99,2024-01-15\n75,tomatoes,9.99,2024-01-15\n76,pasta,6.49,2024-01-16\n77,tomato_sauce,4.29,2024-01-16\n78,cheese,19.9,2024-01-16\n79,olive_oil,28.9,2024-01-16\n80,bread,7.49,2024-01-16\n81,cereal,16.9,2024-01-17\n82,milk,6.99,2024-01-17\n83,cookies,6.99,2024-01-17\n84,chocolate,5.49,2024-01-17\n85,soap,5.49,2024-01-17\n86,orange_juice,9.99,2024-01-18\n87,tea,9.49,2024-01-18\n88,sugar,7.99,2024-01-18\n89,flour,7.29,2024-01-18\n90,baking_powder,3.49,2024-01-18\n91,ground_beef,29.9,2024-01-19\n92,fish_fillet,34.9,2024-01-19\n93,lettuce,4.49,2024-01-19\n94,potatoes,8.49,2024-01-19\n95,carrots,5.99,2024-01-19\n96,shampoo,10.99,2024-01-20\n97,detergent,8.79,2024-01-20\n98,milk,6.99,2024-01-20\n99,bread,7.49,2024-01-20\n100,eggs,14.99,2024-01-20\n"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_17bsstae",
+                          "function": {
+                            "name": "list-collections"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_17bsstae"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "csv_to_json",
+                        "description": "Convert CSV to JSON formart",
+                        "parameters": {
+                          "type": "object",
+                          "properties": {
+                            "csvText": {
+                              "type": "string",
+                              "description": "CSV data to be converted to JSON formart"
+                            }
+                          },
+                          "required": ["csvText"]
+                        }
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list-collections"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "create-collection"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "drop-collection"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "insert-many"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "find"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "aggregate"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a data processing agent. You have access to these tools:\n- csv_to_json: converts a CSV string to JSON\n- filesystem tools (read_file, write_file, etc.): read and write files on disk\n- MongoDB tools: insert documents, run queries on a MongoDB database\n\nWhen given an intent, fileContent, and fileName, you MUST follow this exact sequence of steps.\nDo NOT stop after the first tool call. Complete ALL steps before giving a final answer.\n\nStep 0: Delete all user collections in MongoDB.\nStep 1: If the fileContent is CSV (or fileName ends in .csv), call csv_to_json to convert it to a JSON array.\nStep 2: If the intent mentions saving or exporting JSON to a path, use write_file to save the JSON to that path.\nStep 3: Insert the JSON records as documents into MongoDB. Choose a collection name based on the fileName or intent context.\nStep 4: Query MongoDB to answer the analytical question described in the intent.\nStep 5: Use write_file to save the final report (your answer) as a .txt file inside the ./reports/ directory.\n\nIf the fileContent is already JSON, skip Step 1 and proceed from Step 2.\nAlways complete every applicable step. Never stop early."
+                    },
+                    {
+                      "role": "user",
+                      "content": "\n    Intent: Calculate the total revenue from the provided sales data.\n    File name: sales.csv\n    File content:\n    id,product,price,date\n1,shampoo,10.99,2024-01-01\n2,soap,5.49,2024-01-01\n3,toothpaste,3.99,2024-01-01\n4,rice,22.9,2024-01-01\n5,milk,6.99,2024-01-01\n6,bread,7.49,2024-01-02\n7,eggs,14.99,2024-01-02\n8,coffee,18.9,2024-01-02\n9,soap,5.49,2024-01-02\n10,sugar,7.99,2024-01-02\n11,detergent,8.79,2024-01-03\n12,pasta,6.49,2024-01-03\n13,tomato_sauce,4.29,2024-01-03\n14,milk,6.99,2024-01-03\n15,bananas,6.49,2024-01-03\n16,apples,7.99,2024-01-04\n17,oranges,8.99,2024-01-04\n18,bread,7.49,2024-01-04\n19,yogurt,4.99,2024-01-04\n20,soap,5.49,2024-01-04\n21,chicken_breast,24.9,2024-01-05\n22,rice,22.9,2024-01-05\n23,beans,9.99,2024-01-05\n24,olive_oil,28.9,2024-01-05\n25,milk,6.99,2024-01-05\n26,cheese,19.9,2024-01-06\n27,butter,8.99,2024-01-06\n28,eggs,14.99,2024-01-06\n29,coffee,18.9,2024-01-06\n30,shampoo,10.99,2024-01-06\n31,lettuce,4.49,2024-01-07\n32,tomatoes,9.99,2024-01-07\n33,onions,6.99,2024-01-07\n34,potatoes,8.49,2024-01-07\n35,carrots,5.99,2024-01-07\n36,cereal,16.9,2024-01-08\n37,oats,10.49,2024-01-08\n38,milk,6.99,2024-01-08\n39,cookies,6.99,2024-01-08\n40,soda,7.99,2024-01-08\n41,water,2.99,2024-01-09\n42,orange_juice,9.99,2024-01-09\n43,tea,9.49,2024-01-09\n44,sugar,7.99,2024-01-09\n45,salt,2.49,2024-01-09\n46,ground_beef,29.9,2024-01-10\n47,pasta,6.49,2024-01-10\n48,tomato_sauce,4.29,2024-01-10\n49,cheese,19.9,2024-01-10\n50,soap,5.49,2024-01-10\n51,fish_fillet,34.9,2024-01-11\n52,rice,22.9,2024-01-11\n53,olive_oil,28.9,2024-01-11\n54,lettuce,4.49,2024-01-11\n55,oranges,8.99,2024-01-11\n56,shampoo,10.99,2024-01-12\n57,toothpaste,3.99,2024-01-12\n58,soap,5.49,2024-01-12\n59,detergent,8.79,2024-01-12\n60,milk,6.99,2024-01-12\n61,bread,7.49,2024-01-13\n62,eggs,14.99,2024-01-13\n63,butter,8.99,2024-01-13\n64,yogurt,4.99,2024-01-13\n65,coffee,18.9,2024-01-13\n66,apples,7.99,2024-01-14\n67,bananas,6.49,2024-01-14\n68,oranges,8.99,2024-01-14\n69,water,2.99,2024-01-14\n70,soda,7.99,2024-01-14\n71,chicken_breast,24.9,2024-01-15\n72,rice,22.9,2024-01-15\n73,beans,9.99,2024-01-15\n74,onions,6.99,2024-01-15\n75,tomatoes,9.99,2024-01-15\n76,pasta,6.49,2024-01-16\n77,tomato_sauce,4.29,2024-01-16\n78,cheese,19.9,2024-01-16\n79,olive_oil,28.9,2024-01-16\n80,bread,7.49,2024-01-16\n81,cereal,16.9,2024-01-17\n82,milk,6.99,2024-01-17\n83,cookies,6.99,2024-01-17\n84,chocolate,5.49,2024-01-17\n85,soap,5.49,2024-01-17\n86,orange_juice,9.99,2024-01-18\n87,tea,9.49,2024-01-18\n88,sugar,7.99,2024-01-18\n89,flour,7.29,2024-01-18\n90,baking_powder,3.49,2024-01-18\n91,ground_beef,29.9,2024-01-19\n92,fish_fillet,34.9,2024-01-19\n93,lettuce,4.49,2024-01-19\n94,potatoes,8.49,2024-01-19\n95,carrots,5.99,2024-01-19\n96,shampoo,10.99,2024-01-20\n97,detergent,8.79,2024-01-20\n98,milk,6.99,2024-01-20\n99,bread,7.49,2024-01-20\n100,eggs,14.99,2024-01-20\n"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_17bsstae",
+                          "function": {
+                            "name": "list-collections"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_17bsstae"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_agkjjtmz",
+                          "function": {
+                            "name": "csv_to_json"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_agkjjtmz",
+                      "content": "[{\"id\":\"1\",\"product\":\"shampoo\",\"price\":\"10.99\",\"date\":\"2024-01-01\"},{\"id\":\"2\",\"product\":\"soap\",\"price\":\"5.49\",\"date\":\"2024-01-01\"},{\"id\":\"3\",\"product\":\"toothpaste\",\"price\":\"3.99\",\"date\":\"2024-01-01\"},{\"id\":\"4\",\"product\":\"rice\",\"price\":\"22.9\",\"date\":\"2024-01-01\"},{\"id\":\"5\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-01\"},{\"id\":\"6\",\"product\":\"bread\",\"price\":\"7.49\",\"date\":\"2024-01-02\"},{\"id\":\"7\",\"product\":\"eggs\",\"price\":\"14.99\",\"date\":\"2024-01-02\"},{\"id\":\"8\",\"product\":\"coffee\",\"price\":\"18.9\",\"date\":\"2024-01-02\"},{\"id\":\"9\",\"product\":\"soap\",\"price\":\"5.49\",\"date\":\"2024-01-02\"},{\"id\":\"10\",\"product\":\"sugar\",\"price\":\"7.99\",\"date\":\"2024-01-02\"},{\"id\":\"11\",\"product\":\"detergent\",\"price\":\"8.79\",\"date\":\"2024-01-03\"},{\"id\":\"12\",\"product\":\"pasta\",\"price\":\"6.49\",\"date\":\"2024-01-03\"},{\"id\":\"13\",\"product\":\"tomato_sauce\",\"price\":\"4.29\",\"date\":\"2024-01-03\"},{\"id\":\"14\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-03\"},{\"id\":\"15\",\"product\":\"bananas\",\"price\":\"6.49\",\"date\":\"2024-01-03\"},{\"id\":\"16\",\"product\":\"apples\",\"price\":\"7.99\",\"date\":\"2024-01-04\"},{\"id\":\"17\",\"product\":\"oranges\",\"price\":\"8.99\",\"date\":\"2024-01-04\"},{\"id\":\"18\",\"product\":\"bread\",\"price\":\"7.49\",\"date\":\"2024-01-04\"},{\"id\":\"19\",\"product\":\"yogurt\",\"price\":\"4.99\",\"date\":\"2024-01-04\"},{\"id\":\"20\",\"product\":\"soap\",\"price\":\"5.49\",\"date\":\"2024-01-04\"},{\"id\":\"21\",\"product\":\"chicken_breast\",\"price\":\"24.9\",\"date\":\"2024-01-05\"},{\"id\":\"22\",\"product\":\"rice\",\"price\":\"22.9\",\"date\":\"2024-01-05\"},{\"id\":\"23\",\"product\":\"beans\",\"price\":\"9.99\",\"date\":\"2024-01-05\"},{\"id\":\"24\",\"product\":\"olive_oil\",\"price\":\"28.9\",\"date\":\"2024-01-05\"},{\"id\":\"25\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-05\"},{\"id\":\"26\",\"product\":\"cheese\",\"price\":\"19.9\",\"date\":\"2024-01-06\"},{\"id\":\"27\",\"product\":\"butter\",\"price\":\"8.99\",\"date\":\"2024-01-06\"},{\"id\":\"28\",\"product\":\"eggs\",\"price\":\"14.99\",\"date\":\"2024-01-06\"},{\"id\":\"29\",\"product\":\"coffee\",\"price\":\"18.9\",\"date\":\"2024-01-06\"},{\"id\":\"30\",\"product\":\"shampoo\",\"price\":\"10.99\",\"date\":\"2024-01-06\"},{\"id\":\"31\",\"product\":\"lettuce\",\"price\":\"4.49\",\"date\":\"2024-01-07\"},{\"id\":\"32\",\"product\":\"tomatoes\",\"price\":\"9.99\",\"date\":\"2024-01-07\"},{\"id\":\"33\",\"product\":\"onions\",\"price\":\"6.99\",\"date\":\"2024-01-07\"},{\"id\":\"34\",\"product\":\"potatoes\",\"price\":\"8.49\",\"date\":\"2024-01-07\"},{\"id\":\"35\",\"product\":\"carrots\",\"price\":\"5.99\",\"date\":\"2024-01-07\"},{\"id\":\"36\",\"product\":\"cereal\",\"price\":\"16.9\",\"date\":\"2024-01-08\"},{\"id\":\"37\",\"product\":\"oats\",\"price\":\"10.49\",\"date\":\"2024-01-08\"},{\"id\":\"38\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-08\"},{\"id\":\"39\",\"product\":\"cookies\",\"price\":\"6.99\",\"date\":\"2024-01-08\"},{\"id\":\"40\",\"product\":\"soda\",\"price\":\"7.99\",\"date\":\"2024-01-08\"},{\"id\":\"41\",\"product\":\"water\",\"price\":\"2.99\",\"date\":\"2024-01-09\"},{\"id\":\"42\",\"product\":\"orange_juice\",\"price\":\"9.99\",\"date\":\"2024-01-09\"},{\"id\":\"43\",\"product\":\"tea\",\"price\":\"9.49\",\"date\":\"2024-01-09\"},{\"id\":\"44\",\"product\":\"sugar\",\"price\":\"7.99\",\"date\":\"2024-01-09\"},{\"id\":\"45\",\"product\":\"salt\",\"price\":\"2.49\",\"date\":\"2024-01-09\"},{\"id\":\"46\",\"product\":\"ground_beef\",\"price\":\"29.9\",\"date\":\"2024-01-10\"},{\"id\":\"47\",\"product\":\"pasta\",\"price\":\"6.49\",\"date\":\"2024-01-10\"},{\"id\":\"48\",\"product\":\"tomato_sauce\",\"price\":\"4.29\",\"date\":\"2024-01-10\"},{\"id\":\"49\",\"product\":\"cheese\",\"price\":\"19.9\",\"date\":\"2024-01-10\"},{\"id\":\"50\",\"product\":\"soap\",\"price\":\"5.49\",\"date\":\"2024-01-10\"},{\"id\":\"51\",\"product\":\"fish_fillet\",\"price\":\"34.9\",\"date\":\"2024-01-11\"},{\"id\":\"52\",\"product\":\"rice\",\"price\":\"22.9\",\"date\":\"2024-01-11\"},{\"id\":\"53\",\"product\":\"olive_oil\",\"price\":\"28.9\",\"date\":\"2024-01-11\"},{\"id\":\"54\",\"product\":\"lettuce\",\"price\":\"4.49\",\"date\":\"2024-01-11\"},{\"id\":\"55\",\"product\":\"oranges\",\"price\":\"8.99\",\"date\":\"2024-01-11\"},{\"id\":\"56\",\"product\":\"shampoo\",\"price\":\"10.99\",\"date\":\"2024-01-12\"},{\"id\":\"57\",\"product\":\"toothpaste\",\"price\":\"3.99\",\"date\":\"2024-01-12\"},{\"id\":\"58\",\"product\":\"soap\",\"price\":\"5.49\",\"date\":\"2024-01-12\"},{\"id\":\"59\",\"product\":\"detergent\",\"price\":\"8.79\",\"date\":\"2024-01-12\"},{\"id\":\"60\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-12\"},{\"id\":\"61\",\"product\":\"bread\",\"price\":\"7.49\",\"date\":\"2024-01-13\"},{\"id\":\"62\",\"product\":\"eggs\",\"price\":\"14.99\",\"date\":\"2024-01-13\"},{\"id\":\"63\",\"product\":\"butter\",\"price\":\"8.99\",\"date\":\"2024-01-13\"},{\"id\":\"64\",\"product\":\"yogurt\",\"price\":\"4.99\",\"date\":\"2024-01-13\"},{\"id\":\"65\",\"product\":\"coffee\",\"price\":\"18.9\",\"date\":\"2024-01-13\"},{\"id\":\"66\",\"product\":\"apples\",\"price\":\"7.99\",\"date\":\"2024-01-14\"},{\"id\":\"67\",\"product\":\"bananas\",\"price\":\"6.49\",\"date\":\"2024-01-14\"},{\"id\":\"68\",\"product\":\"oranges\",\"price\":\"8.99\",\"date\":\"2024-01-14\"},{\"id\":\"69\",\"product\":\"water\",\"price\":\"2.99\",\"date\":\"2024-01-14\"},{\"id\":\"70\",\"product\":\"soda\",\"price\":\"7.99\",\"date\":\"2024-01-14\"},{\"id\":\"71\",\"product\":\"chicken_breast\",\"price\":\"24.9\",\"date\":\"2024-01-15\"},{\"id\":\"72\",\"product\":\"rice\",\"price\":\"22.9\",\"date\":\"2024-01-15\"},{\"id\":\"73\",\"product\":\"beans\",\"price\":\"9.99\",\"date\":\"2024-01-15\"},{\"id\":\"74\",\"product\":\"onions\",\"price\":\"6.99\",\"date\":\"2024-01-15\"},{\"id\":\"75\",\"product\":\"tomatoes\",\"price\":\"9.99\",\"date\":\"2024-01-15\"},{\"id\":\"76\",\"product\":\"pasta\",\"price\":\"6.49\",\"date\":\"2024-01-16\"},{\"id\":\"77\",\"product\":\"tomato_sauce\",\"price\":\"4.29\",\"date\":\"2024-01-16\"},{\"id\":\"78\",\"product\":\"cheese\",\"price\":\"19.9\",\"date\":\"2024-01-16\"},{\"id\":\"79\",\"product\":\"olive_oil\",\"price\":\"28.9\",\"date\":\"2024-01-16\"},{\"id\":\"80\",\"product\":\"bread\",\"price\":\"7.49\",\"date\":\"2024-01-16\"},{\"id\":\"81\",\"product\":\"cereal\",\"price\":\"16.9\",\"date\":\"2024-01-17\"},{\"id\":\"82\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-17\"},{\"id\":\"83\",\"product\":\"cookies\",\"price\":\"6.99\",\"date\":\"2024-01-17\"},{\"id\":\"84\",\"product\":\"chocolate\",\"price\":\"5.49\",\"date\":\"2024-01-17\"},{\"id\":\"85\",\"product\":\"soap\",\"price\":\"5.49\",\"date\":\"2024-01-17\"},{\"id\":\"86\",\"product\":\"orange_juice\",\"price\":\"9.99\",\"date\":\"2024-01-18\"},{\"id\":\"87\",\"product\":\"tea\",\"price\":\"9.49\",\"date\":\"2024-01-18\"},{\"id\":\"88\",\"product\":\"sugar\",\"price\":\"7.99\",\"date\":\"2024-01-18\"},{\"id\":\"89\",\"product\":\"flour\",\"price\":\"7.29\",\"date\":\"2024-01-18\"},{\"id\":\"90\",\"product\":\"baking_powder\",\"price\":\"3.49\",\"date\":\"2024-01-18\"},{\"id\":\"91\",\"product\":\"ground_beef\",\"price\":\"29.9\",\"date\":\"2024-01-19\"},{\"id\":\"92\",\"product\":\"fish_fillet\",\"price\":\"34.9\",\"date\":\"2024-01-19\"},{\"id\":\"93\",\"product\":\"lettuce\",\"price\":\"4.49\",\"date\":\"2024-01-19\"},{\"id\":\"94\",\"product\":\"potatoes\",\"price\":\"8.49\",\"date\":\"2024-01-19\"},{\"id\":\"95\",\"product\":\"carrots\",\"price\":\"5.99\",\"date\":\"2024-01-19\"},{\"id\":\"96\",\"product\":\"shampoo\",\"price\":\"10.99\",\"date\":\"2024-01-20\"},{\"id\":\"97\",\"product\":\"detergent\",\"price\":\"8.79\",\"date\":\"2024-01-20\"},{\"id\":\"98\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-20\"},{\"id\":\"99\",\"product\":\"bread\",\"price\":\"7.49\",\"date\":\"2024-01-20\"},{\"id\":\"100\",\"product\":\"eggs\",\"price\":\"14.99\",\"date\":\"2024-01-20\"}]"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "csv_to_json",
+                        "description": "Convert CSV to JSON formart",
+                        "parameters": {
+                          "type": "object",
+                          "properties": {
+                            "csvText": {
+                              "type": "string",
+                              "description": "CSV data to be converted to JSON formart"
+                            }
+                          },
+                          "required": ["csvText"]
+                        }
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list-collections"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "create-collection"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "drop-collection"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "insert-many"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "find"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "aggregate"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a data processing agent. You have access to these tools:\n- csv_to_json: converts a CSV string to JSON\n- filesystem tools (read_file, write_file, etc.): read and write files on disk\n- MongoDB tools: insert documents, run queries on a MongoDB database\n\nWhen given an intent, fileContent, and fileName, you MUST follow this exact sequence of steps.\nDo NOT stop after the first tool call. Complete ALL steps before giving a final answer.\n\nStep 0: Delete all user collections in MongoDB.\nStep 1: If the fileContent is CSV (or fileName ends in .csv), call csv_to_json to convert it to a JSON array.\nStep 2: If the intent mentions saving or exporting JSON to a path, use write_file to save the JSON to that path.\nStep 3: Insert the JSON records as documents into MongoDB. Choose a collection name based on the fileName or intent context.\nStep 4: Query MongoDB to answer the analytical question described in the intent.\nStep 5: Use write_file to save the final report (your answer) as a .txt file inside the ./reports/ directory.\n\nIf the fileContent is already JSON, skip Step 1 and proceed from Step 2.\nAlways complete every applicable step. Never stop early."
+                    },
+                    {
+                      "role": "user",
+                      "content": "\n    Intent: Calculate the total revenue from the provided sales data.\n    File name: sales.csv\n    File content:\n    id,product,price,date\n1,shampoo,10.99,2024-01-01\n2,soap,5.49,2024-01-01\n3,toothpaste,3.99,2024-01-01\n4,rice,22.9,2024-01-01\n5,milk,6.99,2024-01-01\n6,bread,7.49,2024-01-02\n7,eggs,14.99,2024-01-02\n8,coffee,18.9,2024-01-02\n9,soap,5.49,2024-01-02\n10,sugar,7.99,2024-01-02\n11,detergent,8.79,2024-01-03\n12,pasta,6.49,2024-01-03\n13,tomato_sauce,4.29,2024-01-03\n14,milk,6.99,2024-01-03\n15,bananas,6.49,2024-01-03\n16,apples,7.99,2024-01-04\n17,oranges,8.99,2024-01-04\n18,bread,7.49,2024-01-04\n19,yogurt,4.99,2024-01-04\n20,soap,5.49,2024-01-04\n21,chicken_breast,24.9,2024-01-05\n22,rice,22.9,2024-01-05\n23,beans,9.99,2024-01-05\n24,olive_oil,28.9,2024-01-05\n25,milk,6.99,2024-01-05\n26,cheese,19.9,2024-01-06\n27,butter,8.99,2024-01-06\n28,eggs,14.99,2024-01-06\n29,coffee,18.9,2024-01-06\n30,shampoo,10.99,2024-01-06\n31,lettuce,4.49,2024-01-07\n32,tomatoes,9.99,2024-01-07\n33,onions,6.99,2024-01-07\n34,potatoes,8.49,2024-01-07\n35,carrots,5.99,2024-01-07\n36,cereal,16.9,2024-01-08\n37,oats,10.49,2024-01-08\n38,milk,6.99,2024-01-08\n39,cookies,6.99,2024-01-08\n40,soda,7.99,2024-01-08\n41,water,2.99,2024-01-09\n42,orange_juice,9.99,2024-01-09\n43,tea,9.49,2024-01-09\n44,sugar,7.99,2024-01-09\n45,salt,2.49,2024-01-09\n46,ground_beef,29.9,2024-01-10\n47,pasta,6.49,2024-01-10\n48,tomato_sauce,4.29,2024-01-10\n49,cheese,19.9,2024-01-10\n50,soap,5.49,2024-01-10\n51,fish_fillet,34.9,2024-01-11\n52,rice,22.9,2024-01-11\n53,olive_oil,28.9,2024-01-11\n54,lettuce,4.49,2024-01-11\n55,oranges,8.99,2024-01-11\n56,shampoo,10.99,2024-01-12\n57,toothpaste,3.99,2024-01-12\n58,soap,5.49,2024-01-12\n59,detergent,8.79,2024-01-12\n60,milk,6.99,2024-01-12\n61,bread,7.49,2024-01-13\n62,eggs,14.99,2024-01-13\n63,butter,8.99,2024-01-13\n64,yogurt,4.99,2024-01-13\n65,coffee,18.9,2024-01-13\n66,apples,7.99,2024-01-14\n67,bananas,6.49,2024-01-14\n68,oranges,8.99,2024-01-14\n69,water,2.99,2024-01-14\n70,soda,7.99,2024-01-14\n71,chicken_breast,24.9,2024-01-15\n72,rice,22.9,2024-01-15\n73,beans,9.99,2024-01-15\n74,onions,6.99,2024-01-15\n75,tomatoes,9.99,2024-01-15\n76,pasta,6.49,2024-01-16\n77,tomato_sauce,4.29,2024-01-16\n78,cheese,19.9,2024-01-16\n79,olive_oil,28.9,2024-01-16\n80,bread,7.49,2024-01-16\n81,cereal,16.9,2024-01-17\n82,milk,6.99,2024-01-17\n83,cookies,6.99,2024-01-17\n84,chocolate,5.49,2024-01-17\n85,soap,5.49,2024-01-17\n86,orange_juice,9.99,2024-01-18\n87,tea,9.49,2024-01-18\n88,sugar,7.99,2024-01-18\n89,flour,7.29,2024-01-18\n90,baking_powder,3.49,2024-01-18\n91,ground_beef,29.9,2024-01-19\n92,fish_fillet,34.9,2024-01-19\n93,lettuce,4.49,2024-01-19\n94,potatoes,8.49,2024-01-19\n95,carrots,5.99,2024-01-19\n96,shampoo,10.99,2024-01-20\n97,detergent,8.79,2024-01-20\n98,milk,6.99,2024-01-20\n99,bread,7.49,2024-01-20\n100,eggs,14.99,2024-01-20\n"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_17bsstae",
+                          "function": {
+                            "name": "list-collections"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_17bsstae"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_agkjjtmz",
+                          "function": {
+                            "name": "csv_to_json"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_agkjjtmz",
+                      "content": "[{\"id\":\"1\",\"product\":\"shampoo\",\"price\":\"10.99\",\"date\":\"2024-01-01\"},{\"id\":\"2\",\"product\":\"soap\",\"price\":\"5.49\",\"date\":\"2024-01-01\"},{\"id\":\"3\",\"product\":\"toothpaste\",\"price\":\"3.99\",\"date\":\"2024-01-01\"},{\"id\":\"4\",\"product\":\"rice\",\"price\":\"22.9\",\"date\":\"2024-01-01\"},{\"id\":\"5\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-01\"},{\"id\":\"6\",\"product\":\"bread\",\"price\":\"7.49\",\"date\":\"2024-01-02\"},{\"id\":\"7\",\"product\":\"eggs\",\"price\":\"14.99\",\"date\":\"2024-01-02\"},{\"id\":\"8\",\"product\":\"coffee\",\"price\":\"18.9\",\"date\":\"2024-01-02\"},{\"id\":\"9\",\"product\":\"soap\",\"price\":\"5.49\",\"date\":\"2024-01-02\"},{\"id\":\"10\",\"product\":\"sugar\",\"price\":\"7.99\",\"date\":\"2024-01-02\"},{\"id\":\"11\",\"product\":\"detergent\",\"price\":\"8.79\",\"date\":\"2024-01-03\"},{\"id\":\"12\",\"product\":\"pasta\",\"price\":\"6.49\",\"date\":\"2024-01-03\"},{\"id\":\"13\",\"product\":\"tomato_sauce\",\"price\":\"4.29\",\"date\":\"2024-01-03\"},{\"id\":\"14\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-03\"},{\"id\":\"15\",\"product\":\"bananas\",\"price\":\"6.49\",\"date\":\"2024-01-03\"},{\"id\":\"16\",\"product\":\"apples\",\"price\":\"7.99\",\"date\":\"2024-01-04\"},{\"id\":\"17\",\"product\":\"oranges\",\"price\":\"8.99\",\"date\":\"2024-01-04\"},{\"id\":\"18\",\"product\":\"bread\",\"price\":\"7.49\",\"date\":\"2024-01-04\"},{\"id\":\"19\",\"product\":\"yogurt\",\"price\":\"4.99\",\"date\":\"2024-01-04\"},{\"id\":\"20\",\"product\":\"soap\",\"price\":\"5.49\",\"date\":\"2024-01-04\"},{\"id\":\"21\",\"product\":\"chicken_breast\",\"price\":\"24.9\",\"date\":\"2024-01-05\"},{\"id\":\"22\",\"product\":\"rice\",\"price\":\"22.9\",\"date\":\"2024-01-05\"},{\"id\":\"23\",\"product\":\"beans\",\"price\":\"9.99\",\"date\":\"2024-01-05\"},{\"id\":\"24\",\"product\":\"olive_oil\",\"price\":\"28.9\",\"date\":\"2024-01-05\"},{\"id\":\"25\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-05\"},{\"id\":\"26\",\"product\":\"cheese\",\"price\":\"19.9\",\"date\":\"2024-01-06\"},{\"id\":\"27\",\"product\":\"butter\",\"price\":\"8.99\",\"date\":\"2024-01-06\"},{\"id\":\"28\",\"product\":\"eggs\",\"price\":\"14.99\",\"date\":\"2024-01-06\"},{\"id\":\"29\",\"product\":\"coffee\",\"price\":\"18.9\",\"date\":\"2024-01-06\"},{\"id\":\"30\",\"product\":\"shampoo\",\"price\":\"10.99\",\"date\":\"2024-01-06\"},{\"id\":\"31\",\"product\":\"lettuce\",\"price\":\"4.49\",\"date\":\"2024-01-07\"},{\"id\":\"32\",\"product\":\"tomatoes\",\"price\":\"9.99\",\"date\":\"2024-01-07\"},{\"id\":\"33\",\"product\":\"onions\",\"price\":\"6.99\",\"date\":\"2024-01-07\"},{\"id\":\"34\",\"product\":\"potatoes\",\"price\":\"8.49\",\"date\":\"2024-01-07\"},{\"id\":\"35\",\"product\":\"carrots\",\"price\":\"5.99\",\"date\":\"2024-01-07\"},{\"id\":\"36\",\"product\":\"cereal\",\"price\":\"16.9\",\"date\":\"2024-01-08\"},{\"id\":\"37\",\"product\":\"oats\",\"price\":\"10.49\",\"date\":\"2024-01-08\"},{\"id\":\"38\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-08\"},{\"id\":\"39\",\"product\":\"cookies\",\"price\":\"6.99\",\"date\":\"2024-01-08\"},{\"id\":\"40\",\"product\":\"soda\",\"price\":\"7.99\",\"date\":\"2024-01-08\"},{\"id\":\"41\",\"product\":\"water\",\"price\":\"2.99\",\"date\":\"2024-01-09\"},{\"id\":\"42\",\"product\":\"orange_juice\",\"price\":\"9.99\",\"date\":\"2024-01-09\"},{\"id\":\"43\",\"product\":\"tea\",\"price\":\"9.49\",\"date\":\"2024-01-09\"},{\"id\":\"44\",\"product\":\"sugar\",\"price\":\"7.99\",\"date\":\"2024-01-09\"},{\"id\":\"45\",\"product\":\"salt\",\"price\":\"2.49\",\"date\":\"2024-01-09\"},{\"id\":\"46\",\"product\":\"ground_beef\",\"price\":\"29.9\",\"date\":\"2024-01-10\"},{\"id\":\"47\",\"product\":\"pasta\",\"price\":\"6.49\",\"date\":\"2024-01-10\"},{\"id\":\"48\",\"product\":\"tomato_sauce\",\"price\":\"4.29\",\"date\":\"2024-01-10\"},{\"id\":\"49\",\"product\":\"cheese\",\"price\":\"19.9\",\"date\":\"2024-01-10\"},{\"id\":\"50\",\"product\":\"soap\",\"price\":\"5.49\",\"date\":\"2024-01-10\"},{\"id\":\"51\",\"product\":\"fish_fillet\",\"price\":\"34.9\",\"date\":\"2024-01-11\"},{\"id\":\"52\",\"product\":\"rice\",\"price\":\"22.9\",\"date\":\"2024-01-11\"},{\"id\":\"53\",\"product\":\"olive_oil\",\"price\":\"28.9\",\"date\":\"2024-01-11\"},{\"id\":\"54\",\"product\":\"lettuce\",\"price\":\"4.49\",\"date\":\"2024-01-11\"},{\"id\":\"55\",\"product\":\"oranges\",\"price\":\"8.99\",\"date\":\"2024-01-11\"},{\"id\":\"56\",\"product\":\"shampoo\",\"price\":\"10.99\",\"date\":\"2024-01-12\"},{\"id\":\"57\",\"product\":\"toothpaste\",\"price\":\"3.99\",\"date\":\"2024-01-12\"},{\"id\":\"58\",\"product\":\"soap\",\"price\":\"5.49\",\"date\":\"2024-01-12\"},{\"id\":\"59\",\"product\":\"detergent\",\"price\":\"8.79\",\"date\":\"2024-01-12\"},{\"id\":\"60\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-12\"},{\"id\":\"61\",\"product\":\"bread\",\"price\":\"7.49\",\"date\":\"2024-01-13\"},{\"id\":\"62\",\"product\":\"eggs\",\"price\":\"14.99\",\"date\":\"2024-01-13\"},{\"id\":\"63\",\"product\":\"butter\",\"price\":\"8.99\",\"date\":\"2024-01-13\"},{\"id\":\"64\",\"product\":\"yogurt\",\"price\":\"4.99\",\"date\":\"2024-01-13\"},{\"id\":\"65\",\"product\":\"coffee\",\"price\":\"18.9\",\"date\":\"2024-01-13\"},{\"id\":\"66\",\"product\":\"apples\",\"price\":\"7.99\",\"date\":\"2024-01-14\"},{\"id\":\"67\",\"product\":\"bananas\",\"price\":\"6.49\",\"date\":\"2024-01-14\"},{\"id\":\"68\",\"product\":\"oranges\",\"price\":\"8.99\",\"date\":\"2024-01-14\"},{\"id\":\"69\",\"product\":\"water\",\"price\":\"2.99\",\"date\":\"2024-01-14\"},{\"id\":\"70\",\"product\":\"soda\",\"price\":\"7.99\",\"date\":\"2024-01-14\"},{\"id\":\"71\",\"product\":\"chicken_breast\",\"price\":\"24.9\",\"date\":\"2024-01-15\"},{\"id\":\"72\",\"product\":\"rice\",\"price\":\"22.9\",\"date\":\"2024-01-15\"},{\"id\":\"73\",\"product\":\"beans\",\"price\":\"9.99\",\"date\":\"2024-01-15\"},{\"id\":\"74\",\"product\":\"onions\",\"price\":\"6.99\",\"date\":\"2024-01-15\"},{\"id\":\"75\",\"product\":\"tomatoes\",\"price\":\"9.99\",\"date\":\"2024-01-15\"},{\"id\":\"76\",\"product\":\"pasta\",\"price\":\"6.49\",\"date\":\"2024-01-16\"},{\"id\":\"77\",\"product\":\"tomato_sauce\",\"price\":\"4.29\",\"date\":\"2024-01-16\"},{\"id\":\"78\",\"product\":\"cheese\",\"price\":\"19.9\",\"date\":\"2024-01-16\"},{\"id\":\"79\",\"product\":\"olive_oil\",\"price\":\"28.9\",\"date\":\"2024-01-16\"},{\"id\":\"80\",\"product\":\"bread\",\"price\":\"7.49\",\"date\":\"2024-01-16\"},{\"id\":\"81\",\"product\":\"cereal\",\"price\":\"16.9\",\"date\":\"2024-01-17\"},{\"id\":\"82\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-17\"},{\"id\":\"83\",\"product\":\"cookies\",\"price\":\"6.99\",\"date\":\"2024-01-17\"},{\"id\":\"84\",\"product\":\"chocolate\",\"price\":\"5.49\",\"date\":\"2024-01-17\"},{\"id\":\"85\",\"product\":\"soap\",\"price\":\"5.49\",\"date\":\"2024-01-17\"},{\"id\":\"86\",\"product\":\"orange_juice\",\"price\":\"9.99\",\"date\":\"2024-01-18\"},{\"id\":\"87\",\"product\":\"tea\",\"price\":\"9.49\",\"date\":\"2024-01-18\"},{\"id\":\"88\",\"product\":\"sugar\",\"price\":\"7.99\",\"date\":\"2024-01-18\"},{\"id\":\"89\",\"product\":\"flour\",\"price\":\"7.29\",\"date\":\"2024-01-18\"},{\"id\":\"90\",\"product\":\"baking_powder\",\"price\":\"3.49\",\"date\":\"2024-01-18\"},{\"id\":\"91\",\"product\":\"ground_beef\",\"price\":\"29.9\",\"date\":\"2024-01-19\"},{\"id\":\"92\",\"product\":\"fish_fillet\",\"price\":\"34.9\",\"date\":\"2024-01-19\"},{\"id\":\"93\",\"product\":\"lettuce\",\"price\":\"4.49\",\"date\":\"2024-01-19\"},{\"id\":\"94\",\"product\":\"potatoes\",\"price\":\"8.49\",\"date\":\"2024-01-19\"},{\"id\":\"95\",\"product\":\"carrots\",\"price\":\"5.99\",\"date\":\"2024-01-19\"},{\"id\":\"96\",\"product\":\"shampoo\",\"price\":\"10.99\",\"date\":\"2024-01-20\"},{\"id\":\"97\",\"product\":\"detergent\",\"price\":\"8.79\",\"date\":\"2024-01-20\"},{\"id\":\"98\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-20\"},{\"id\":\"99\",\"product\":\"bread\",\"price\":\"7.49\",\"date\":\"2024-01-20\"},{\"id\":\"100\",\"product\":\"eggs\",\"price\":\"14.99\",\"date\":\"2024-01-20\"}]"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_ubgday2a",
+                          "function": {
+                            "name": "create-collection"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_ubgday2a"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "tools": {
+                  "$includes": [
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "csv_to_json",
+                        "description": "Convert CSV to JSON formart",
+                        "parameters": {
+                          "type": "object",
+                          "properties": {
+                            "csvText": {
+                              "type": "string",
+                              "description": "CSV data to be converted to JSON formart"
+                            }
+                          },
+                          "required": ["csvText"]
+                        }
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list-collections"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "create-collection"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "drop-collection"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "insert-many"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "find"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "aggregate"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "read_text_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "write_file"
+                      }
+                    },
+                    {
+                      "type": "function",
+                      "function": {
+                        "name": "list_allowed_directories"
+                      }
+                    }
+                  ]
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are a data processing agent. You have access to these tools:\n- csv_to_json: converts a CSV string to JSON\n- filesystem tools (read_file, write_file, etc.): read and write files on disk\n- MongoDB tools: insert documents, run queries on a MongoDB database\n\nWhen given an intent, fileContent, and fileName, you MUST follow this exact sequence of steps.\nDo NOT stop after the first tool call. Complete ALL steps before giving a final answer.\n\nStep 0: Delete all user collections in MongoDB.\nStep 1: If the fileContent is CSV (or fileName ends in .csv), call csv_to_json to convert it to a JSON array.\nStep 2: If the intent mentions saving or exporting JSON to a path, use write_file to save the JSON to that path.\nStep 3: Insert the JSON records as documents into MongoDB. Choose a collection name based on the fileName or intent context.\nStep 4: Query MongoDB to answer the analytical question described in the intent.\nStep 5: Use write_file to save the final report (your answer) as a .txt file inside the ./reports/ directory.\n\nIf the fileContent is already JSON, skip Step 1 and proceed from Step 2.\nAlways complete every applicable step. Never stop early."
+                    },
+                    {
+                      "role": "user",
+                      "content": "\n    Intent: Calculate the total revenue from the provided sales data.\n    File name: sales.csv\n    File content:\n    id,product,price,date\n1,shampoo,10.99,2024-01-01\n2,soap,5.49,2024-01-01\n3,toothpaste,3.99,2024-01-01\n4,rice,22.9,2024-01-01\n5,milk,6.99,2024-01-01\n6,bread,7.49,2024-01-02\n7,eggs,14.99,2024-01-02\n8,coffee,18.9,2024-01-02\n9,soap,5.49,2024-01-02\n10,sugar,7.99,2024-01-02\n11,detergent,8.79,2024-01-03\n12,pasta,6.49,2024-01-03\n13,tomato_sauce,4.29,2024-01-03\n14,milk,6.99,2024-01-03\n15,bananas,6.49,2024-01-03\n16,apples,7.99,2024-01-04\n17,oranges,8.99,2024-01-04\n18,bread,7.49,2024-01-04\n19,yogurt,4.99,2024-01-04\n20,soap,5.49,2024-01-04\n21,chicken_breast,24.9,2024-01-05\n22,rice,22.9,2024-01-05\n23,beans,9.99,2024-01-05\n24,olive_oil,28.9,2024-01-05\n25,milk,6.99,2024-01-05\n26,cheese,19.9,2024-01-06\n27,butter,8.99,2024-01-06\n28,eggs,14.99,2024-01-06\n29,coffee,18.9,2024-01-06\n30,shampoo,10.99,2024-01-06\n31,lettuce,4.49,2024-01-07\n32,tomatoes,9.99,2024-01-07\n33,onions,6.99,2024-01-07\n34,potatoes,8.49,2024-01-07\n35,carrots,5.99,2024-01-07\n36,cereal,16.9,2024-01-08\n37,oats,10.49,2024-01-08\n38,milk,6.99,2024-01-08\n39,cookies,6.99,2024-01-08\n40,soda,7.99,2024-01-08\n41,water,2.99,2024-01-09\n42,orange_juice,9.99,2024-01-09\n43,tea,9.49,2024-01-09\n44,sugar,7.99,2024-01-09\n45,salt,2.49,2024-01-09\n46,ground_beef,29.9,2024-01-10\n47,pasta,6.49,2024-01-10\n48,tomato_sauce,4.29,2024-01-10\n49,cheese,19.9,2024-01-10\n50,soap,5.49,2024-01-10\n51,fish_fillet,34.9,2024-01-11\n52,rice,22.9,2024-01-11\n53,olive_oil,28.9,2024-01-11\n54,lettuce,4.49,2024-01-11\n55,oranges,8.99,2024-01-11\n56,shampoo,10.99,2024-01-12\n57,toothpaste,3.99,2024-01-12\n58,soap,5.49,2024-01-12\n59,detergent,8.79,2024-01-12\n60,milk,6.99,2024-01-12\n61,bread,7.49,2024-01-13\n62,eggs,14.99,2024-01-13\n63,butter,8.99,2024-01-13\n64,yogurt,4.99,2024-01-13\n65,coffee,18.9,2024-01-13\n66,apples,7.99,2024-01-14\n67,bananas,6.49,2024-01-14\n68,oranges,8.99,2024-01-14\n69,water,2.99,2024-01-14\n70,soda,7.99,2024-01-14\n71,chicken_breast,24.9,2024-01-15\n72,rice,22.9,2024-01-15\n73,beans,9.99,2024-01-15\n74,onions,6.99,2024-01-15\n75,tomatoes,9.99,2024-01-15\n76,pasta,6.49,2024-01-16\n77,tomato_sauce,4.29,2024-01-16\n78,cheese,19.9,2024-01-16\n79,olive_oil,28.9,2024-01-16\n80,bread,7.49,2024-01-16\n81,cereal,16.9,2024-01-17\n82,milk,6.99,2024-01-17\n83,cookies,6.99,2024-01-17\n84,chocolate,5.49,2024-01-17\n85,soap,5.49,2024-01-17\n86,orange_juice,9.99,2024-01-18\n87,tea,9.49,2024-01-18\n88,sugar,7.99,2024-01-18\n89,flour,7.29,2024-01-18\n90,baking_powder,3.49,2024-01-18\n91,ground_beef,29.9,2024-01-19\n92,fish_fillet,34.9,2024-01-19\n93,lettuce,4.49,2024-01-19\n94,potatoes,8.49,2024-01-19\n95,carrots,5.99,2024-01-19\n96,shampoo,10.99,2024-01-20\n97,detergent,8.79,2024-01-20\n98,milk,6.99,2024-01-20\n99,bread,7.49,2024-01-20\n100,eggs,14.99,2024-01-20\n"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_17bsstae",
+                          "function": {
+                            "name": "list-collections"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_17bsstae"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_agkjjtmz",
+                          "function": {
+                            "name": "csv_to_json"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_agkjjtmz",
+                      "content": "[{\"id\":\"1\",\"product\":\"shampoo\",\"price\":\"10.99\",\"date\":\"2024-01-01\"},{\"id\":\"2\",\"product\":\"soap\",\"price\":\"5.49\",\"date\":\"2024-01-01\"},{\"id\":\"3\",\"product\":\"toothpaste\",\"price\":\"3.99\",\"date\":\"2024-01-01\"},{\"id\":\"4\",\"product\":\"rice\",\"price\":\"22.9\",\"date\":\"2024-01-01\"},{\"id\":\"5\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-01\"},{\"id\":\"6\",\"product\":\"bread\",\"price\":\"7.49\",\"date\":\"2024-01-02\"},{\"id\":\"7\",\"product\":\"eggs\",\"price\":\"14.99\",\"date\":\"2024-01-02\"},{\"id\":\"8\",\"product\":\"coffee\",\"price\":\"18.9\",\"date\":\"2024-01-02\"},{\"id\":\"9\",\"product\":\"soap\",\"price\":\"5.49\",\"date\":\"2024-01-02\"},{\"id\":\"10\",\"product\":\"sugar\",\"price\":\"7.99\",\"date\":\"2024-01-02\"},{\"id\":\"11\",\"product\":\"detergent\",\"price\":\"8.79\",\"date\":\"2024-01-03\"},{\"id\":\"12\",\"product\":\"pasta\",\"price\":\"6.49\",\"date\":\"2024-01-03\"},{\"id\":\"13\",\"product\":\"tomato_sauce\",\"price\":\"4.29\",\"date\":\"2024-01-03\"},{\"id\":\"14\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-03\"},{\"id\":\"15\",\"product\":\"bananas\",\"price\":\"6.49\",\"date\":\"2024-01-03\"},{\"id\":\"16\",\"product\":\"apples\",\"price\":\"7.99\",\"date\":\"2024-01-04\"},{\"id\":\"17\",\"product\":\"oranges\",\"price\":\"8.99\",\"date\":\"2024-01-04\"},{\"id\":\"18\",\"product\":\"bread\",\"price\":\"7.49\",\"date\":\"2024-01-04\"},{\"id\":\"19\",\"product\":\"yogurt\",\"price\":\"4.99\",\"date\":\"2024-01-04\"},{\"id\":\"20\",\"product\":\"soap\",\"price\":\"5.49\",\"date\":\"2024-01-04\"},{\"id\":\"21\",\"product\":\"chicken_breast\",\"price\":\"24.9\",\"date\":\"2024-01-05\"},{\"id\":\"22\",\"product\":\"rice\",\"price\":\"22.9\",\"date\":\"2024-01-05\"},{\"id\":\"23\",\"product\":\"beans\",\"price\":\"9.99\",\"date\":\"2024-01-05\"},{\"id\":\"24\",\"product\":\"olive_oil\",\"price\":\"28.9\",\"date\":\"2024-01-05\"},{\"id\":\"25\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-05\"},{\"id\":\"26\",\"product\":\"cheese\",\"price\":\"19.9\",\"date\":\"2024-01-06\"},{\"id\":\"27\",\"product\":\"butter\",\"price\":\"8.99\",\"date\":\"2024-01-06\"},{\"id\":\"28\",\"product\":\"eggs\",\"price\":\"14.99\",\"date\":\"2024-01-06\"},{\"id\":\"29\",\"product\":\"coffee\",\"price\":\"18.9\",\"date\":\"2024-01-06\"},{\"id\":\"30\",\"product\":\"shampoo\",\"price\":\"10.99\",\"date\":\"2024-01-06\"},{\"id\":\"31\",\"product\":\"lettuce\",\"price\":\"4.49\",\"date\":\"2024-01-07\"},{\"id\":\"32\",\"product\":\"tomatoes\",\"price\":\"9.99\",\"date\":\"2024-01-07\"},{\"id\":\"33\",\"product\":\"onions\",\"price\":\"6.99\",\"date\":\"2024-01-07\"},{\"id\":\"34\",\"product\":\"potatoes\",\"price\":\"8.49\",\"date\":\"2024-01-07\"},{\"id\":\"35\",\"product\":\"carrots\",\"price\":\"5.99\",\"date\":\"2024-01-07\"},{\"id\":\"36\",\"product\":\"cereal\",\"price\":\"16.9\",\"date\":\"2024-01-08\"},{\"id\":\"37\",\"product\":\"oats\",\"price\":\"10.49\",\"date\":\"2024-01-08\"},{\"id\":\"38\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-08\"},{\"id\":\"39\",\"product\":\"cookies\",\"price\":\"6.99\",\"date\":\"2024-01-08\"},{\"id\":\"40\",\"product\":\"soda\",\"price\":\"7.99\",\"date\":\"2024-01-08\"},{\"id\":\"41\",\"product\":\"water\",\"price\":\"2.99\",\"date\":\"2024-01-09\"},{\"id\":\"42\",\"product\":\"orange_juice\",\"price\":\"9.99\",\"date\":\"2024-01-09\"},{\"id\":\"43\",\"product\":\"tea\",\"price\":\"9.49\",\"date\":\"2024-01-09\"},{\"id\":\"44\",\"product\":\"sugar\",\"price\":\"7.99\",\"date\":\"2024-01-09\"},{\"id\":\"45\",\"product\":\"salt\",\"price\":\"2.49\",\"date\":\"2024-01-09\"},{\"id\":\"46\",\"product\":\"ground_beef\",\"price\":\"29.9\",\"date\":\"2024-01-10\"},{\"id\":\"47\",\"product\":\"pasta\",\"price\":\"6.49\",\"date\":\"2024-01-10\"},{\"id\":\"48\",\"product\":\"tomato_sauce\",\"price\":\"4.29\",\"date\":\"2024-01-10\"},{\"id\":\"49\",\"product\":\"cheese\",\"price\":\"19.9\",\"date\":\"2024-01-10\"},{\"id\":\"50\",\"product\":\"soap\",\"price\":\"5.49\",\"date\":\"2024-01-10\"},{\"id\":\"51\",\"product\":\"fish_fillet\",\"price\":\"34.9\",\"date\":\"2024-01-11\"},{\"id\":\"52\",\"product\":\"rice\",\"price\":\"22.9\",\"date\":\"2024-01-11\"},{\"id\":\"53\",\"product\":\"olive_oil\",\"price\":\"28.9\",\"date\":\"2024-01-11\"},{\"id\":\"54\",\"product\":\"lettuce\",\"price\":\"4.49\",\"date\":\"2024-01-11\"},{\"id\":\"55\",\"product\":\"oranges\",\"price\":\"8.99\",\"date\":\"2024-01-11\"},{\"id\":\"56\",\"product\":\"shampoo\",\"price\":\"10.99\",\"date\":\"2024-01-12\"},{\"id\":\"57\",\"product\":\"toothpaste\",\"price\":\"3.99\",\"date\":\"2024-01-12\"},{\"id\":\"58\",\"product\":\"soap\",\"price\":\"5.49\",\"date\":\"2024-01-12\"},{\"id\":\"59\",\"product\":\"detergent\",\"price\":\"8.79\",\"date\":\"2024-01-12\"},{\"id\":\"60\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-12\"},{\"id\":\"61\",\"product\":\"bread\",\"price\":\"7.49\",\"date\":\"2024-01-13\"},{\"id\":\"62\",\"product\":\"eggs\",\"price\":\"14.99\",\"date\":\"2024-01-13\"},{\"id\":\"63\",\"product\":\"butter\",\"price\":\"8.99\",\"date\":\"2024-01-13\"},{\"id\":\"64\",\"product\":\"yogurt\",\"price\":\"4.99\",\"date\":\"2024-01-13\"},{\"id\":\"65\",\"product\":\"coffee\",\"price\":\"18.9\",\"date\":\"2024-01-13\"},{\"id\":\"66\",\"product\":\"apples\",\"price\":\"7.99\",\"date\":\"2024-01-14\"},{\"id\":\"67\",\"product\":\"bananas\",\"price\":\"6.49\",\"date\":\"2024-01-14\"},{\"id\":\"68\",\"product\":\"oranges\",\"price\":\"8.99\",\"date\":\"2024-01-14\"},{\"id\":\"69\",\"product\":\"water\",\"price\":\"2.99\",\"date\":\"2024-01-14\"},{\"id\":\"70\",\"product\":\"soda\",\"price\":\"7.99\",\"date\":\"2024-01-14\"},{\"id\":\"71\",\"product\":\"chicken_breast\",\"price\":\"24.9\",\"date\":\"2024-01-15\"},{\"id\":\"72\",\"product\":\"rice\",\"price\":\"22.9\",\"date\":\"2024-01-15\"},{\"id\":\"73\",\"product\":\"beans\",\"price\":\"9.99\",\"date\":\"2024-01-15\"},{\"id\":\"74\",\"product\":\"onions\",\"price\":\"6.99\",\"date\":\"2024-01-15\"},{\"id\":\"75\",\"product\":\"tomatoes\",\"price\":\"9.99\",\"date\":\"2024-01-15\"},{\"id\":\"76\",\"product\":\"pasta\",\"price\":\"6.49\",\"date\":\"2024-01-16\"},{\"id\":\"77\",\"product\":\"tomato_sauce\",\"price\":\"4.29\",\"date\":\"2024-01-16\"},{\"id\":\"78\",\"product\":\"cheese\",\"price\":\"19.9\",\"date\":\"2024-01-16\"},{\"id\":\"79\",\"product\":\"olive_oil\",\"price\":\"28.9\",\"date\":\"2024-01-16\"},{\"id\":\"80\",\"product\":\"bread\",\"price\":\"7.49\",\"date\":\"2024-01-16\"},{\"id\":\"81\",\"product\":\"cereal\",\"price\":\"16.9\",\"date\":\"2024-01-17\"},{\"id\":\"82\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-17\"},{\"id\":\"83\",\"product\":\"cookies\",\"price\":\"6.99\",\"date\":\"2024-01-17\"},{\"id\":\"84\",\"product\":\"chocolate\",\"price\":\"5.49\",\"date\":\"2024-01-17\"},{\"id\":\"85\",\"product\":\"soap\",\"price\":\"5.49\",\"date\":\"2024-01-17\"},{\"id\":\"86\",\"product\":\"orange_juice\",\"price\":\"9.99\",\"date\":\"2024-01-18\"},{\"id\":\"87\",\"product\":\"tea\",\"price\":\"9.49\",\"date\":\"2024-01-18\"},{\"id\":\"88\",\"product\":\"sugar\",\"price\":\"7.99\",\"date\":\"2024-01-18\"},{\"id\":\"89\",\"product\":\"flour\",\"price\":\"7.29\",\"date\":\"2024-01-18\"},{\"id\":\"90\",\"product\":\"baking_powder\",\"price\":\"3.49\",\"date\":\"2024-01-18\"},{\"id\":\"91\",\"product\":\"ground_beef\",\"price\":\"29.9\",\"date\":\"2024-01-19\"},{\"id\":\"92\",\"product\":\"fish_fillet\",\"price\":\"34.9\",\"date\":\"2024-01-19\"},{\"id\":\"93\",\"product\":\"lettuce\",\"price\":\"4.49\",\"date\":\"2024-01-19\"},{\"id\":\"94\",\"product\":\"potatoes\",\"price\":\"8.49\",\"date\":\"2024-01-19\"},{\"id\":\"95\",\"product\":\"carrots\",\"price\":\"5.99\",\"date\":\"2024-01-19\"},{\"id\":\"96\",\"product\":\"shampoo\",\"price\":\"10.99\",\"date\":\"2024-01-20\"},{\"id\":\"97\",\"product\":\"detergent\",\"price\":\"8.79\",\"date\":\"2024-01-20\"},{\"id\":\"98\",\"product\":\"milk\",\"price\":\"6.99\",\"date\":\"2024-01-20\"},{\"id\":\"99\",\"product\":\"bread\",\"price\":\"7.49\",\"date\":\"2024-01-20\"},{\"id\":\"100\",\"product\":\"eggs\",\"price\":\"14.99\",\"date\":\"2024-01-20\"}]"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_ubgday2a",
+                          "function": {
+                            "name": "create-collection"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_ubgday2a"
+                    },
+                    {
+                      "role": "assistant",
+                      "tool_calls": [
+                        {
+                          "id": "call_v2gh4vso",
+                          "function": {
+                            "name": "insert-many"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "role": "tool",
+                      "tool_call_id": "call_v2gh4vso"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "an intent without a goal ends the graph with an apology before the agent runs",
+      "timeout": 60000,
+      "replay": [
+        {
+          "source": "synthesized from the recorded intent answer, with an empty intent, no file content or name, and the unknown file type",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-209",
+            "object": "chat.completion",
+            "created": 1793094119,
+            "model": "gpt-oss:20b",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\"intent\":\"\",\"fileContent\":null,\"fileName\":null,\"fileType\":\"unknown\"}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1756,
+              "prompt_tokens_details": {
+                "cached_tokens": 1751
+              },
+              "completion_tokens": 25,
+              "total_tokens": 1781
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?![\\s\\S]*Agent node processing)Server is running on http://0\\.0\\.0\\.0:3000\\n🧠 Intent node processing\\.\\.\\.\\n[\\s\\S]*\\n⚠️ Missing intent or fileType in parsed data:[\\s\\S]*\\nResponse from /chat: 200\\nSorry, I had trouble understanding the intent\\. Please rephrase your question or provide more details\\.\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "Intent node error:.*Invalid intent data"
+        },
+        {
+          "type": "requests",
+          "requests": [
+            {
+              "method": "POST",
+              "path": "/v1/chat/completions",
+              "body": {
+                "model": "arcee-ai/trinity-large-preview:free",
+                "temperature": 0.7,
+                "models": ["arcee-ai/trinity-large-preview:free"],
+                "provider": {
+                  "sort": {
+                    "by": "throughput",
+                    "partition": "none"
+                  }
+                },
+                "messages": {
+                  "$like": [
+                    {
+                      "role": "system",
+                      "content": "You are an intent extraction assistant.\nAnalyze the user message and extract the requested fields as structured output.\nThe user message may contain a natural-language instruction mixed with raw file content (CSV or JSON).\nSeparate them cleanly: the intent is the goal, fileContent is the raw data block, fileName is the inferred file name.\nIf no file data is present, set fileContent and fileName to null."
+                    },
+                    {
+                      "role": "user",
+                      "content": "\nHere is a CSV file called sales.csv.\nWhat's the total revenue from this sales data?.\n\nid,product,price,date\r\n1,shampoo,10.99,2024-01-01\r\n2,soap,5.49,2024-01-01\r\n3,toothpaste,3.99,2024-01-01\r\n4,rice,22.9,2024-01-01\r\n5,milk,6.99,2024-01-01\r\n6,bread,7.49,2024-01-02\r\n7,eggs,14.99,2024-01-02\r\n8,coffee,18.9,2024-01-02\r\n9,soap,5.49,2024-01-02\r\n10,sugar,7.99,2024-01-02\r\n11,detergent,8.79,2024-01-03\r\n12,pasta,6.49,2024-01-03\r\n13,tomato_sauce,4.29,2024-01-03\r\n14,milk,6.99,2024-01-03\r\n15,bananas,6.49,2024-01-03\r\n16,apples,7.99,2024-01-04\r\n17,oranges,8.99,2024-01-04\r\n18,bread,7.49,2024-01-04\r\n19,yogurt,4.99,2024-01-04\r\n20,soap,5.49,2024-01-04\r\n21,chicken_breast,24.9,2024-01-05\r\n22,rice,22.9,2024-01-05\r\n23,beans,9.99,2024-01-05\r\n24,olive_oil,28.9,2024-01-05\r\n25,milk,6.99,2024-01-05\r\n26,cheese,19.9,2024-01-06\r\n27,butter,8.99,2024-01-06\r\n28,eggs,14.99,2024-01-06\r\n29,coffee,18.9,2024-01-06\r\n30,shampoo,10.99,2024-01-06\r\n31,lettuce,4.49,2024-01-07\r\n32,tomatoes,9.99,2024-01-07\r\n33,onions,6.99,2024-01-07\r\n34,potatoes,8.49,2024-01-07\r\n35,carrots,5.99,2024-01-07\r\n36,cereal,16.9,2024-01-08\r\n37,oats,10.49,2024-01-08\r\n38,milk,6.99,2024-01-08\r\n39,cookies,6.99,2024-01-08\r\n40,soda,7.99,2024-01-08\r\n41,water,2.99,2024-01-09\r\n42,orange_juice,9.99,2024-01-09\r\n43,tea,9.49,2024-01-09\r\n44,sugar,7.99,2024-01-09\r\n45,salt,2.49,2024-01-09\r\n46,ground_beef,29.9,2024-01-10\r\n47,pasta,6.49,2024-01-10\r\n48,tomato_sauce,4.29,2024-01-10\r\n49,cheese,19.9,2024-01-10\r\n50,soap,5.49,2024-01-10\r\n51,fish_fillet,34.9,2024-01-11\r\n52,rice,22.9,2024-01-11\r\n53,olive_oil,28.9,2024-01-11\r\n54,lettuce,4.49,2024-01-11\r\n55,oranges,8.99,2024-01-11\r\n56,shampoo,10.99,2024-01-12\r\n57,toothpaste,3.99,2024-01-12\r\n58,soap,5.49,2024-01-12\r\n59,detergent,8.79,2024-01-12\r\n60,milk,6.99,2024-01-12\r\n61,bread,7.49,2024-01-13\r\n62,eggs,14.99,2024-01-13\r\n63,butter,8.99,2024-01-13\r\n64,yogurt,4.99,2024-01-13\r\n65,coffee,18.9,2024-01-13\r\n66,apples,7.99,2024-01-14\r\n67,bananas,6.49,2024-01-14\r\n68,oranges,8.99,2024-01-14\r\n69,water,2.99,2024-01-14\r\n70,soda,7.99,2024-01-14\r\n71,chicken_breast,24.9,2024-01-15\r\n72,rice,22.9,2024-01-15\r\n73,beans,9.99,2024-01-15\r\n74,onions,6.99,2024-01-15\r\n75,tomatoes,9.99,2024-01-15\r\n76,pasta,6.49,2024-01-16\r\n77,tomato_sauce,4.29,2024-01-16\r\n78,cheese,19.9,2024-01-16\r\n79,olive_oil,28.9,2024-01-16\r\n80,bread,7.49,2024-01-16\r\n81,cereal,16.9,2024-01-17\r\n82,milk,6.99,2024-01-17\r\n83,cookies,6.99,2024-01-17\r\n84,chocolate,5.49,2024-01-17\r\n85,soap,5.49,2024-01-17\r\n86,orange_juice,9.99,2024-01-18\r\n87,tea,9.49,2024-01-18\r\n88,sugar,7.99,2024-01-18\r\n89,flour,7.29,2024-01-18\r\n90,baking_powder,3.49,2024-01-18\r\n91,ground_beef,29.9,2024-01-19\r\n92,fish_fillet,34.9,2024-01-19\r\n93,lettuce,4.49,2024-01-19\r\n94,potatoes,8.49,2024-01-19\r\n95,carrots,5.99,2024-01-19\r\n96,shampoo,10.99,2024-01-20\r\n97,detergent,8.79,2024-01-20\r\n98,milk,6.99,2024-01-20\r\n99,bread,7.49,2024-01-20\r\n100,eggs,14.99,2024-01-20\n"
+                    }
+                  ]
+                },
+                "response_format": {
+                  "$like": {
+                    "type": "json_schema",
+                    "json_schema": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "intent": {
+                            "type": "string",
+                            "description": "A clean, concise natural-language description of what the user wants to accomplish. Do NOT include any CSV or JSON data in this field."
+                          },
+                          "fileContent": {
+                            "description": "The raw CSV or JSON block embedded in the message, exactly as provided. If there is no file content, set this to null."
+                          },
+                          "fileName": {
+                            "description": "An inferred filename or type for the data (e.g. \"sales\", \"report\"). Derive it from the question."
+                          },
+                          "fileType": {
+                            "type": "string",
+                            "enum": ["csv", "json", "unknown"],
+                            "description": "The inferred file type based on the content or filename. If it looks like CSV, set to \"csv\". If it looks like JSON, set to \"json\". Otherwise, set to \"unknown\"."
+                          }
+                        },
+                        "required": [
+                          "intent",
+                          "fileContent",
+                          "fileName",
+                          "fileType"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "a missing OpenRouter key only prints an assertion on standard error",
+      "env": {
+        "OPENROUTER_API_KEY": ""
+      },
+      "timeout": 60000,
+      "replay": [
+        {
+          "source": "synthesized from the recorded intent answer, with an empty intent, no file content or name, and the unknown file type",
+          "synthesized": true,
+          "method": "POST",
+          "path": "/v1/chat/completions",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "json": {
+            "id": "chatcmpl-209",
+            "object": "chat.completion",
+            "created": 1793094119,
+            "model": "gpt-oss:20b",
+            "system_fingerprint": "fp_ollama",
+            "choices": [
+              {
+                "index": 0,
+                "message": {
+                  "role": "assistant",
+                  "content": "{\"intent\":\"\",\"fileContent\":null,\"fileName\":null,\"fileType\":\"unknown\"}"
+                },
+                "finish_reason": "stop"
+              }
+            ],
+            "usage": {
+              "prompt_tokens": 1756,
+              "prompt_tokens_details": {
+                "cached_tokens": 1751
+              },
+              "completion_tokens": 25,
+              "total_tokens": 1781
+            }
+          }
+        }
+      ],
+      "expect": [
+        {
+          "type": "exit",
+          "code": 0
+        },
+        {
+          "type": "output",
+          "pattern": "^(?![\\s\\S]*Agent node processing)Server is running on http://0\\.0\\.0\\.0:3000\\n🧠 Intent node processing\\.\\.\\.\\n[\\s\\S]*\\n⚠️ Missing intent or fileType in parsed data:[\\s\\S]*\\nResponse from /chat: 200\\nSorry, I had trouble understanding the intent\\. Please rephrase your question or provide more details\\.\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "^Assertion failed: OPENROUTER_API_KEY is not set in environment variables\\n"
+        }
+      ]
+    },
+    {
+      "name": "the entry point reads data/sales-complete.csv after the server starts and fails without it",
+      "files": {
+        "data/sales-complete.csv": null
+      },
+      "timeout": 60000,
+      "expect": [
+        {
+          "type": "exit",
+          "code": 1
+        },
+        {
+          "type": "output",
+          "pattern": "^Server is running on http://0\\.0\\.0\\.0:3000\\n$"
+        },
+        {
+          "type": "output",
+          "stream": "stderr",
+          "pattern": "data/sales-complete\\.csv"
+        }
+      ]
+    }
+  ]
+}
