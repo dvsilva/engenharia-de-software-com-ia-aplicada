@@ -567,3 +567,23 @@ npx -y skills add https://github.com/unipds-engenharia-de-ia-aplicada/engenharia
 
 /windowsfy <caminho do exemplo>
 ```
+
+#### Stackfy
+
+Skill focada em explicar ou transcrever as aulas para a linguagem ou stack de preferência de cada aluno, sem perder o comportamento original dos exemplos.
+
+**Instalação:**
+
+Na raiz do seu clone ou fork deste repositório, com o **Node.js** 22 ou superior instalado na sua máquina:
+
+```sh
+npx -y skills add https://github.com/unipds-engenharia-de-ia-aplicada/engenharia-de-software-com-ia-aplicada --skill stackfy
+```
+
+**Uso:**
+
+```
+/stackfy Explique o exemplo-00-z do módulo 1 com Python
+/stackfy Transcreva o módulo 3 para Rust
+/stackfy Transcreva todas as aulas de Angular para React
+```
